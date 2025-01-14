@@ -1,6 +1,7 @@
 import math
 import os
 import shelve
+from dill import Pickler, Unpickler
 from io import BytesIO
 from random import SystemRandom
 

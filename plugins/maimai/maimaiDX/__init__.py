@@ -3,6 +3,7 @@ import os
 import re
 import shelve
 from datetime import date
+from dill import Pickler, Unpickler
 from pathlib import Path
 from random import SystemRandom
 
