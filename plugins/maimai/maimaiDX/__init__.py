@@ -15,6 +15,7 @@ from util.Data import (
     get_music_data,
     get_alias_list_lxns,
     get_alias_list_ycn,
+    get_alias_list_xray,
 )
 from util.DivingFish import get_player_data, get_player_records
 from .GenB50 import (
@@ -97,6 +98,15 @@ async def find_songid_by_alias(name, song_list):
         for alias in info["aliases"]:
             if name.casefold() == alias.casefold():
                 matched_ids.append(str(info["song_id"]))
+                break
+
+    alias_list = await get_alias_list_xray()
+    for id, info in alias_list.items():
+        if str(id) in matched_ids:
+            continue
+        for alias in info:
+            if name.casefold() == alias.casefold():
+                matched_ids.append(str(id))
                 break
 
     alias_list = await get_alias_list_ycn()
@@ -1680,6 +1690,10 @@ async def _(event: MessageEvent):
     for d in alias_list["aliases"]:
         if d["song_id"] in [int(song_id), int(song_id) / 10]:
             alias |= set(d["aliases"])
+    alias_list = await get_alias_list_xray()
+    for id, d in alias_list:
+        if id in [int(song_id), int(song_id) / 10]:
+            alias |= set(d)
     alias_list = await get_alias_list_ycn()
     for d in alias_list["content"]:
         if d["SongID"] in [int(song_id), int(song_id) / 10]:

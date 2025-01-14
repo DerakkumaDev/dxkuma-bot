@@ -11,7 +11,12 @@ from PIL import Image
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 
-from util.Data import get_alias_list_lxns, get_alias_list_ycn, get_music_data
+from util.Data import (
+    get_alias_list_lxns,
+    get_alias_list_ycn,
+    get_alias_list_xray,
+    get_music_data,
+)
 from .database import openchars
 from .ranking import ranking
 from .utils import generate_message_state, check_music_id, generate_success_state
@@ -47,6 +52,15 @@ async def find_songid_by_alias(name, song_list):
         for alias in info["aliases"]:
             if name.casefold() == alias.casefold():
                 matched_ids.append(str(info["song_id"]))
+                break
+
+    alias_list = await get_alias_list_xray()
+    for id, info in alias_list.items():
+        if str(id) in matched_ids:
+            continue
+        for alias in info:
+            if name.casefold() == alias.casefold():
+                matched_ids.append(str(id))
                 break
 
     alias_list = await get_alias_list_ycn()

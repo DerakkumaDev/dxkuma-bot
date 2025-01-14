@@ -90,3 +90,23 @@ async def get_alias_list_ycn():
                     os.remove(f"{cache_dir}{file}")
     with open(cache_path) as fd:
         return json.loads(fd.read())
+
+
+async def get_alias_list_xray():
+    cache_dir = "./Cache/Data/Alias/Xray/"
+    cache_path = f"{cache_dir}{date.today().isoformat()}.json"
+    async with alias_list_ycn_lock:
+        if not os.path.exists(cache_path):
+            files = os.listdir(cache_dir)
+            async with ClientSession() as session:
+                async with session.get(
+                    "https://download.fanyu.site/maimai/alias.json"
+                ) as resp:
+                    with open(cache_path, "wb") as fd:
+                        async for chunk in resp.content.iter_chunked(1024):
+                            fd.write(chunk)
+            if files:
+                for file in files:
+                    os.remove(f"{cache_dir}{file}")
+    with open(cache_path) as fd:
+        return json.loads(fd.read())
