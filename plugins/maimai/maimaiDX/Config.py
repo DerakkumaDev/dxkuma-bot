@@ -1,13 +1,11 @@
 from pathlib import Path
 
-maimai_src = Path("./src/maimai/")
+maimai_src = Path("./Static/maimai/")
 maimai_Static = maimai_src / "Static"
 maimai_Class = maimai_src / "Class"
 maimai_Dani = maimai_src / "Dani"
 maimai_Frame = maimai_src / "Frame"
-maimai_Plate = maimai_src / "Plate"
 maimai_Rating = maimai_src / "Rating"
-maimai_Jacket = maimai_src / "Jacket"
 maimai_Version = maimai_src / "Version"
 maimai_Plus = maimai_src / "Plus"
 maimai_Level = maimai_src / "Level"

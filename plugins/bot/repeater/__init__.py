@@ -1,7 +1,5 @@
-import re
-
-from nonebot import on_message, Bot
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, ActionFailed
+from nonebot import on_message
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message
 
 from . import config
 
@@ -11,27 +9,25 @@ blacklist = config.blacklist
 
 m = on_message(priority=10, block=False)
 
-last_message = {}
-message_times = {}
+last_message = dict()
+message_times = dict()
 
 
 # 消息预处理
-def message_preprocess(message: str):
-    raw_message = message
-    contained_images = {}
-    images = re.findall(r"\[CQ:image.*?]", message)
-    pattern = r"file=http://gchat.qpic.cn/gchatpic_new/\d+/\d+-\d+-(.*?)/.*?[,\]]"
+def message_preprocess(message: Message):
+    message_str = str(message)
+    contained_images = list()
+    for i in message:
+        if i.type != "image":
+            continue
 
-    for i in images:
-        image_url = re.findall(r"url=(.*?)[,\]]", i)
-        pattern_match = re.findall(pattern, i)
-        if image_url and pattern_match:
-            contained_images.update({i: [image_url[0], pattern_match[0]]})
+        file = i.data["file"]
+        contained_images.append((str(i), file))
 
-    for i, v in contained_images.items():
-        message = message.replace(i, f"[{v[1]}]")
+    for i, v in contained_images:
+        message_str = message_str.replace(i, v)
 
-    return message, raw_message
+    return message_str, message
 
 
 @m.handle()
@@ -39,19 +35,17 @@ async def _(bot: Bot, event: GroupMessageEvent):
     # 检查是否在黑名单中
     if event.raw_message in blacklist:
         return
+
     gid = str(event.group_id)
     if gid in repeater_group or "all" in repeater_group:
         global last_message, message_times
-        message, raw_message = message_preprocess(str(event.message))
-        if last_message.get(gid) != message:
-            message_times[gid] = 1
-        else:
-            message_times[gid] += 1
-        if message_times.get(gid) == config.shortest_times:
-            try:
-                await bot.send_group_msg(
-                    group_id=event.group_id, message=raw_message, auto_escape=False
-                )
-            except ActionFailed:
-                pass
-        last_message[gid] = message
+        message_str, message = message_preprocess(event.get_message())
+        qq = event.get_user_id()
+        if last_message.get(gid) != message_str:
+            message_times[gid] = set()
+
+        message_times[gid].add(hash(qq))
+        if len(message_times.get(gid)) == config.shortest_times:
+            await bot.send_group_msg(group_id=event.group_id, message=message)
+
+        last_message[gid] = message_str

@@ -157,10 +157,17 @@ cython_debug/
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-.idea/
 config.toml
 lagrange/
 data/
 src/
+Static/
+Cache/
 test/
-.DS_Store
+appsettings.toml
+DeviceInfo.json
+DXKumaBot
+Keystore.json
+Storage.db
+Storage-log.db
+dxkuma.toml

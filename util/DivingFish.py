@@ -1,14 +1,14 @@
-import aiohttp
+from aiohttp import ClientSession
 
 from util.Config import config
+
+base_url = "https://www.diving-fish.com/api/maimaidxprober/"
 
 
 async def get_player_data(qq: str):
     payload = {"qq": qq, "b50": True}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-                "https://www.diving-fish.com/api/maimaidxprober/query/player", json=payload
-        ) as resp:
+    async with ClientSession() as session:
+        async with session.post(f"{base_url}query/player", json=payload) as resp:
             if resp.status == 200:
                 obj = await resp.json()
                 return obj, 200
@@ -16,13 +16,13 @@ async def get_player_data(qq: str):
 
 
 async def get_player_records(qq: str):
-    headers = {"Developer-Token": config.dev_token}
+    headers = {"Developer-Token": config.df_token}
     payload = {"qq": qq}
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         async with session.get(
-                "https://www.diving-fish.com/api/maimaidxprober/dev/player/records",
-                headers=headers,
-                params=payload,
+            f"{base_url}dev/player/records",
+            headers=headers,
+            params=payload,
         ) as resp:
             if resp.status == 200:
                 obj = await resp.json()
@@ -30,36 +30,14 @@ async def get_player_records(qq: str):
             return None, resp.status
 
 
-async def get_player_record(qq: str, music_id):
-    headers = {"Developer-Token": config.dev_token}
+async def get_player_record(qq: str, music_id: str | int):
+    headers = {"Developer-Token": config.df_token}
     payload = {"qq": qq, "music_id": music_id}
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         async with session.post(
-                "https://www.diving-fish.com/api/maimaidxprober/dev/player/record",
-                headers=headers,
-                json=payload,
-        ) as resp:
-            if resp.status == 200:
-                obj = await resp.json()
-                return obj, 200
-            return None, resp.status
-
-
-async def get_music_data():
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-                "https://www.diving-fish.com/api/maimaidxprober/music_data"
-        ) as resp:
-            if resp.status == 200:
-                obj = await resp.json()
-                return obj, 200
-            return None, resp.status
-
-
-async def get_chart_stats():
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-                "https://www.diving-fish.com/api/maimaidxprober/chart_stats"
+            f"{base_url}dev/player/record",
+            headers=headers,
+            json=payload,
         ) as resp:
             if resp.status == 200:
                 obj = await resp.json()

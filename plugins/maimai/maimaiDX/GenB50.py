@@ -1,4 +1,5 @@
 import math
+import os
 import shelve
 from io import BytesIO
 from random import SystemRandom
@@ -6,12 +7,11 @@ from random import SystemRandom
 import aiohttp
 from PIL import Image, ImageFont, ImageDraw
 
+from util.Config import config as Config
 from .Config import (
     font_path,
     maimai_Static,
-    maimai_Jacket,
     maimai_Frame,
-    maimai_Plate,
     maimai_Dani,
     maimai_Rating,
     maimai_Level,
@@ -20,11 +20,15 @@ from .Config import (
     maimai_MusicIcon,
     maimai_Rank,
 )
+from ..maiWordle.GLOBAL_CONSTANT import version_df_maps
+
+shelve.Pickler = Pickler
+shelve.Unpickler = Unpickler
 
 random = SystemRandom()
 
 ratings = {
-    "ap+": [1.01, 0],
+    "app": [1.01, 0],
     "sssp": [1.005, 22.4],
     "sss": [1.0, 21.6],
     "ssp": [0.995, 21.1],
@@ -42,9 +46,11 @@ ratings = {
 }
 
 # 字体路径
-ttf_bold_path = font_path / "SourceHanSans-Bold.ttc"
-ttf_heavy_path = font_path / "SourceHanSans-Heavy.ttc"
-ttf_regular_path = font_path / "SourceHanSans-Regular.ttc"
+ttf_black_path = font_path / "rounded-x-mplus-1p-heavy.ttf"
+ttf_bold_path = font_path / "rounded-x-mplus-1p-bold.ttf"
+ttf_regular_path = font_path / "rounded-x-mplus-1p-medium.ttf"
+ttf2_bold_path = font_path / "NotoSansCJKsc-Bold.otf"
+ttf2_regular_path = font_path / "NotoSansCJKsc-Regular.otf"
 
 
 # id查歌
@@ -63,7 +69,7 @@ def resize_image(image, scale):
     height = int(image.height * scale)
 
     # 缩放图像
-    resized_image = image.resize((width, height))
+    resized_image = image.resize((width, height), Image.Resampling.LANCZOS)
 
     return resized_image
 
@@ -162,51 +168,72 @@ def get_min_score(notes: list[int]):
 
 
 def records_filter(
-        records: list,
-        level: str | None = None,
-        is_sun: bool = False,
-        is_lock: bool = False,
-        songList=None,
+    records: list,
+    level: str | None = None,
+    ds: float | None = None,
+    gen: str | None = None,
+    is_sun: bool = False,
+    is_lock: bool = False,
+    songList=None,
 ):
-    filted_records = []
+    filted_records = list()
+    mask_enabled = False
     for record in records:
+        if record["level_label"] == "Utage":
+            continue
         if level and record["level"] != level:
             continue
+        if ds and record["ds"] != ds:
+            continue
+        song_data = find_song_by_id(str(record["song_id"]), songList)
+        if gen and (
+            (song_data["basic_info"]["from"] not in version_df_maps[gen])
+            or (gen != "舞" and record["level_index"] == 4)
+        ):
+            continue
+        min_score = get_min_score(song_data["charts"][record["level_index"]]["notes"])
         if is_sun:
+            if record["dxScore"] == 0:
+                mask_enabled = True
+                continue
             passed = False
             for _, ra_dt in ratings.items():
                 max_acc = ra_dt[0] * 100
-                song_data = find_song_by_id(str(record["song_id"]), songList)
-                min_acc = max_acc - get_min_score(
-                    song_data["charts"][record["level_index"]]["notes"]
-                )
+                min_acc = max_acc - min_score
                 if min_acc <= record["achievements"] < max_acc:
                     passed = True
             if not passed:
                 continue
         if is_lock:
+            if record["dxScore"] == 0:
+                mask_enabled = True
+                continue
             ra_in = ratings[record["rate"]][0]
             min_acc = ra_in * 100
-            song_data = find_song_by_id(str(record["song_id"]), songList)
-            max_acc = min_acc + get_min_score(
-                song_data["charts"][record["level_index"]]["notes"]
-            )
+            max_acc = min_acc + min_score
             if max_acc < record["achievements"] or record["achievements"] < min_acc:
                 continue
         filted_records.append(record)
     filted_records = sorted(
         filted_records, key=lambda x: (x["achievements"], x["ra"]), reverse=True
     )
-    return filted_records
+    return filted_records, mask_enabled
 
 
-def song_list_filter(level: str, songList):
-    filted_song_list = []
+def song_list_filter(
+    songList, level: str | None = None, ds: float | None = None, gen: str | None = None
+):
+    count = 0
     for song in songList:
-        for song_level in song["level"]:
-            if level == song_level:
-                filted_song_list.append(song)
-    return filted_song_list
+        if song["basic_info"]["genre"] == "宴会場":
+            continue
+        if level and level in song["level"]:
+            count += song["level"].count(level)
+        if ds and ds in song["ds"]:
+            count += song["level"].count(level)
+        if gen and song["basic_info"]["from"] in version_df_maps[gen]:
+            count += len(song["level"]) if gen == "舞" else 4
+    return count
 
 
 def get_page_records(records, page):
@@ -236,7 +263,7 @@ def dxscore_proc(dxscore, sum_dxscore):
 def rating_proc(ra: int, rate: str):
     try:
         if ra < 232:
-            return "------"
+            return "-----"
 
         achieve = ratings[rate][0]
         num = ratings[rate][1]
@@ -244,7 +271,7 @@ def rating_proc(ra: int, rate: str):
         result = math.ceil((ra / (achieve * num)) * 10) / 10
 
         if result > 15.0:
-            return "------"
+            return "-----"
 
         return result
     except (KeyError, ZeroDivisionError):
@@ -275,23 +302,35 @@ def compute_ra(ra: int):
     return 11
 
 
-def music_to_part(
-        achievements: float,
-        ds: float,
-        dxScore: int,
-        fc: str,
-        fs: str,
-        level: str,
-        level_index: int,
-        level_label: str,
-        ra: int,
-        rate: str,
-        song_id: str,
-        title: str,
-        type: str,
-        index: int,
-        b_type: str,
-        songList,
+def get_fit_diff(song_id: str, level_index: int, ds: float, charts) -> float:
+    if song_id not in charts["charts"]:
+        return ds
+    level_data = charts["charts"][song_id][level_index]
+    if "fit_diff" not in level_data:
+        return ds
+    fit_diff = level_data["fit_diff"]
+    return fit_diff
+
+
+async def music_to_part(
+    achievements: float,
+    ds: float,
+    dxScore: int,
+    fc: str,
+    fs: str,
+    level: str,
+    level_index: int,
+    level_label: str,
+    ra: int,
+    rate: str,
+    song_id: int,
+    title: str,
+    type: str,
+    index: int,
+    b_type: str,
+    songList,
+    s_ra=-1,
+    preferred=None,
 ):
     color = (255, 255, 255)
     if level_index == 4:
@@ -300,9 +339,18 @@ def music_to_part(
     # 根据难度 底图
     partbase_path = maimai_Static / f"PartBase_{level_label}.png"
     partbase = Image.open(partbase_path)
+    draw = ImageDraw.Draw(partbase)
 
     # 歌曲封面
-    jacket_path = maimai_Jacket / f"UI_Jacket_{format_songid(song_id)}.png"
+    jacket_path = f"./Cache/Jacket/{song_id % 10000}.png"
+    if not os.path.exists(jacket_path):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://assets2.lxns.net/maimai/jacket/{song_id % 10000}.png"
+            ) as resp:
+                with open(jacket_path, "wb") as fd:
+                    async for chunk in resp.content.iter_chunked(1024):
+                        fd.write(chunk)
     jacket = Image.open(jacket_path)
     jacket = resize_image(jacket, 0.56)
     partbase.paste(jacket, (36, 41), jacket)
@@ -310,16 +358,15 @@ def music_to_part(
     # 歌曲分类 DX / SD
     icon_path = maimai_MusicType / f"{type}.png"
     icon = Image.open(icon_path)
-    icon = resize_image(icon, 1.39)
+    icon = resize_image(icon, 0.82)
     partbase.paste(icon, (797, 16), icon)
 
     # 歌名
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
-    text_position = (306, 14)
-    draw = ImageDraw.Draw(partbase)
+    text_position = (302, 10)
     text_bbox = draw.textbbox(text_position, title, font=ttf)
     max_width = 750
-    ellipsis = "..."
+    ellipsis = "…"
 
     # 检查文本的宽度是否超过最大宽度
     if text_bbox[2] <= max_width:
@@ -330,56 +377,110 @@ def music_to_part(
         truncated_title = title
         while text_bbox[2] > max_width and len(truncated_title) > 0:
             truncated_title = truncated_title[:-1]
+            truncated_title.strip()
             text_bbox = draw.textbbox(
                 text_position, truncated_title + ellipsis, font=ttf
             )
         draw.text(text_position, truncated_title + ellipsis, font=ttf, fill=color)
 
     # 达成率
-    ttf = ImageFont.truetype(ttf_heavy_path, size=73)
-    draw = ImageDraw.Draw(partbase)
+    ttf = ImageFont.truetype(ttf_bold_path, size=76)
     if "." not in str(achievements):
         achievements = f"{achievements}.0"
     achievements = f"{achievements}".split(".")
-    achievements1 = f"{achievements[0]}.        %"
-    achievements2 = (str(achievements[1]).ljust(4, "0"))[:4]
-    text_position = (375, 68)
+    achievements1 = f"{achievements[0]}."
+    achievements2 = achievements[1].ljust(4, "0")[:4]
+    text_position = (375, 155)
     text_content = f"{achievements1}"
-    draw.text(text_position, text_content, font=ttf, fill=color)
-    ttf = ImageFont.truetype(ttf_heavy_path, size=55)
-    draw = ImageDraw.Draw(partbase)
-    match len(achievements[0]):
-        case 3:
-            text_position = (532, 88)
-        case 2:
-            text_position = (488, 88)
-        case 1:
-            text_position = (444, 88)
+    draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
+    text_position = (text_position[0] + ttf.getlength(text_content), 155)
+    ttf = ImageFont.truetype(ttf_bold_path, size=54)
     text_content = f"{achievements2}"
-    draw.text(text_position, text_content, font=ttf, fill=color)
+    draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
+    text_position = (text_position[0] + ttf.getlength(text_content), 155)
+    ttf = ImageFont.truetype(ttf_bold_path, size=65)
+    text_content = "%"
+    draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
 
     # 一些信息
-    ttf = ImageFont.truetype(ttf_bold_path, size=30)
     # best序号
-    ImageDraw.Draw(partbase).text(
-        (308, 238), f"#{index}", font=ttf, fill=(255, 255, 255)
+    ttf1 = ImageFont.truetype(ttf_bold_path, size=24)
+    text_position = (336, 270)
+    text_content1 = "#"
+    text_len = ttf1.getlength(text_content1)
+    ttf2 = ImageFont.truetype(ttf_bold_path, size=30)
+    text_content2 = f"{index}"
+    xdiff = (text_len + ttf2.getlength(text_content2)) / 2
+    text_position = (text_position[0] - int(xdiff), 270)
+    draw.text(
+        text_position, text_content1, font=ttf1, fill=(255, 255, 255), anchor="ls"
+    )
+    text_position = (text_position[0] + int(text_len), 270)
+    draw.text(
+        text_position, text_content2, font=ttf2, fill=(255, 255, 255), anchor="ls"
     )
     # 乐曲ID
-    ImageDraw.Draw(partbase).text(
-        (388, 238), f"ID:{song_id}", font=ttf, fill=(28, 43, 120)
-    )
+    ttf = ImageFont.truetype(ttf_bold_path, size=24)
+    text_position = (388, 270)
+    text_content = "ID:"
+    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="ls")
+    text_position = (text_position[0] + ttf.getlength(text_content), 270)
+    ttf = ImageFont.truetype(ttf_bold_path, size=30)
+    text_content = f"{song_id}"
+    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="ls")
     # 定数和ra
-    if b_type == "fit50" and ((ds * 10) % 1) == 0:
-        ds_str = f"{ds}0"
+    if b_type == "fit50":
+        if ((ds * 10) % 1) == 0:
+            ds_str = f"{ds}0"
+        else:
+            ds_str = str(ds)
+        ttf = ImageFont.truetype(ttf_bold_path, size=24)
+        diff = round(ds - s_ra, 2)
+        ImageDraw.Draw(partbase).text(
+            (376, 172),
+            f"{"+" if diff > 0 else "±" if diff == 0 else ""}{diff}",
+            font=ttf,
+            fill=color,
+            anchor="lm",
+        )
     else:
         ds_str = str(ds)
-    ImageDraw.Draw(partbase).text((375, 174), f"{ds_str} -> {ra}", font=ttf, fill=color)
+    ttf = ImageFont.truetype(ttf_bold_path, size=34)
+    ds_str = f"{ds_str}".split(".")
+    text_position = (376, 215)
+    text_content = f"{ds_str[0]}."
+    draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
+    text_position = (text_position[0] + ttf.getlength(text_content), 215)
+    ttf = ImageFont.truetype(ttf_bold_path, size=28)
+    text_content = f"{ds_str[1]}"
+    draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
+
+    ttf = ImageFont.truetype(ttf_bold_path, size=34)
+    ImageDraw.Draw(partbase).text(
+        (550, 202), str(ra), font=ttf, fill=color, anchor="rm"
+    )
+    if b_type in ("cf50", "fd50"):
+        ttf = ImageFont.truetype(ttf_bold_path, size=20)
+        diff = ra - s_ra
+        ImageDraw.Draw(partbase).text(
+            (550, 172),
+            f"{"+" if diff > 0 else "±" if diff == 0 else ""}{diff}",
+            font=ttf,
+            fill=color,
+            anchor="rm",
+        )
     # dx分数和星星
+    ttf = ImageFont.truetype(ttf_bold_path, size=24)
+    text_position = (730, 270)
     song_data = [d for d in songList if d["id"] == str(song_id)][0]
     sum_dxscore = sum(song_data["charts"][level_index]["notes"]) * 3
-    ImageDraw.Draw(partbase).text(
-        (568, 236), f"{dxScore}/{sum_dxscore}", font=ttf, fill=(28, 43, 120)
-    )
+    text_content = f"{sum_dxscore}"
+    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs")
+    text_position = (text_position[0] - ttf.getlength(text_content), 270)
+    ttf = ImageFont.truetype(ttf_bold_path, size=30)
+    text_content = f"{dxScore}/"
+    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs")
+
     star_level, stars = dxscore_proc(dxScore, sum_dxscore)
     if star_level:
         star_width = 30
@@ -408,11 +509,11 @@ def music_to_part(
         fs = resize_image(fs, 76 / 61)
         partbase.paste(fs, (875, 191), fs)
 
-    partbase = partbase.resize((340, 110))
+    partbase = partbase.resize((340, 110), Image.Resampling.LANCZOS)
     return partbase
 
 
-def draw_best(bests: list, type: str, songList):
+async def draw_best(bests: list, type: str, songList):
     index = 0
     # 计算列数
     queue_nums = int(len(bests) / 4) + 1
@@ -442,7 +543,7 @@ def draw_best(bests: list, type: str, songList):
                 # 根据索引从列表中抽取数据
                 song_data = bests[index]
                 # 传入数据生成图片
-                part = music_to_part(
+                part = await music_to_part(
                     **song_data, index=index + 1, b_type=type, songList=songList
                 )
                 # 将图片粘贴到底图上
@@ -519,9 +620,9 @@ def rating_tj(b35max, b35min, b15max, b15min):
 
 
 async def generateb50(
-        b35: list, b15: list, nickname: str, qq, dani: int, type: str, songList
+    b35: list, b15: list, nickname: str, qq, dani: int, type: str, songList
 ):
-    with shelve.open("./data/maimai/b50_config") as config:
+    with shelve.open("./data/user_config.db") as config:
         if qq not in config:
             frame = "200502"
             plate = "000101"
@@ -554,10 +655,18 @@ async def generateb50(
     frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
     frame = Image.open(frame_path)
     frame = resize_image(frame, 0.95)
-    b50.paste(frame, (45, 45))
+    b50.paste(frame, (48, 45))
 
     # 牌子
-    plate_path = maimai_Plate / f"UI_Plate_{plate}.png"
+    plate_path = f"./Cache/Plate/{plate}.png"
+    if not os.path.exists(plate_path):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://assets2.lxns.net/maimai/plate/{plate.lstrip("0")}.png"
+            ) as resp:
+                with open(plate_path, "wb") as fd:
+                    async for chunk in resp.content.iter_chunked(1024):
+                        fd.write(chunk)
     plate = Image.open(plate_path)
     b50.paste(plate, (60, 60), plate)
 
@@ -569,10 +678,10 @@ async def generateb50(
     # 头像
     async with aiohttp.ClientSession() as session:
         async with session.get(
-                f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
         ) as resp:
             icon = await resp.read()
-    icon = Image.open(BytesIO(icon)).resize((88, 88))
+    icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
     b50.paste(icon, (73, 75))
 
     # 姓名框
@@ -605,11 +714,21 @@ async def generateb50(
 
     # rating数字
     rating_str = str(rating).zfill(5)
-    num1 = Image.open(f"./src/maimai/number/{rating_str[0]}.png").resize((18, 21))
-    num2 = Image.open(f"./src/maimai/number/{rating_str[1]}.png").resize((18, 21))
-    num3 = Image.open(f"./src/maimai/number/{rating_str[2]}.png").resize((18, 21))
-    num4 = Image.open(f"./src/maimai/number/{rating_str[3]}.png").resize((18, 21))
-    num5 = Image.open(f"./src/maimai/number/{rating_str[4]}.png").resize((18, 21))
+    num1 = Image.open(f"./Static/maimai/number/{rating_str[0]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
+    num2 = Image.open(f"./Static/maimai/number/{rating_str[1]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
+    num3 = Image.open(f"./Static/maimai/number/{rating_str[2]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
+    num4 = Image.open(f"./Static/maimai/number/{rating_str[3]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
+    num5 = Image.open(f"./Static/maimai/number/{rating_str[4]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
 
     b50.paste(num1, (253, 77), num1)
     b50.paste(num2, (267, 77), num2)
@@ -618,27 +737,61 @@ async def generateb50(
     b50.paste(num5, (308, 77), num5)
 
     # 名字
-    ttf = ImageFont.truetype(ttf_regular_path, size=24)
+    ttf = ImageFont.truetype(ttf2_regular_path, size=24)
     ImageDraw.Draw(b50).text((186, 108), nickname, font=ttf, fill=(0, 0, 0))
 
     # rating合计
-    ttf = ImageFont.truetype(ttf_bold_path, size=14)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=14)
     ImageDraw.Draw(b50).text(
         (334, 154),
-        f"过往版本：{b35_ra} | 现行版本：{b15_ra}",
+        (
+            f"Best35：{b35_ra} | Best15：{b15_ra}"
+            if type == "all50"
+            else f"历史版本：{b35_ra} | 现行版本：{b15_ra}"
+        ),
         font=ttf,
         fill=(255, 255, 255),
         anchor="mm",
     )
 
+    # 类型
+    type_names = {
+        "fit50": "Best 拟合难度 50",
+        "dxs50": "Best DX分达成率 50（准度b50）",
+        "star50": "Best 50（按DX分筛选）",
+        "rate50": "Best 50（按评级筛选）",
+        "ap50": "全完美 Best 50",
+        "fc50": "全连 Best 50",
+        "cf50": "对比 Best 50",
+        "fd50": "Best 拟合—定数差 50（含金量b50）",
+        "all50": "全成绩 Best 50",
+    }
+    type_name = type_names[type] if type in type_names else "Best 50"
+    ttf = ImageFont.truetype(ttf2_bold_path, size=32)
+    ImageDraw.Draw(b50).text(
+        (720, 740), type_name, font=ttf, fill=(138, 49, 6), anchor="mm"
+    )
+
     # b50
-    b35 = draw_best(b35, type, songList)
-    b15 = draw_best(b15, type, songList)
+    b35 = await draw_best(b35, type, songList)
+    b15 = await draw_best(b15, type, songList)
     b50.paste(b35, (25, 795), b35)
     b50.paste(b15, (25, 1985), b15)
 
+    overlay = Image.new("RGBA", b50.size, (0, 0, 0, 0))
+    overlay_draw = ImageDraw.Draw(overlay)
+    ttf = ImageFont.truetype(ttf_regular_path, size=16)
+    overlay_draw.text(
+        (overlay.width - 16, overlay.height - 16),
+        font=ttf,
+        text=f"ver.{Config.version[0]}.{Config.version[1]}{Config.version[2]}",
+        fill=(255, 255, 255, 80),
+        anchor="rb",
+    )
+    b50 = Image.alpha_composite(b50, overlay)
+
     img_byte_arr = BytesIO()
-    b50.save(img_byte_arr, format="PNG", quality=90)
+    b50.save(img_byte_arr, format="PNG", optimize=True)
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
 
@@ -646,41 +799,51 @@ async def generateb50(
 
 
 async def generate_wcb(
-        qq: str,
-        page: int,
-        nickname: str,
-        dani: int,
-        rating: int,
-        input_records,
-        all_page_num,
-        songList,
-        level: str | None = None,
-        rate_count=None,
+    qq: str,
+    page: int,
+    nickname: str,
+    dani: int,
+    rating: int,
+    input_records,
+    all_page_num,
+    songList,
+    level: str | None = None,
+    ds: float | None = None,
+    gen: str | None = None,
+    rate_count=None,
 ):
-    with shelve.open("./data/maimai/b50_config") as config:
+    with shelve.open("./data/user_config.db") as config:
         if qq not in config or "plate" not in config[qq]:
             plate = "000101"
         else:
             plate = config[qq]["plate"]
-        if not level:
+        if not level and not ds and not gen:
             if qq not in config or "frame" not in config[qq]:
                 frame = "200502"
             else:
                 frame = config[qq]["frame"]
 
-    bg = Image.open("./src/maimai/wcb_bg.png")
+    bg = Image.open("./Static/maimai/wcb_bg.png")
 
     # 底板
-    if level:
-        frame_path = "./src/maimai/wcb_frame.png"
+    if level or ds or gen:
+        frame_path = "./Static/maimai/wcb_frame.png"
     else:
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
     frame = Image.open(frame_path)
     frame = resize_image(frame, 0.95)
-    bg.paste(frame, (45, 45))
+    bg.paste(frame, (48, 45))
 
     # 牌子
-    plate_path = maimai_Plate / f"UI_Plate_{plate}.png"
+    plate_path = f"./Cache/Plate/{plate}.png"
+    if not os.path.exists(plate_path):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://assets2.lxns.net/maimai/plate/{plate.lstrip("0")}.png"
+            ) as resp:
+                with open(plate_path, "wb") as fd:
+                    async for chunk in resp.content.iter_chunked(1024):
+                        fd.write(chunk)
     plate = Image.open(plate_path)
     bg.paste(plate, (60, 60), plate)
 
@@ -692,10 +855,10 @@ async def generate_wcb(
     # 头像
     async with aiohttp.ClientSession() as session:
         async with session.get(
-                f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
         ) as resp:
             icon = await resp.read()
-    icon = Image.open(BytesIO(icon)).resize((88, 88))
+    icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
     bg.paste(icon, (73, 75))
 
     # 姓名框
@@ -718,11 +881,21 @@ async def generate_wcb(
 
     # rating数字
     rating_str = str(rating).zfill(5)
-    num1 = Image.open(f"./src/maimai/number/{rating_str[0]}.png").resize((18, 21))
-    num2 = Image.open(f"./src/maimai/number/{rating_str[1]}.png").resize((18, 21))
-    num3 = Image.open(f"./src/maimai/number/{rating_str[2]}.png").resize((18, 21))
-    num4 = Image.open(f"./src/maimai/number/{rating_str[3]}.png").resize((18, 21))
-    num5 = Image.open(f"./src/maimai/number/{rating_str[4]}.png").resize((18, 21))
+    num1 = Image.open(f"./Static/maimai/number/{rating_str[0]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
+    num2 = Image.open(f"./Static/maimai/number/{rating_str[1]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
+    num3 = Image.open(f"./Static/maimai/number/{rating_str[2]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
+    num4 = Image.open(f"./Static/maimai/number/{rating_str[3]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
+    num5 = Image.open(f"./Static/maimai/number/{rating_str[4]}.png").resize(
+        (18, 21), Image.Resampling.LANCZOS
+    )
 
     bg.paste(num1, (253, 77), num1)
     bg.paste(num2, (267, 77), num2)
@@ -731,7 +904,7 @@ async def generate_wcb(
     bg.paste(num5, (308, 77), num5)
 
     # 名字
-    ttf = ImageFont.truetype(ttf_regular_path, size=24)
+    ttf = ImageFont.truetype(ttf2_regular_path, size=24)
     ImageDraw.Draw(bg).text((186, 108), nickname, font=ttf, fill=(0, 0, 0))
 
     if level:
@@ -741,8 +914,9 @@ async def generate_wcb(
         level_icon = resize_image(level_icon, 0.70)
         bg.paste(level_icon, (755 - (len(level) * 8), 45), level_icon)
 
+    if level or ds or gen:
         # 绘制各达成数目
-        all_count = len(song_list_filter(level, songList))
+        all_count = song_list_filter(songList, level, ds, gen)
         ttf = ImageFont.truetype(font=ttf_bold_path, size=20)
         rate_list = ["sssp", "sss", "ssp", "ss", "sp", "s", "clear"]
         fcfs_list = ["app", "ap", "fcp", "fc", "fsdp", "fsd", "fsp", "fs"]
@@ -756,7 +930,7 @@ async def generate_wcb(
                 (rate_x, rate_y),
                 f"{rate_num}/{all_count}",
                 font=ttf,
-                fill=(255, 255, 255),
+                fill=(255, 255, 100) if rate_num == all_count else (255, 255, 255),
                 anchor="mm",
             )
             rate_x += 118
@@ -766,24 +940,36 @@ async def generate_wcb(
                 (fcfs_x, fcfs_y),
                 f"{fcfs_num}/{all_count}",
                 font=ttf,
-                fill=(255, 255, 255),
+                fill=(255, 255, 100) if fcfs_num == all_count else (255, 255, 255),
                 anchor="mm",
             )
             fcfs_x += 102
 
     # 页码
     page_text = f"{page} / {all_page_num}"
-    ttf = ImageFont.truetype(font=ttf_heavy_path, size=70)
+    ttf = ImageFont.truetype(font=ttf_black_path, size=70)
     ImageDraw.Draw(bg).text(
         (260, 850), page_text, font=ttf, fill=(255, 255, 255), anchor="mm"
     )
 
     # 绘制当前页面的成绩
-    records_parts = draw_best(input_records, type="wcb", songList=songList)
+    records_parts = await draw_best(input_records, type="wcb", songList=songList)
     bg.paste(records_parts, (25, 795), records_parts)
 
+    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+    overlay_draw = ImageDraw.Draw(overlay)
+    ttf = ImageFont.truetype(ttf_regular_path, size=16)
+    overlay_draw.text(
+        (overlay.width - 16, overlay.height - 16),
+        font=ttf,
+        text=f"ver.{Config.version[0]}.{Config.version[1]}{Config.version[2]}",
+        fill=(255, 255, 255, 80),
+        anchor="rb",
+    )
+    bg = Image.alpha_composite(bg, overlay)
+
     img_byte_arr = BytesIO()
-    bg.save(img_byte_arr, format="PNG", quality=90)
+    bg.save(img_byte_arr, format="PNG", optimize=True)
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
 
