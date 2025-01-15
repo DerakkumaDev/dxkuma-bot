@@ -57,7 +57,7 @@ locklist = on_regex(r"^dlx(suo|锁|🔒)( *\d+?)?$", re.I)
 songinfo = on_regex(r"^id *\d+$", re.I)
 playinfo = on_regex(r"^info *.+$", re.I)
 scoreinfo = on_regex(r"^(score|分数表) *(绿|黄|红|紫|白) *\d+$", re.I)
-# playmp3 = on_regex(r"^mai点歌 *.+$", re.I)
+playaudio = on_regex(r"^dlx点歌 *.+$", re.I)
 randomsong = on_regex(r"^随(歌|个|首|张) *(绿|黄|红|紫|白)? *\d+(\.\d|\+)?$")
 maiwhat = on_regex(r"^mai什么$", re.I)
 
@@ -1500,68 +1500,65 @@ async def _(event: MessageEvent):
     await scoreinfo.send((MessageSegment.reply(event.message_id), msg))
 
 
-# @playmp3.handle()
-# async def _(event: GroupMessageEvent):
-#     msg = event.get_plaintext()
-#     song = msg.replace("dlx点歌", "").strip()
-#     if not song:
-#         await playmp3.finish(
-#             (
-#                 MessageSegment.reply(event.message_id),
-#                 MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-#             )
-#         )
-#     songList = await get_music_data()
-#     rep_ids = await find_songid_by_alias(song, songList)
-#     if rep_ids:
-#         songinfo = find_song_by_id(song_id=rep_ids[0], songList=songList)
-#         if not songinfo:
-#             await playmp3.finish(
-#                 (
-#                     MessageSegment.reply(event.message_id),
-#                     MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-#                 )
-#             )
-#         songname = songinfo["title"]
-#         await playmp3.send(
-#             MessageSegment.text(f"迪拉熊找到啦~\n开始播放{songinfo["id"]}——{songname}")
-#         )
-#         music_path = f"./Cache/Music/{rep_ids[0][-4:].lstrip("0")}.mp3"
-#         if not os.path.exists(music_path):
-#             async with aiohttp.ClientSession() as session:
-#                 async with session.get(
-#                     f"https://assets2.lxns.net/maimai/music/{rep_ids[0][-4:].lstrip("0")}.mp3"
-#                 ) as resp:
-#                     with open(music_path, "wb") as fd:
-#                         async for chunk in resp.content.iter_chunked(1024):
-#                             fd.write(chunk)
-#         await playmp3.send(MessageSegment.record(music_path))
-#     else:
-#         songinfo = find_song_by_id(song, songList)
-#         if songinfo:
-#             songname = songinfo["title"]
-#             await playmp3.send(
-#                 MessageSegment.text(
-#                     f"迪拉熊找到啦~\n开始播放{songinfo["id"]}——{songname}"
-#                 )
-#             )
-#             music_path = f"./Cache/Music/{song[-4:].lstrip("0")}.mp3"
-#             if not os.path.exists(music_path):
-#                 async with aiohttp.ClientSession() as session:
-#                     async with session.get(
-#                         f"https://assets2.lxns.net/maimai/music/{song[-4:].lstrip("0")}.mp3"
-#                     ) as resp:
-#                         with open(music_path, "wb") as fd:
-#                             async for chunk in resp.content.iter_chunked(1024):
-#                                 fd.write(chunk)
-#             await playmp3.send(MessageSegment.record(music_path))
-#         else:
-#             await playmp3.send(
-#                 (
-#                     MessageSegment.reply(event.message_id),
-#                     MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-#                 )
-#             )
+@playaudio.handle()
+async def _(event: MessageEvent):
+    msg = event.get_plaintext()
+    match = re.fullmatch(r"dlx点歌 *(.+)", msg, re.I)
+    if not match:
+        return
+
+    songList = await get_music_data()
+    song = match.group(1)
+    rep_ids = await find_songid_by_alias(song, songList)
+    if rep_ids:
+        songinfo = find_song_by_id(song_id=rep_ids[0], songList=songList)
+        if not songinfo:
+            await playaudio.finish(
+                (
+                    MessageSegment.reply(event.message_id),
+                    MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+                )
+            )
+        songname = songinfo["title"]
+        await playaudio.send(
+            MessageSegment.text(f"迪拉熊找到啦~\n开始播放{songinfo["id"]}. {songname}")
+        )
+        music_path = f"./Cache/Music/{rep_ids[0][-4:].lstrip("0")}.mp3"
+        if not os.path.exists(music_path):
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"https://assets2.lxns.net/maimai/music/{rep_ids[0][-4:].lstrip("0")}.mp3"
+                ) as resp:
+                    with open(music_path, "wb") as fd:
+                        async for chunk in resp.content.iter_chunked(1024):
+                            fd.write(chunk)
+        await playaudio.send(MessageSegment.record(music_path))
+    else:
+        songinfo = find_song_by_id(song, songList)
+        if songinfo:
+            songname = songinfo["title"]
+            await playaudio.send(
+                MessageSegment.text(
+                    f"迪拉熊找到啦~\n开始播放{songinfo["id"]}. {songname}"
+                )
+            )
+            music_path = f"./Cache/Music/{song[-4:].lstrip("0")}.mp3"
+            if not os.path.exists(music_path):
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        f"https://assets2.lxns.net/maimai/music/{song[-4:].lstrip("0")}.mp3"
+                    ) as resp:
+                        with open(music_path, "wb") as fd:
+                            async for chunk in resp.content.iter_chunked(1024):
+                                fd.write(chunk)
+            await playaudio.send(MessageSegment.record(music_path))
+        else:
+            await playaudio.send(
+                (
+                    MessageSegment.reply(event.message_id),
+                    MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+                )
+            )
 
 
 @randomsong.handle()
