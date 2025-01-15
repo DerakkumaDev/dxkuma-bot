@@ -31,6 +31,7 @@ all_message_handle = on_message(priority=18, block=False)
 pass_game = on_fullmatch("结束猜歌", priority=20)
 info_tip = on_regex(r"^(提示|提醒|信息) *[1-5]?$")
 pic_tip = on_regex(r"^(封面|曲绘|图片?) *[1-5]?$")
+aud_tip = on_regex(r"^(音乐|(乐|歌)曲|片段) *[1-5]?$")
 rank = on_regex(r"^(迪拉熊|dlx)猜歌(排行榜?|榜)$", re.I)
 rank_i = on_regex(r"^(迪拉熊|dlx)猜歌(个人)?排名$", re.I)
 
@@ -86,7 +87,7 @@ async def _(event: GroupMessageEvent):
     async with lock:
         game_data = await openchars.start(group_id)
         await start_open_chars.send(
-            "本轮开字母游戏要开始了哟~\r\n□：字母或数字\r\n○：假名或汉字\r\n☆：符号\r\n\r\n发送“开+文字”开出字母\r\n发送“提示（+行号）”获取提示（每首5次机会）\r\n发送“封面（+行号）”获取部分封面（每首2次机会）\r\n发送“结束猜歌”结束\r\n发送别名或ID即可尝试猜歌"
+            "本轮开字母游戏要开始了哟~\r\n□：字母或数字\r\n○：假名或汉字\r\n☆：符号\r\n\r\n发送“开+文字”开出字母\r\n发送“提示（+行号）”获取提示（每首5次机会）\r\n发送“封面（+行号）”获取部分封面（每首2次机会）\r\n发送“乐曲（+行号）”获取1秒歌曲片段（每首1次机会）\r\n发送“结束猜歌”结束\r\n发送别名或ID即可尝试猜歌"
         )
         is_game_over, game_state, char_all_open, game_data = (
             await generate_message_state(game_data, user_id)
@@ -303,13 +304,13 @@ async def _(event: GroupMessageEvent):
                 if not d["is_correct"] and d["pic_times"] < 2
             ]
             if not game_contents:
-                await info_tip.send(f"所有歌曲的封面提示次数都已经用完了mai~")
+                await pic_tip.send(f"所有歌曲的封面提示次数都已经用完了mai~")
                 return
 
             data = random.choice(game_contents)
 
         if data["is_correct"]:
-            await info_tip.send(f"第{data["index"]}行的歌曲已经猜对了mai~")
+            await pic_tip.send(f"第{data["index"]}行的歌曲已经猜对了mai~")
             return
 
         if data["pic_times"] >= 2:

@@ -16,12 +16,14 @@ class Ranking(object):
         oc_times: int,
         it_times: int,
         pt_times: int,
+        ad_times: int,
         is_guesser: bool,
     ):
         obj = {
             "oc_times": oc_times,
             "it_times": it_times,
             "pt_times": pt_times,
+            "ad_times": ad_times,
             "is_guesser": is_guesser,
         }
         with shelve.open(self.data_path) as data:
@@ -60,7 +62,12 @@ class Ranking(object):
         return (0.0, 0)
 
     def _compute_score(
-        self, oc_times: int, it_times: int, pt_times: int, is_guesser: bool
+        self,
+        oc_times: int = 1,
+        it_times: int = 0,
+        pt_times: int = 0,
+        ad_times: int = 0,
+        is_guesser: bool = False,
     ):
         score = 1.01
         if oc_times <= 0:
@@ -68,6 +75,8 @@ class Ranking(object):
 
         if pt_times > 0:
             score *= 0.991**pt_times
+        elif ad_times > 0:
+            score *= 0.993**ad_times
         elif it_times > 0:
             score *= 0.995**it_times
 

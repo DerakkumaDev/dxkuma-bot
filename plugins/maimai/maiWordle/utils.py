@@ -32,6 +32,7 @@ async def generate_game_data():
                 "is_correct": False,
                 "tips": list(),
                 "pic_times": 0,
+                "aud_times": 0,
                 "part": list(),
             }
         )
@@ -85,6 +86,7 @@ async def generate_message_state(game_data, user_id):
                 len(game_content["part"]),
                 len(game_content["tips"]),
                 game_content["pic_times"],
+                game_content["aud_times"],
                 True,
             )
             for player in game_content["part"]:
@@ -95,6 +97,7 @@ async def generate_message_state(game_data, user_id):
                     len(game_content["part"]),
                     len(game_content["tips"]),
                     game_content["pic_times"],
+                    game_content["aud_times"],
                     False,
                 )
 
@@ -131,6 +134,7 @@ async def check_music_id(game_data, music_ids: list, user_id):
                     len(game_content["part"]),
                     len(game_content["tips"]),
                     game_content["pic_times"],
+                    game_content["aud_times"],
                     True,
                 )
                 for player in game_content["part"]:
@@ -141,6 +145,7 @@ async def check_music_id(game_data, music_ids: list, user_id):
                         len(game_content["part"]),
                         len(game_content["tips"]),
                         game_content["pic_times"],
+                        game_content["aud_times"],
                         False,
                     )
 
