@@ -90,10 +90,12 @@ async def _(bot: Bot, event: GroupMessageEvent):
     if re.search(r"(涩|色|瑟)图|st", msg, re.I):
         type = "nsfw"
         path = PICPATH_NSFW
-    if (
-        type == "nsfw" and bot.self_id not in config.allowed_accounts
-    ):  # type 为 'nsfw' 且非指定机器人
-        raise NotAllowedException
+    if type == "nsfw":
+        if os.path.exists("./data/nsfw_lock"):
+            await rand_pic.send("该功能暂时关闭，请稍后再试mai~")
+            return
+        if bot.self_id not in config.allowed_accounts:  # type 为 'nsfw' 且非指定机器人
+            raise NotAllowedException
     elif group_id == config.special_group:  # 不被限制的 group_id
         pass
     else:

@@ -23,6 +23,8 @@ class Config:
         self.allowed_accounts = None
         # diving_fish
         self.df_token = None
+        # admin
+        self.admin_accounts = None
 
         # 解析配置文件
         self.read_config()
@@ -38,6 +40,7 @@ class Config:
         self.special_group = data["group"]["special"]
         self.allowed_accounts = data["nsfw"]["allowed_accounts"]
         self.df_token = data["diving_fish"]["token"]
+        self.admin_accounts = data["admin"]["accounts"]
 
 
 config = Config()

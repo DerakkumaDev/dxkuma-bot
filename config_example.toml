@@ -22,3 +22,6 @@ allowed_accounts = []
 
 [diving_fish]
 token = ""
+
+[admin]
+accounts = []
