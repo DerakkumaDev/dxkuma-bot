@@ -103,8 +103,11 @@ async def _(event: GroupMessageEvent):
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()
-    char = re.fullmatch(r"开 *(.+)", msg).group(1)
+    match = re.fullmatch(r"开 *(.+)", msg)
+    if not match:
+        return
 
+    char = match.group(1)
     async with lock:
         not_opened, game_data = await openchars.open_char(group_id, char, user_id)
         if not_opened is None:

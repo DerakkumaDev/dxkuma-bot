@@ -1,11 +1,11 @@
 import math
 import os
 import shelve
-from dill import Pickler, Unpickler
 from io import BytesIO
 from random import SystemRandom
 
 import aiohttp
+from dill import Pickler, Unpickler
 from PIL import Image, ImageFont, ImageDraw
 
 from util.Config import config as Config

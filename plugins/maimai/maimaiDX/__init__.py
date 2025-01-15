@@ -3,11 +3,11 @@ import os
 import re
 import shelve
 from datetime import date
-from dill import Pickler, Unpickler
 from pathlib import Path
 from random import SystemRandom
 
 import aiohttp
+from dill import Pickler, Unpickler
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment
 
@@ -1399,6 +1399,9 @@ async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
     match = re.fullmatch(r"info *(.+)", msg, re.I)
+    if not match:
+        return
+
     song = match.group(1)
     if not song:
         await playinfo.finish(
@@ -1615,69 +1618,71 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
     match = re.fullmatch(r"(?:search|查歌) *(.+)|(.+)是什么歌", msg, re.I)
-    if match:
-        if match.group(1):
-            name = match.group(1)
-        elif match.group(2):
-            name = match.group(2)
-        else:
-            await whatSong.finish(
-                (
-                    MessageSegment.reply(event.message_id),
-                    MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-                )
-            )
+    if not match:
+        return
 
-        songList = await get_music_data()
-        rep_ids = await find_songid_by_alias(name, songList)
-        if not rep_ids:
-            msg = (
+    if match.group(1):
+        name = match.group(1)
+    elif match.group(2):
+        name = match.group(2)
+    else:
+        await whatSong.finish(
+            (
                 MessageSegment.reply(event.message_id),
                 MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
             )
-        for song_id in rep_ids.copy():
-            song_info = find_song_by_id(song_id, songList)
-            if not song_info:
-                rep_ids.remove(song_id)
+        )
+
+    songList = await get_music_data()
+    rep_ids = await find_songid_by_alias(name, songList)
+    if not rep_ids:
+        msg = (
+            MessageSegment.reply(event.message_id),
+            MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+        )
+    for song_id in rep_ids.copy():
+        song_info = find_song_by_id(song_id, songList)
+        if not song_info:
+            rep_ids.remove(song_id)
+            continue
+        song_id_len = len(song_id)
+        if song_id_len < 5:
+            other_id = f"1{int(song_id):04d}"
+            if other_id in rep_ids:
                 continue
-            song_id_len = len(song_id)
-            if song_id_len < 5:
-                other_id = f"1{int(song_id):04d}"
-                if other_id in rep_ids:
-                    continue
-                other_info = find_song_by_id(other_id, songList)
-                if other_info:
-                    rep_ids.append(other_id)
-        if not rep_ids:
-            await whatSong.finish(
-                (
-                    MessageSegment.reply(event.message_id),
-                    MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-                )
+            other_info = find_song_by_id(other_id, songList)
+            if other_info:
+                rep_ids.append(other_id)
+    if not rep_ids:
+        await whatSong.finish(
+            (
+                MessageSegment.reply(event.message_id),
+                MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
             )
-        elif len(rep_ids) == 1:
-            song_id = rep_ids.pop()
-            song_info = find_song_by_id(song_id, songList)
-            if song_info["basic_info"]["genre"] == "宴会場":
-                img = await utage_music_info(song_data=song_info)
-            else:
-                img = await music_info(song_data=song_info)
-            msg = (MessageSegment.reply(event.message_id), MessageSegment.image(img))
-        elif len(rep_ids) > 20:
-            await whatSong.finish(
-                (
-                    MessageSegment.reply(event.message_id),
-                    MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
-                )
-            )
+        )
+    elif len(rep_ids) == 1:
+        song_id = rep_ids.pop()
+        song_info = find_song_by_id(song_id, songList)
+        if song_info["basic_info"]["genre"] == "宴会場":
+            img = await utage_music_info(song_data=song_info)
         else:
-            output_lst = "迪拉熊找到啦~结果有："
-            for song_id in sorted(rep_ids, key=int):
-                song_info = find_song_by_id(song_id, songList)
-                song_title = song_info["title"]
-                output_lst += f"\r\n{song_id}：{song_title}"
-            msg = MessageSegment.text(output_lst)
-        await whatSong.send(msg)
+            img = await music_info(song_data=song_info)
+        msg = (MessageSegment.reply(event.message_id), MessageSegment.image(img))
+    elif len(rep_ids) > 20:
+        await whatSong.finish(
+            (
+                MessageSegment.reply(event.message_id),
+                MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
+            )
+        )
+    else:
+        output_lst = "迪拉熊找到啦~结果有："
+        for song_id in sorted(rep_ids, key=int):
+            song_info = find_song_by_id(song_id, songList)
+            song_title = song_info["title"]
+            output_lst += f"\r\n{song_id}：{song_title}"
+        msg = MessageSegment.text(output_lst)
+    await whatSong.send(msg)
 
 
 # 查看别名
