@@ -33,7 +33,8 @@ async def generate_game_data():
                 "tips": list(),
                 "pic_times": 0,
                 "aud_times": 0,
-                "part": list(),
+                "opc_times": 0,
+                "part": set(),
             }
         )
     game_data["game_contents"] = game_contents
@@ -83,7 +84,7 @@ async def generate_message_state(game_data, user_id):
 
             await ranking.add_score(
                 user_id,
-                len(game_content["part"]),
+                game_content["opc_times"],
                 len(game_content["tips"]),
                 game_content["pic_times"],
                 game_content["aud_times"],
@@ -94,7 +95,7 @@ async def generate_message_state(game_data, user_id):
                     continue
                 await ranking.add_score(
                     player,
-                    len(game_content["part"]),
+                    game_content["opc_times"],
                     len(game_content["tips"]),
                     game_content["pic_times"],
                     game_content["aud_times"],
@@ -131,7 +132,7 @@ async def check_music_id(game_data, music_ids: list, user_id):
 
                 await ranking.add_score(
                     user_id,
-                    len(game_content["part"]),
+                    game_content["opc_times"],
                     len(game_content["tips"]),
                     game_content["pic_times"],
                     game_content["aud_times"],
@@ -142,7 +143,7 @@ async def check_music_id(game_data, music_ids: list, user_id):
                         continue
                     await ranking.add_score(
                         player,
-                        len(game_content["part"]),
+                        game_content["opc_times"],
                         len(game_content["tips"]),
                         game_content["pic_times"],
                         game_content["aud_times"],

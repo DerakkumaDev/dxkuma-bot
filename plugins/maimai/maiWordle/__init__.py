@@ -7,6 +7,7 @@ from pathlib import Path
 from random import SystemRandom
 
 import aiohttp
+import soundfile
 from PIL import Image
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
@@ -31,7 +32,7 @@ all_message_handle = on_message(priority=18, block=False)
 pass_game = on_fullmatch("结束猜歌", priority=20)
 info_tip = on_regex(r"^(提示|提醒|信息) *[1-5]?$")
 pic_tip = on_regex(r"^(封面|曲绘|图片?) *[1-5]?$")
-aud_tip = on_regex(r"^(音乐|(乐|歌)曲|片段) *[1-5]?$")
+aud_tip = on_regex(r"^(音(乐|频)|(乐|歌)曲|片段) *[1-5]?$")
 rank = on_regex(r"^(迪拉熊|dlx)猜歌(排行榜?|榜)$", re.I)
 rank_i = on_regex(r"^(迪拉熊|dlx)猜歌(个人)?排名$", re.I)
 
@@ -87,7 +88,7 @@ async def _(event: GroupMessageEvent):
     async with lock:
         game_data = await openchars.start(group_id)
         await start_open_chars.send(
-            "本轮开字母游戏要开始了哟~\r\n□：字母或数字\r\n○：假名或汉字\r\n☆：符号\r\n\r\n发送“开+文字”开出字母\r\n发送“提示（+行号）”获取提示（每首5次机会）\r\n发送“封面（+行号）”获取部分封面（每首2次机会）\r\n发送“乐曲（+行号）”获取1秒歌曲片段（每首1次机会）\r\n发送“结束猜歌”结束\r\n发送别名或ID即可尝试猜歌"
+            "本轮开字母游戏要开始了哟~\r\n□：字母或数字\r\n○：假名或汉字\r\n☆：符号\r\n\r\n发送“开+文字”开出字母\r\n发送“提示（+行号）”获取提示（每首5次机会）\r\n发送“封面（+行号）”获取部分封面（每首2次机会）\r\n发送“歌曲（+行号）”获取1秒歌曲片段（每首1次机会）\r\n发送“结束猜歌”结束\r\n发送别名或ID即可尝试猜歌"
         )
         is_game_over, game_state, char_all_open, game_data = (
             await generate_message_state(game_data, user_id)
@@ -275,7 +276,7 @@ async def _(event: GroupMessageEvent):
             await info_tip.send(f"第{data["index"]}行的歌曲信息提示次数用完了mai~")
             return
 
-        data["part"].append(user_id)
+        data["part"].add(user_id)
         tip_key = random.choice(tip_keys)
         tip_info = tips[tip_key](song[0])
         await info_tip.send(f"第{data["index"]}行的歌曲{tip_key}是{tip_info}mai~")
@@ -317,7 +318,7 @@ async def _(event: GroupMessageEvent):
             await pic_tip.send(f"第{data["index"]}行的封面提示次数用完了mai~")
             return
 
-        data["part"].append(user_id)
+        data["part"].add(user_id)
         cover_path = f"./Cache/Jacket/{data["music_id"] % 10000}.png"
         if not os.path.exists(cover_path):
             async with aiohttp.ClientSession() as session:
@@ -347,6 +348,63 @@ async def _(event: GroupMessageEvent):
             )
         )
         data["pic_times"] += 1
+        await openchars.update_game_data(group_id, game_data)
+
+
+@aud_tip.handle()
+async def _(event: GroupMessageEvent):
+    group_id = event.group_id
+    user_id = event.user_id
+    msg = event.get_plaintext()
+    index = re.search(r"\d+", msg)
+    async with lock:
+        game_data = await openchars.get_game_data(group_id)
+        if not game_data:
+            return
+
+        if index:
+            index = int(index.group()) - 1
+            data = game_data["game_contents"][index]
+        else:
+            game_contents = [
+                d
+                for d in game_data["game_contents"]
+                if not d["is_correct"] and d["aud_times"] < 1
+            ]
+            if not game_contents:
+                await aud_tip.send(f"所有歌曲的歌曲提示次数都已经用完了mai~")
+                return
+
+            data = random.choice(game_contents)
+
+        if data["is_correct"]:
+            await aud_tip.send(f"第{data["index"]}行的歌曲已经猜对了mai~")
+            return
+
+        if data["aud_times"] >= 1:
+            await aud_tip.send(f"第{data["index"]}行的歌曲提示次数用完了mai~")
+            return
+
+        data["part"].add(user_id)
+        music_path = f"./Cache/Music/{data["music_id"] % 10000}.mp3"
+        if not os.path.exists(music_path):
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"https://assets2.lxns.net/maimai/music/{data["music_id"] % 10000}.mp3"
+                ) as resp:
+                    with open(music_path, "wb") as fd:
+                        async for chunk in resp.content.iter_chunked(1024):
+                            fd.write(chunk)
+
+        audio_data, samplerate = soundfile.read(music_path)
+        pos = random.randint(0, len(audio_data) - samplerate)
+        audio = audio_data[pos : pos + samplerate]
+        aud_byte_arr = BytesIO()
+        soundfile.write(aud_byte_arr, audio, samplerate, format="MP3")
+        aud_byte_arr.seek(0)
+        aud_bytes = aud_byte_arr.getvalue()
+        await aud_tip.send(MessageSegment.record(aud_bytes))
+        data["aud_times"] += 1
         await openchars.update_game_data(group_id, game_data)
 
 
