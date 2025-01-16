@@ -1,6 +1,6 @@
 # 迪拉熊Bot
 
-![Static Badge](https://img.shields.io/badge/Dev-2025.01.14-blue)
+![Static Badge](https://img.shields.io/badge/Dev-2025.01.16-blue)
 ![Static Badge](https://img.shields.io/badge/license-AGPLv3-orange)
 ![Static Badge](https://img.shields.io/badge/python-3.13%2B-green)
 
@@ -46,6 +46,8 @@ python start.py
 |-----------|------|-----------|
 | Nonebot2  | /    | QQ Bot 框架 |
 | Pillow    | /    | 图像处理库     |
+| soundfile | /    | 音频处理库     |
+| pykakasi  | /    | 假名及罗马转换支持 |
 
 ## 制作&鸣谢
 
