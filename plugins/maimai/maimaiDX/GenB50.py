@@ -431,19 +431,18 @@ async def music_to_part(
     draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="ls")
     # 定数和ra
     if b_type == "fit50":
-        if ((ds * 10) % 1) == 0:
-            ds_str = f"{ds}0"
-        else:
-            ds_str = str(ds)
+        ds_str = f"{ds:.2f}"
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
-        diff = round(ds - s_ra, 2)
+        diff = ds - s_ra
         ImageDraw.Draw(partbase).text(
             (376, 172),
-            f"{"+" if diff > 0 else "±" if diff == 0 else ""}{diff}",
+            f"{"+" if diff > 0 else "±" if diff == 0 else ""}{diff:.2f}",
             font=ttf,
             fill=color,
             anchor="lm",
         )
+    elif b_type == "fd50":
+        ds_str = f"{ds:.2f}"
     else:
         ds_str = str(ds)
     ttf = ImageFont.truetype(ttf_bold_path, size=34)

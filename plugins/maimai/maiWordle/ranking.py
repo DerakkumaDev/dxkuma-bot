@@ -54,7 +54,7 @@ class Ranking(object):
     async def get_score(self, user_id):
         with shelve.open(self.data_path) as data:
             if str(user_id) in data:
-                l = len(data[user_id])
+                l = len(data[str(user_id)])
                 scores = [self._compute_score(**d) for d in data[str(user_id)]]
                 achi = sum(scores) / l
                 return (achi, l)

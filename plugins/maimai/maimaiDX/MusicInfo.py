@@ -175,7 +175,7 @@ async def music_info(song_data):
         ds_position = (ds_x, ds_y)
         drawtext.text(
             ds_position,
-            f"{song_ds} ({round(get_fit_diff(song_data["id"], i, song_ds, charts), 2)})",
+            f"{song_ds} ({get_fit_diff(song_data["id"], i, song_ds, charts):.2f})",
             anchor="mm",
             font=ttf,
             fill=(28, 43, 110),

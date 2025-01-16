@@ -1694,7 +1694,7 @@ async def _(event: MessageEvent):
         if d["song_id"] in [int(song_id), int(song_id) / 10]:
             alias |= set(d["aliases"])
     alias_list = await get_alias_list_xray()
-    for id, d in alias_list:
+    for id, d in alias_list.items():
         if id in [int(song_id), int(song_id) / 10]:
             alias |= set(d)
     alias_list = await get_alias_list_ycn()

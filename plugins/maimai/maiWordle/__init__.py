@@ -475,7 +475,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
         leaderboard_output.append(f"\r\n游玩次数：{leaderboard[index][2]}")
     else:
-        achi, times = ranking.get_score(user_id)
+        achi, times = await ranking.get_score(user_id)
         leaderboard_output.append(f"\r\n游玩次数：{times}")
 
     msg = "\r\n".join(leaderboard_output)
