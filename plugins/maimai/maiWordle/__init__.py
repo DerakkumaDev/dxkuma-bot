@@ -90,7 +90,7 @@ async def _(event: GroupMessageEvent):
         await start_open_chars.send(
             "本轮开字母游戏要开始了哟~\r\n□：字母或数字\r\n○：假名或汉字\r\n☆：符号\r\n\r\n发送“开+文字”开出字母\r\n发送“提示（+行号）”获取提示（每首5次机会）\r\n发送“封面（+行号）”获取部分封面（每首2次机会）\r\n发送“歌曲（+行号）”获取1秒歌曲片段（每首1次机会）\r\n发送“结束猜歌”结束\r\n发送别名或ID即可尝试猜歌"
         )
-        is_game_over, game_state, char_all_open, game_data = (
+        _, game_state, _, game_data = (
             await generate_message_state(game_data, user_id)
         )
         # openchars.update_game_data(group_id,game_data)
@@ -200,7 +200,7 @@ async def _(event: GroupMessageEvent):
                     MessageSegment.text(i[0]),
                 )
             )
-        is_game_over, game_state, char_all_open, game_data = (
+        is_game_over, game_state, _, game_data = (
             await generate_message_state(game_data, user_id)
         )
         await start_open_chars.send(game_state)
@@ -245,7 +245,7 @@ async def _(event: GroupMessageEvent):
                 if not d["is_correct"] and d["tips"]
             ]
             if not game_contents:
-                await info_tip.send(f"所有歌曲的信息提示次数都已经用完了mai~")
+                await info_tip.send("所有歌曲的信息提示次数都已经用完了mai~")
                 return
 
             data = random.choice(game_contents)
@@ -305,7 +305,7 @@ async def _(event: GroupMessageEvent):
                 if not d["is_correct"] and d["pic_times"] < 2
             ]
             if not game_contents:
-                await pic_tip.send(f"所有歌曲的封面提示次数都已经用完了mai~")
+                await pic_tip.send("所有歌曲的封面提示次数都已经用完了mai~")
                 return
 
             data = random.choice(game_contents)
@@ -372,7 +372,7 @@ async def _(event: GroupMessageEvent):
                 if not d["is_correct"] and d["aud_times"] < 1
             ]
             if not game_contents:
-                await aud_tip.send(f"所有歌曲的歌曲提示次数都已经用完了mai~")
+                await aud_tip.send("所有歌曲的歌曲提示次数都已经用完了mai~")
                 return
 
             data = random.choice(game_contents)

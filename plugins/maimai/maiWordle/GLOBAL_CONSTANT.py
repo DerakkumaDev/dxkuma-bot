@@ -65,7 +65,6 @@ version_ez_map = {
     "MiLK": "白",
     "MiLK PLUS": "雪",
     "FiNALE": "輝",
-    "FiNALE": "辉",
     "舞萌DX": "熊、華",
     "舞萌DX 2021": "爽、煌",
     "舞萌DX 2022": "宙、星",

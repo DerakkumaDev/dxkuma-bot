@@ -38,7 +38,6 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
     gid = str(event.group_id)
     if gid in repeater_group or "all" in repeater_group:
-        global last_message, message_times
         message_str, message = message_preprocess(event.get_message())
         qq = event.get_user_id()
         if last_message.get(gid) != message_str:

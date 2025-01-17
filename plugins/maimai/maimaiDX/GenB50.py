@@ -8,6 +8,7 @@ import aiohttp
 from dill import Pickler, Unpickler
 from PIL import Image, ImageFont, ImageDraw
 
+from plugins.maimai.maiWordle.GLOBAL_CONSTANT import version_df_maps
 from util.Config import config as Config
 from .Config import (
     font_path,
@@ -21,7 +22,6 @@ from .Config import (
     maimai_MusicIcon,
     maimai_Rank,
 )
-from ..maiWordle.GLOBAL_CONSTANT import version_df_maps
 
 shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler
@@ -636,7 +636,7 @@ async def generateb50(
                 plate = "000101"
             else:
                 plate = config[qq]["plate"]
-            if "rating_tj" not in config[qq]:
+            if type != "b50" or "rating_tj" not in config[qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[qq]["rating_tj"]
@@ -696,14 +696,13 @@ async def generateb50(
     b50.paste(dani, (400, 110), dani)
 
     # rating推荐
-    if type == "b50":
-        if is_rating_tj:
-            b35max = b35[0]["ra"] if b35 else 0
-            b35min = b35[-1]["ra"] if b35 else 0
-            b15max = b15[0]["ra"] if b15 else 0
-            b15min = b15[-1]["ra"] if b15 else 0
-            ratingbase = rating_tj(b35max, b35min, b15max, b15min)
-            b50.paste(ratingbase, (60, 197), ratingbase)
+    if type == "b50" and is_rating_tj:
+        b35max = b35[0]["ra"] if b35 else 0
+        b35min = b35[-1]["ra"] if b35 else 0
+        b15max = b15[0]["ra"] if b15 else 0
+        b15min = b15[-1]["ra"] if b15 else 0
+        ratingbase = rating_tj(b35max, b35min, b15max, b15min)
+        b50.paste(ratingbase, (60, 197), ratingbase)
 
     # rating框
     ratingbar = compute_ra(rating)
@@ -817,11 +816,10 @@ async def generate_wcb(
             plate = "000101"
         else:
             plate = config[qq]["plate"]
-        if not level and not ds and not gen:
-            if qq not in config or "frame" not in config[qq]:
-                frame = "200502"
-            else:
-                frame = config[qq]["frame"]
+        if level or ds or gen or qq not in config or "frame" not in config[qq]:
+            frame = "200502"
+        else:
+            frame = config[qq]["frame"]
 
     bg = Image.open("./Static/maimai/wcb_bg.png")
 

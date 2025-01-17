@@ -38,12 +38,12 @@ class Ranking(object):
     async def get_avg_scores(self):
         achis = list()
         with shelve.open(self.data_path) as data:
-            for user_id in data.keys():
-                l = len(data[user_id])
+            for user_id, scores in data.items():
+                l = len(scores)
                 if l <= 0:
                     continue
 
-                scores = [self._compute_score(**d) for d in data[user_id]]
+                scores = [self._compute_score(**d) for d in scores]
                 achi = sum(scores) / l
                 achis.append((user_id, achi, l))
 

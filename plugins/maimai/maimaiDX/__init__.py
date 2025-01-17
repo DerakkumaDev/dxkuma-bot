@@ -1511,17 +1511,17 @@ async def _(event: MessageEvent):
     song = match.group(1)
     rep_ids = await find_songid_by_alias(song, songList)
     if rep_ids:
-        songinfo = find_song_by_id(song_id=rep_ids[0], songList=songList)
-        if not songinfo:
+        song_info = find_song_by_id(song_id=rep_ids[0], songList=songList)
+        if not song_info:
             await playaudio.finish(
                 (
                     MessageSegment.reply(event.message_id),
                     MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
                 )
             )
-        songname = songinfo["title"]
+        songname = song_info["title"]
         await playaudio.send(
-            MessageSegment.text(f"迪拉熊找到啦~\n开始播放{songinfo["id"]}. {songname}")
+            MessageSegment.text(f"迪拉熊找到啦~\n开始播放{song_info["id"]}. {songname}")
         )
         music_path = f"./Cache/Music/{rep_ids[0][-4:].lstrip("0")}.mp3"
         if not os.path.exists(music_path):
@@ -1534,12 +1534,12 @@ async def _(event: MessageEvent):
                             fd.write(chunk)
         await playaudio.send(MessageSegment.record(music_path))
     else:
-        songinfo = find_song_by_id(song, songList)
-        if songinfo:
-            songname = songinfo["title"]
+        song_info = find_song_by_id(song, songList)
+        if song_info:
+            songname = song_info["title"]
             await playaudio.send(
                 MessageSegment.text(
-                    f"迪拉熊找到啦~\n开始播放{songinfo["id"]}. {songname}"
+                    f"迪拉熊找到啦~\n开始播放{song_info["id"]}. {songname}"
                 )
             )
             music_path = f"./Cache/Music/{song[-4:].lstrip("0")}.mp3"
@@ -1626,7 +1626,7 @@ async def _(event: MessageEvent):
         await whatSong.finish(
             (
                 MessageSegment.reply(event.message_id),
-                MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+                MessageSegment.text("迪拉熊不知道哦~"),
             )
         )
 
@@ -1635,7 +1635,7 @@ async def _(event: MessageEvent):
     if not rep_ids:
         msg = (
             MessageSegment.reply(event.message_id),
-            MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+            MessageSegment.text("迪拉熊不知道哦~"),
         )
     for song_id in rep_ids.copy():
         song_info = find_song_by_id(song_id, songList)
@@ -1654,7 +1654,7 @@ async def _(event: MessageEvent):
         await whatSong.finish(
             (
                 MessageSegment.reply(event.message_id),
-                MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+                MessageSegment.text("迪拉熊不知道哦~"),
             )
         )
     elif len(rep_ids) == 1:
@@ -1704,7 +1704,7 @@ async def _(event: MessageEvent):
     if not alias:
         msg = (
             MessageSegment.reply(event.message_id),
-            MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+            MessageSegment.text("迪拉熊不知道哦~"),
         )
     else:
         song_alias = "\r\n".join(alias)

@@ -4,9 +4,9 @@ from pathlib import Path
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageSegment, GroupMessageEvent
 
+from plugins.bot.handle_lock.util import locks
 from util.Config import config
 from util.exceptions import NeedToSwitchException
-from ..handle_lock.util import locks
 
 all_help = on_regex(r"^((迪拉熊|dlx)(help|指令|帮助)|指令大全)$", re.I)
 
