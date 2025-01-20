@@ -764,6 +764,7 @@ async def generateb50(
         "cf50": "对比 Best 50",
         "fd50": "Best 拟合—定数差 50（含金量b50）",
         "all50": "全成绩 Best 50",
+        "rr50": "",
     }
     type_name = type_names[type] if type in type_names else "Best 50"
     ttf = ImageFont.truetype(ttf2_bold_path, size=32)

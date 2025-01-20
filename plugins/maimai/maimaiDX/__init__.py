@@ -50,7 +50,7 @@ fc50 = on_regex(r"^dlxfc(50)?( *\[CQ:at.*?\] *)?$", re.I)
 cf50 = on_regex(r"^dlxcf(50)?( *\[CQ:at.*?\] *)$", re.I)
 fd50 = on_regex(r"^dlxfd(50)?( *\[CQ:at.*?\] *)?$", re.I)
 all50 = on_regex(r"^dlx(all?(50)?|b)( *\[CQ:at.*?\] *)?$", re.I)
-rr50 = on_regex(r"^dlxrr(50)?$", re.I)
+rr50 = on_regex(r"^dlxrr(50)?( *\d+)?$", re.I)
 sunlist = on_regex(r"^dlx([sc]un|寸|🤏)( *\d+?)?$", re.I)
 locklist = on_regex(r"^dlx(suo|锁|🔒)( *\d+?)?$", re.I)
 
@@ -136,6 +136,7 @@ async def records_to_b50(
     is_dxs: bool = False,
     is_all: bool = False,
     dx_star_count: str | None = None,
+    rating: int = 0,
 ):
     sd = list()
     dx = list()
@@ -143,7 +144,6 @@ async def records_to_b50(
         charts = await get_chart_stats()
     mask_enabled = False
     if not records:
-        records = list()
         for song in songList:
             if len(song["id"]) > 5:
                 continue
@@ -169,7 +169,25 @@ async def records_to_b50(
                     "title": song["title"],
                     "type": song["type"],
                 }
-                records.append(record)
+                if song["basic_info"]["is_new"]:
+                    dx.append(record)
+                else:
+                    sd.append(record)
+        sd = sorted(
+            sd, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
+        )
+        dx = sorted(
+            dx, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
+        )
+        if rating:
+            while (
+                sum(d["ra"] for d in sd[:35]) + sum(d["ra"] for d in dx[:15]) > rating
+            ):
+                if (dx and sd and dx[0]["ra"] > sd[0]["ra"]) or (dx and not sd):
+                    dx.pop(0)
+                elif sd:
+                    sd.pop(0)
+        return sd[:35], dx[:15], False
     for record in records:
         if record["level_label"] == "Utage":
             continue
@@ -1126,36 +1144,43 @@ async def _(event: MessageEvent):
 
 @rr50.handle()
 async def _(event: MessageEvent):
-    cache_dir = "./Cache/Riren/"
-    cache_path = f"{cache_dir}{date.today().isoformat()}.png"
-    if not os.path.exists(cache_path):
-        files = os.listdir(cache_dir)
-        songList = await get_music_data()
-        rr35, rr15, _ = await records_to_b50(None, songList)
-        await rr50.send(
-            (
-                MessageSegment.reply(event.message_id),
-                MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-            )
+    match = re.fullmatch(r"dlxrr(?:50)? *(\d+)", event.get_plaintext(), re.I)
+    rating = 0
+    if match:
+        rating = int(match.group(1))
+        if rating < 0:
+            msg = MessageSegment.text("没有任何匹配的成绩")
+            await rr50.send((MessageSegment.reply(event.message_id), msg))
+            return
+
+    songList = await get_music_data()
+    rr35, rr15, _ = await records_to_b50(
+        None,
+        songList,
+        rating=rating,
+    )
+    if not rr35 and not rr15:
+        msg = MessageSegment.text("没有任何匹配的成绩")
+        await rr50.send((MessageSegment.reply(event.message_id), msg))
+        return
+
+    await rr50.send(
+        (
+            MessageSegment.reply(event.message_id),
+            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
-        nickname = "科技哥（？）"
-        dani = 22
-        img = await generateb50(
-            b35=rr35,
-            b15=rr15,
-            nickname=nickname,
-            qq="0",
-            dani=dani,
-            type="rr50",
-            songList=songList,
-        )
-        with open(cache_path, "wb") as fd:
-            fd.write(img)
-        if files:
-            for file in files:
-                os.remove(f"{cache_dir}{file}")
-    with open(cache_path, "rb") as fd:
-        img = fd.read()
+    )
+    nickname = "ＡＡＡＡＡＡＡＡ"
+    dani = 22
+    img = await generateb50(
+        b35=rr35,
+        b15=rr15,
+        nickname=nickname,
+        qq="0",
+        dani=dani,
+        type="rr50",
+        songList=songList,
+    )
     msg = (MessageSegment.reply(event.message_id), MessageSegment.image(img))
     await rr50.send(msg)
 

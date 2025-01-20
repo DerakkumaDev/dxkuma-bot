@@ -83,9 +83,10 @@ async def _(event: GroupMessageEvent):
 
 @cum.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
-    if bot.self_id not in config.allowed_accounts:
-        raise NotAllowedException
-    weight = random.randint(0, 9)
+    weight = 1
+    if bot.self_id in config.allowed_accounts:
+        weight = random.randint(0, 9)
+
     imgpath = "./Static/Cum/0.png"
     if weight == 0:
         imgpath = "./Static/Cum/1.png"
