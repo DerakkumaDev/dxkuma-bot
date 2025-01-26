@@ -20,21 +20,21 @@ async def _(
     if event.is_tome():
         return
 
-    key = f"{event.group_id}{event.user_id}{event.time}".__hash__()
+    key = hash(f"{event.group_id}{event.user_id}{event.time}")
     if key not in locks:
         locks[key] = Lock()
 
     locks[key].count += 1
     await locks[key].semaphore.acquire()
-    locks[key].count -= 1
     if locks[key].state == States.PROCESSED or (
         bot.self_id not in config.allowed_accounts
         and (
             (locks[key].state == States.SKIPED)
-            or (locks[key].count > 0 and locks[key].state == States.NEED_TO_SWITCH)
+            or (locks[key].count > 1 and locks[key].state == States.NEED_TO_SWITCH)
         )
     ):
         locks[key].semaphore.release()
+        locks[key].count -= 1
         raise SkipException
 
     return
@@ -48,10 +48,8 @@ async def _(
     if event.is_tome():
         return
 
-    key = f"{event.group_id}{event.user_id}{event.time}".__hash__()
-    if isinstance(exception, NotAllowedException) or isinstance(
-        exception, ActionFailed
-    ):
+    key = hash(f"{event.group_id}{event.user_id}{event.time}")
+    if isinstance(exception, (NotAllowedException, ActionFailed)):
         locks[key].state = States.SKIPED
         locks[key].semaphore.release()
         return
@@ -71,7 +69,8 @@ async def _(
     if event.is_tome():
         return
 
-    key = f"{event.group_id}{event.user_id}{event.time}".__hash__()
+    key = hash(f"{event.group_id}{event.user_id}{event.time}")
+    locks[key].count -= 1
     if locks[key].state == States.PROCESSED:
         locks[key].semaphore.release()
         if locks[key].count <= 0:

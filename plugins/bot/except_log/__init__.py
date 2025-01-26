@@ -34,12 +34,14 @@ def check_image(imgpath: Path):
 
 @run_postprocessor
 async def _(event: Event, matcher: Matcher, exception: Exception | None):
-    if (
-        not exception
-        or isinstance(exception, OneBotV11AdapterException)
-        or isinstance(exception, ClientError)
-        or isinstance(exception, NotAllowedException)
-        or isinstance(exception, NeedToSwitchException)
+    if not exception or isinstance(
+        exception,
+        (
+            OneBotV11AdapterException,
+            ClientError,
+            NotAllowedException,
+            NeedToSwitchException,
+        ),
     ):
         return
     bot = get_bot()

@@ -33,7 +33,7 @@ async def _(bot: Bot, event: PokeNotifyEvent):
     weights = [9, 9, 9, 9, 9, 9, 9, 9, 4, 4]
     ran_number = random.choices(range(1, 11), weights=weights, k=1)[0]
     text = conversations[ran_number]
-    filename = str(ran_number - 1) + ".png"
+    filename = f"{ran_number - 1}.png"
     file_path = POKE_PIC / filename
     msg = (MessageSegment.text(text), MessageSegment.image(file_path))
     await poke.finish(msg)

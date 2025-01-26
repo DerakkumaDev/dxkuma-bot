@@ -14,10 +14,10 @@ all_help = on_regex(r"^((迪拉熊|dlx)(help|指令|帮助)|指令大全)$", re.
 @all_help.handle()
 async def _(bot: Bot, event):
     if isinstance(event, GroupMessageEvent):
-        key = f"{event.group_id}{event.user_id}{event.time}".__hash__()
+        key = hash(f"{event.group_id}{event.user_id}{event.time}")
         if (
             key in locks
-            and locks[key].count > 0
+            and locks[key].count > 1
             and bot.self_id not in config.allowed_accounts
         ):
             raise NeedToSwitchException
