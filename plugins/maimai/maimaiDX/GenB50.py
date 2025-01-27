@@ -645,17 +645,14 @@ async def generateb50(
     b15_ra = sum(item["ra"] for item in b15)
     rating = b35_ra + b15_ra
 
-    b50 = Image.new("RGBA", (1440, 2560), "#FFFFFF")
-
     # BG
-    background = Image.open(maimai_Static / "b50_bg.png")
-    b50.paste(background)
+    b50 = Image.open(maimai_Static / "b50_bg.png")
 
     # 底板
     frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
     frame = Image.open(frame_path)
     frame = resize_image(frame, 0.95)
-    b50.paste(frame, (48, 45))
+    b50.paste(frame, (48, 45), frame)
 
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
@@ -682,7 +679,9 @@ async def generateb50(
         ) as resp:
             icon = await resp.read()
     icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
-    b50.paste(icon, (73, 75))
+    overlay = Image.new("RGBA", b50.size, (0, 0, 0, 0))
+    overlay.paste(icon, (73, 75))
+    b50 = Image.alpha_composite(b50, overlay)
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
@@ -831,7 +830,7 @@ async def generate_wcb(
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
     frame = Image.open(frame_path)
     frame = resize_image(frame, 0.95)
-    bg.paste(frame, (48, 45))
+    bg.paste(frame, (48, 45), frame)
 
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
@@ -858,7 +857,9 @@ async def generate_wcb(
         ) as resp:
             icon = await resp.read()
     icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
-    bg.paste(icon, (73, 75))
+    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
+    overlay.paste(icon, (73, 75))
+    bg = Image.alpha_composite(bg, overlay)
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
