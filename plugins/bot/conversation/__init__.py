@@ -2,19 +2,18 @@ import re
 from pathlib import Path
 from random import SystemRandom
 
-from nonebot import on_regex
+from nonebot import on_fullmatch, on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageSegment, GroupMessageEvent
 from nonebot.rule import to_me
 
 from util.Config import config
-from util.exceptions import NotAllowedException
 
 random = SystemRandom()
 
 xc = on_regex(r"^(香草|想草|xc)(迪拉熊|dlx)$", re.I)
 wxhn = on_regex(r"^(迪拉熊|dlx)我喜欢你$", re.I)
 roll = on_regex(r"是.+还是.", rule=to_me())
-cum = on_regex(r"^dlxcum$", re.I)
+cum = on_fullmatch("dlxcum", ignorecase=True)
 eatbreak = on_regex(r"绝赞(给|请)你吃|(给|请)你吃绝赞", rule=to_me())
 
 conversations = {

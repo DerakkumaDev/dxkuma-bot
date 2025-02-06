@@ -4,7 +4,6 @@ from nonebot.adapters.onebot.v11 import (
     GroupIncreaseNoticeEvent,
     GroupDecreaseNoticeEvent,
 )
-from nonebot.adapters.onebot.v11.exception import ActionFailed
 from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
 
 from util.Config import config
@@ -49,7 +48,7 @@ async def _(
         return
 
     key = hash(f"{event.group_id}{event.user_id}{event.time}")
-    if isinstance(exception, (NotAllowedException, ActionFailed)):
+    if isinstance(exception, NotAllowedException):
         locks[key].state = States.SKIPED
         locks[key].semaphore.release()
         return

@@ -1,13 +1,13 @@
 import os
 import re
 
-from nonebot import on_regex
+from nonebot import on_fullmatch
 from nonebot.adapters.onebot.v11 import MessageEvent
 
 from util.Config import config
 
-block = on_regex(r"^禁st$", re.I)
-unlock = on_regex(r"^解st$", re.I)
+block = on_fullmatch("禁st", ignorecase=True)
+unlock = on_fullmatch("解st", ignorecase=True)
 
 
 @block.handle()

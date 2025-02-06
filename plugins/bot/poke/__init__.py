@@ -7,7 +7,7 @@ from nonebot.rule import to_me
 
 random = SystemRandom()
 
-poke = on_type(PokeNotifyEvent, rule=to_me())
+poke = on_type(PokeNotifyEvent, to_me())
 
 POKE_PIC = Path("./Static/Poke/")
 

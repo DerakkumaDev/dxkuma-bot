@@ -27,12 +27,12 @@ random = SystemRandom()
 lock = Lock()
 
 start_open_chars = on_regex(r"^dlx猜歌$", re.I)
-open_chars = on_regex(r"^开 *.+$")
+open_chars = on_regex(r"^开\s*.+$")
 all_message_handle = on_message(priority=18, block=False)
 pass_game = on_fullmatch("结束猜歌", priority=20)
-info_tip = on_regex(r"^(提示|提醒|信息) *[1-5]?$")
-pic_tip = on_regex(r"^(封面|曲绘|图片?) *[1-5]?$")
-aud_tip = on_regex(r"^(音(乐|频)|(乐|歌)曲|片段) *[1-5]?$")
+info_tip = on_regex(r"^(提示|提醒|信息)\s*[1-5]?$")
+pic_tip = on_regex(r"^(封面|曲绘|图片?)\s*[1-5]?$")
+aud_tip = on_regex(r"^(音(乐|频)|(乐|歌)曲|片段)\s*[1-5]?$")
 rank = on_regex(r"^(迪拉熊|dlx)猜歌(排行榜?|榜)$", re.I)
 rank_i = on_regex(r"^(迪拉熊|dlx)猜歌(个人)?排名$", re.I)
 
@@ -105,7 +105,7 @@ async def _(event: GroupMessageEvent):
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"开 *(.+)", msg)
+    match = re.fullmatch(r"开\s*(.+)", msg)
     if not match:
         return
 
@@ -319,6 +319,12 @@ async def _(event: GroupMessageEvent):
             return
 
         data["part"].add(user_id)
+        await pic_tip.send(
+            (
+                MessageSegment.reply(event.message_id),
+                MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
+            )
+        )
         cover_path = f"./Cache/Jacket/{data["music_id"] % 10000}.png"
         if not os.path.exists(cover_path):
             async with aiohttp.ClientSession() as session:
@@ -386,6 +392,12 @@ async def _(event: GroupMessageEvent):
             return
 
         data["part"].add(user_id)
+        await aud_tip.send(
+            (
+                MessageSegment.reply(event.message_id),
+                MessageSegment.text("迪拉熊演奏中，稍等一下mai~"),
+            )
+        )
         music_path = f"./Cache/Music/{data["music_id"] % 10000}.mp3"
         if not os.path.exists(music_path):
             async with aiohttp.ClientSession() as session:

@@ -2,13 +2,12 @@ import math
 import os
 import re
 import shelve
-from datetime import date
 from pathlib import Path
 from random import SystemRandom
 
 import aiohttp
 from dill import Pickler, Unpickler
-from nonebot import on_regex
+from nonebot import on_fullmatch, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment
 
 from util.Data import (
@@ -37,43 +36,43 @@ shelve.Unpickler = Unpickler
 
 random = SystemRandom()
 
-best50 = on_regex(r"^dlxb?50( *\[CQ:at.*?\] *)?$", re.I)
-fit50 = on_regex(r"^dlxf50( *\[CQ:at.*?\] *)?$", re.I)
-dxs50 = on_regex(r"^dlxs50( *\[CQ:at.*?\] *)?$", re.I)
-star50 = on_regex(r"^dlxx50( *[1-5])+( *\[CQ:at.*?\] *)?$", re.I)
+best50 = on_regex(r"^dlxb?50(\s*\[CQ:at.*?\]\s*)?$", re.I)
+fit50 = on_regex(r"^dlxf50(\s*\[CQ:at.*?\]\s*)?$", re.I)
+dxs50 = on_regex(r"^dlxs50(\s*\[CQ:at.*?\]\s*)?$", re.I)
+star50 = on_regex(r"^dlxx50(\s*[1-5])+(\s*\[CQ:at.*?\]\s*)?$", re.I)
 rate50 = on_regex(
-    r"^dlxr50( *(s{1,3}(p|\+)?|a{1,3}|b{1,3}|[cd]))+?( *\[CQ:at.*?\] *)?$",
+    r"^dlxr50(\s*(s{1,3}(p|\+)?|a{1,3}|b{1,3}|[cd]))+?(\s*\[CQ:at.*?\]\s*)?$",
     re.I,
 )
-ap50 = on_regex(r"^dlxap(50)?( *\[CQ:at.*?\] *)?$", re.I)
-fc50 = on_regex(r"^dlxfc(50)?( *\[CQ:at.*?\] *)?$", re.I)
-cf50 = on_regex(r"^dlxcf(50)?( *\[CQ:at.*?\] *)$", re.I)
-fd50 = on_regex(r"^dlxfd(50)?( *\[CQ:at.*?\] *)?$", re.I)
-all50 = on_regex(r"^dlx(all?(50)?|b)( *\[CQ:at.*?\] *)?$", re.I)
-rr50 = on_regex(r"^dlxrr(50)?( *\d+)?$", re.I)
-sunlist = on_regex(r"^dlx([sc]un|寸|🤏)( *\d+?)?$", re.I)
-locklist = on_regex(r"^dlx(suo|锁|🔒)( *\d+?)?$", re.I)
+ap50 = on_regex(r"^dlxap(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
+fc50 = on_regex(r"^dlxfc(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
+cf50 = on_regex(r"^dlxcf(50)?(\s*\[CQ:at.*?\]\s*)$", re.I)
+fd50 = on_regex(r"^dlxfd(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
+all50 = on_regex(r"^dlx(all?(50)?|b)(\s*\[CQ:at.*?\]\s*)?$", re.I)
+rr50 = on_regex(r"^dlxrr(50)?(\s*\d+)?$", re.I)
+sunlist = on_regex(r"^dlx([sc]un|寸|🤏)(\s*\d+?)?$", re.I)
+locklist = on_regex(r"^dlx(suo|锁|🔒)(\s*\d+?)?$", re.I)
 
-songinfo = on_regex(r"^id *\d+$", re.I)
-playinfo = on_regex(r"^info *.+$", re.I)
-scoreinfo = on_regex(r"^(score|分数表) *(绿|黄|红|紫|白) *\d+$", re.I)
-playaudio = on_regex(r"^dlx点歌 *.+$", re.I)
-randomsong = on_regex(r"^随(歌|个|首|张) *(绿|黄|红|紫|白)? *\d+(\.\d|\+)?$")
-maiwhat = on_regex(r"^mai什么$", re.I)
+songinfo = on_regex(r"^id\s*\d+$", re.I)
+playinfo = on_regex(r"^info\s*.+$", re.I)
+scoreinfo = on_regex(r"^(score|分数表)\s*(绿|黄|红|紫|白)\s*\d+$", re.I)
+playaudio = on_regex(r"^dlx点歌\s*.+$", re.I)
+randomsong = on_regex(r"^随(歌|个|首|张)\s*(绿|黄|红|紫|白)?\s*\d+(\.\d|\+)?$")
+maiwhat = on_fullmatch("mai什么", ignorecase=True)
 
 wcb = on_regex(
-    r"^(list|完成表) *(\d+(\.\d|\+)?|真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双)( +\d+)?$",
+    r"^(list|完成表)\s*(\d+(\.\d|\+)?|真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双)(\s*\d+)?$",
     re.I,
 )
 
-whatSong = on_regex(r"^((search|查歌) *.+|.+是什么歌)$", re.I)
-aliasSearch = on_regex(r"^(查看?别名 *\d+|\d+有什么别名)$")
+whatSong = on_regex(r"^((search|查歌)\s*.+|.+是什么歌)$", re.I)
+aliasSearch = on_regex(r"^(查看?别名\s*\d+|\d+有什么别名)$")
 
 all_plate = on_regex(r"^(plate|看姓名框)$", re.I)
 all_frame = on_regex(r"^(frame|看背景)$", re.I)
 
-set_plate = on_regex(r"^(setplate|设置?姓名框) *\d{6}$", re.I)
-set_frame = on_regex(r"^(setframe|设置?背景) *\d{6}$", re.I)
+set_plate = on_regex(r"^(setplate|设置?姓名框)\s*\d{6}$", re.I)
+set_frame = on_regex(r"^(setframe|设置?背景)\s*\d{6}$", re.I)
 
 ratj_on = on_regex(r"^(开启?|启用)分数推荐$")
 ratj_off = on_regex(r"^(关闭?|禁用)分数推荐$")
@@ -854,7 +853,7 @@ async def _(event: MessageEvent):
         )
         await star50.finish((MessageSegment.reply(event.message_id), msg))
     songList = await get_music_data()
-    find = re.fullmatch(r"dlxx50((?: *[1-5])+)", event.get_plaintext(), re.I)
+    find = re.fullmatch(r"dlxx50((?:\s*[1-5])+)", event.get_plaintext(), re.I)
     star35, star15, mask_enabled = await records_to_b50(
         records, songList, is_dxs=True, dx_star_count=find.group(1)
     )
@@ -1144,7 +1143,7 @@ async def _(event: MessageEvent):
 
 @rr50.handle()
 async def _(event: MessageEvent):
-    match = re.fullmatch(r"dlxrr(?:50)? *(\d+)", event.get_plaintext(), re.I)
+    match = re.fullmatch(r"dlxrr(?:50)?\s*(\d+)", event.get_plaintext(), re.I)
     rating = 0
     if match:
         rating = int(match.group(1))
@@ -1323,7 +1322,7 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    pattern = r"(?:((?:\d+)(?:\.\d|\+)?)|(真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双))(?: *(\d+))?"
+    pattern = r"(?:((?:\d+)(?:\.\d|\+)?)|(真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双))(?:\s*(\d+))?"
     match = re.search(pattern, msg)
     data, status = await get_player_records(qq)
     if status == 400:
@@ -1423,7 +1422,7 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    match = re.fullmatch(r"info *(.+)", msg, re.I)
+    match = re.fullmatch(r"info\s*(.+)", msg, re.I)
     if not match:
         return
 
@@ -1501,7 +1500,7 @@ async def _(event: MessageEvent):
 @scoreinfo.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    pattern = r"(绿|黄|红|紫|白) *(\d+)"
+    pattern = r"(绿|黄|红|紫|白)\s*(\d+)"
     match = re.search(pattern, msg)
     type_index = ["绿", "黄", "红", "紫", "白"].index(match.group(1))
     song_id = match.group(2)
@@ -1528,7 +1527,7 @@ async def _(event: MessageEvent):
 @playaudio.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    match = re.fullmatch(r"dlx点歌 *(.+)", msg, re.I)
+    match = re.fullmatch(r"dlx点歌\s*(.+)", msg, re.I)
     if not match:
         return
 
@@ -1589,7 +1588,7 @@ async def _(event: MessageEvent):
 @randomsong.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    pattern = r"(绿|黄|红|紫|白)? *((?:\d+)(?:\.\d|\+)?)"
+    pattern = r"(绿|黄|红|紫|白)?\s*((?:\d+)(?:\.\d|\+)?)"
     match = re.search(pattern, msg)
     level_label = match.group(1)
     if level_label:
@@ -1639,7 +1638,7 @@ async def _(event: MessageEvent):
 @whatSong.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    match = re.fullmatch(r"(?:search|查歌) *(.+)|(.+)是什么歌", msg, re.I)
+    match = re.fullmatch(r"(?:search|查歌)\s*(.+)|(.+)是什么歌", msg, re.I)
     if not match:
         return
 
