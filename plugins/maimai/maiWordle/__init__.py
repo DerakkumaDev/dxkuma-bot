@@ -90,9 +90,7 @@ async def _(event: GroupMessageEvent):
         await start_open_chars.send(
             "本轮开字母游戏要开始了哟~\r\n□：字母或数字\r\n○：假名或汉字\r\n☆：符号\r\n\r\n发送“开+文字”开出字母\r\n发送“提示（+行号）”获取提示（每首5次机会）\r\n发送“封面（+行号）”获取部分封面（每首2次机会）\r\n发送“歌曲（+行号）”获取1秒歌曲片段（每首1次机会）\r\n发送“结束猜歌”结束\r\n发送别名或ID即可尝试猜歌"
         )
-        _, game_state, _, game_data = (
-            await generate_message_state(game_data, user_id)
-        )
+        _, game_state, _, game_data = await generate_message_state(game_data, user_id)
         # openchars.update_game_data(group_id,game_data)
         await start_open_chars.send(game_state)
         # if is_game_over:
@@ -120,6 +118,7 @@ async def _(event: GroupMessageEvent):
                 (
                     MessageSegment.reply(event.message_id),
                     MessageSegment.text("这个字已经开过了哦，换一个吧~"),
+                    MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
             return
@@ -200,8 +199,8 @@ async def _(event: GroupMessageEvent):
                     MessageSegment.text(i[0]),
                 )
             )
-        is_game_over, game_state, _, game_data = (
-            await generate_message_state(game_data, user_id)
+        is_game_over, game_state, _, game_data = await generate_message_state(
+            game_data, user_id
         )
         await start_open_chars.send(game_state)
         if is_game_over:
@@ -221,7 +220,9 @@ async def _(event: GroupMessageEvent):
         if game_data:
             await openchars.game_over(group_id)
             await pass_game.send(generate_success_state(game_data))
-            await pass_game.send("本轮猜歌结束了，可以发送“dlx猜歌”再次游玩mai~")
+            await pass_game.send(
+                "本轮猜歌结束了，可以发送“dlx猜歌”再次游玩mai~"
+            )
 
 
 @info_tip.handle()
@@ -245,13 +246,23 @@ async def _(event: GroupMessageEvent):
                 if not d["is_correct"] and d["tips"]
             ]
             if not game_contents:
-                await info_tip.send("所有歌曲的信息提示次数都已经用完了mai~")
+                await info_tip.send(
+                    (
+                        MessageSegment.text("所有歌曲的信息提示次数都已经用完了mai~"),
+                        MessageSegment.image(Path("./Static/Wordle/1.png")),
+                    )
+                )
                 return
 
             data = random.choice(game_contents)
 
         if data["is_correct"]:
-            await info_tip.send(f"第{data["index"]}行的歌曲已经猜对了mai~")
+            await info_tip.send(
+                (
+                    MessageSegment.text(f"第{data["index"]}行的歌曲已经猜对了mai~"),
+                    MessageSegment.image(Path("./Static/Wordle/1.png")),
+                )
+            )
             return
 
         tips = {
@@ -267,19 +278,35 @@ async def _(event: GroupMessageEvent):
 
         tip_keys = [d for d in tips.keys() if d not in data["tips"]]
         if not tip_keys:
-            await info_tip.send(f"第{data["index"]}行的歌曲信息提示次数用完了mai~")
+            await info_tip.send(
+                (
+                    MessageSegment.text(
+                        f"第{data["index"]}行的歌曲信息提示次数用完了mai~"
+                    ),
+                    MessageSegment.image(Path("./Static/Wordle/1.png")),
+                )
+            )
             return
 
         songList = await get_music_data()
         song = [d for d in songList if d["id"] == str(data["music_id"])]
         if len(song) != 1:
-            await info_tip.send(f"第{data["index"]}行的歌曲信息提示次数用完了mai~")
+            await info_tip.send(
+                (
+                    MessageSegment.text(
+                        f"第{data["index"]}行的歌曲信息提示次数用完了mai~"
+                    ),
+                    MessageSegment.image(Path("./Static/Wordle/1.png")),
+                )
+            )
             return
 
         data["part"].add(user_id)
         tip_key = random.choice(tip_keys)
         tip_info = tips[tip_key](song[0])
-        await info_tip.send(f"第{data["index"]}行的歌曲{tip_key}是{tip_info}mai~")
+        await info_tip.send(
+            f"第{data["index"]}行的歌曲{tip_key}是{tip_info}mai~"
+        )
         data["tips"].append(tip_key)
         await openchars.update_game_data(group_id, game_data)
 
@@ -305,17 +332,32 @@ async def _(event: GroupMessageEvent):
                 if not d["is_correct"] and d["pic_times"] < 2
             ]
             if not game_contents:
-                await pic_tip.send("所有歌曲的封面提示次数都已经用完了mai~")
+                await pic_tip.send(
+                    (
+                        MessageSegment.text("所有歌曲的封面提示次数都已经用完了mai~"),
+                        MessageSegment.image(Path("./Static/Wordle/1.png")),
+                    )
+                )
                 return
 
             data = random.choice(game_contents)
 
         if data["is_correct"]:
-            await pic_tip.send(f"第{data["index"]}行的歌曲已经猜对了mai~")
+            await pic_tip.send(
+                (
+                    MessageSegment.text(f"第{data["index"]}行的歌曲已经猜对了mai~"),
+                    MessageSegment.image(Path("./Static/Wordle/1.png")),
+                )
+            )
             return
 
         if data["pic_times"] >= 2:
-            await pic_tip.send(f"第{data["index"]}行的封面提示次数用完了mai~")
+            await pic_tip.send(
+                (
+                    MessageSegment.text(f"第{data["index"]}行的封面提示次数用完了mai~"),
+                    MessageSegment.image(Path("./Static/Wordle/1.png")),
+                )
+            )
             return
 
         data["part"].add(user_id)
@@ -378,24 +420,39 @@ async def _(event: GroupMessageEvent):
                 if not d["is_correct"] and d["aud_times"] < 1
             ]
             if not game_contents:
-                await aud_tip.send("所有歌曲的歌曲提示次数都已经用完了mai~")
+                await aud_tip.send(
+                    (
+                        MessageSegment.text("所有歌曲的歌曲提示次数都已经用完了mai~"),
+                        MessageSegment.image(Path("./Static/Wordle/1.png")),
+                    )
+                )
                 return
 
             data = random.choice(game_contents)
 
         if data["is_correct"]:
-            await aud_tip.send(f"第{data["index"]}行的歌曲已经猜对了mai~")
+            await aud_tip.send(
+                (
+                    MessageSegment.text(f"第{data["index"]}行的歌曲已经猜对了mai~"),
+                    MessageSegment.image(Path("./Static/Wordle/1.png")),
+                )
+            )
             return
 
         if data["aud_times"] >= 1:
-            await aud_tip.send(f"第{data["index"]}行的歌曲提示次数用完了mai~")
+            await aud_tip.send(
+                (
+                    MessageSegment.text(f"第{data["index"]}行的歌曲提示次数用完了mai~"),
+                    MessageSegment.image(Path("./Static/Wordle/1.png")),
+                )
+            )
             return
 
         data["part"].add(user_id)
         await aud_tip.send(
             (
                 MessageSegment.reply(event.message_id),
-                MessageSegment.text("迪拉熊演奏中，稍等一下mai~"),
+                MessageSegment.text(f"开始播放第{data["index"]}行的歌曲"),
             )
         )
         music_path = f"./Cache/Music/{data["music_id"] % 10000}.mp3"
