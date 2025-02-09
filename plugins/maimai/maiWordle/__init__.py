@@ -28,7 +28,7 @@ lock = Lock()
 
 start_open_chars = on_regex(r"^dlx猜歌$", re.I)
 open_chars = on_regex(r"^开\s*.+$")
-all_message_handle = on_message(priority=18, block=False)
+all_message_handle = on_message(block=False)
 pass_game = on_fullmatch("结束猜歌", priority=20)
 info_tip = on_regex(r"^(提示|提醒|信息)\s*[1-5]?$")
 pic_tip = on_regex(r"^(封面|曲绘|图片?)\s*[1-5]?$")
@@ -495,8 +495,8 @@ async def _(bot: Bot, event: GroupMessageEvent):
             break
 
     avg = (
-        sum([d[1] for d in leaderboard]) / len(leaderboard)
-        if len(leaderboard) > 0
+        sum(d[1] for d in scores) / len(scores)
+        if len(scores) > 0
         else 0
     )
     msg = "\r\n".join(leaderboard_output)

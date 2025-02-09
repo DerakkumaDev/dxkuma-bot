@@ -12,7 +12,7 @@ shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler
 
 avatar = on_startswith("旅行伙伴加入", to_me())
-avatar_img_msg = on_message()
+avatar_img_msg = on_message(block=False)
 
 
 async def gen_avatar(pic: bytes) -> bytes:
@@ -72,7 +72,7 @@ async def _(event: GroupMessageEvent):
             pic_urls.append(seg.data["url"])
 
     if len(pic_urls) <= 0:
-        with shelve.open("./data/wordle_ranking.db") as data:
+        with shelve.open("./data/gen_avatar.db") as data:
             key = str(hash(f"{event.group_id}{event.user_id}"))
             if key in data:
                 data[key] = event.time
@@ -113,7 +113,7 @@ async def _(event: GroupMessageEvent):
     if len(pic_urls) <= 0:
         return
 
-    with shelve.open("./data/wordle_ranking.db") as data:
+    with shelve.open("./data/gen_avatar.db") as data:
         key = str(hash(f"{event.group_id}{event.user_id}"))
         if key not in data:
             return
