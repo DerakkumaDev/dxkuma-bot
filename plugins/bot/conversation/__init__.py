@@ -6,7 +6,9 @@ from nonebot import on_fullmatch, on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageSegment, GroupMessageEvent
 from nonebot.rule import to_me
 
+from plugins.bot.concurrent_lock.util import locks
 from util.Config import config
+from util.exceptions import NeedToSwitchException
 
 random = SystemRandom()
 
@@ -82,6 +84,14 @@ async def _(event: GroupMessageEvent):
 
 @cum.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
+    key = hash(f"{event.group_id}{event.user_id}{event.time}")
+    if (
+        key in locks
+        and locks[key].count > 1
+        and bot.self_id not in config.allowed_accounts
+    ):
+        raise NeedToSwitchException
+
     weight = 1
     if bot.self_id in config.allowed_accounts:
         weight = random.randint(0, 9)

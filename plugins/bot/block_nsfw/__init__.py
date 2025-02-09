@@ -1,5 +1,4 @@
 import os
-import re
 
 from nonebot import on_fullmatch
 from nonebot.adapters.onebot.v11 import MessageEvent

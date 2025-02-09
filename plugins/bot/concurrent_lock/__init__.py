@@ -32,8 +32,8 @@ async def _(
             or (locks[key].count > 1 and locks[key].state == States.NEED_TO_SWITCH)
         )
     ):
-        locks[key].semaphore.release()
         locks[key].count -= 1
+        locks[key].semaphore.release()
         raise SkipException
 
     return
@@ -50,12 +50,10 @@ async def _(
     key = hash(f"{event.group_id}{event.user_id}{event.time}")
     if isinstance(exception, NotAllowedException):
         locks[key].state = States.SKIPED
-        locks[key].semaphore.release()
         return
 
     if isinstance(exception, NeedToSwitchException):
         locks[key].state = States.NEED_TO_SWITCH
-        locks[key].semaphore.release()
         return
 
     locks[key].state = States.PROCESSED
@@ -71,6 +69,8 @@ async def _(
     key = hash(f"{event.group_id}{event.user_id}{event.time}")
     locks[key].count -= 1
     if locks[key].state == States.PROCESSED:
-        locks[key].semaphore.release()
         if locks[key].count <= 0:
             locks.pop(key)
+            return
+
+    locks[key].semaphore.release()

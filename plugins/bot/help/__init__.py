@@ -4,7 +4,7 @@ from pathlib import Path
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageSegment, GroupMessageEvent
 
-from plugins.bot.handle_lock.util import locks
+from plugins.bot.concurrent_lock.util import locks
 from util.Config import config
 from util.exceptions import NeedToSwitchException
 
