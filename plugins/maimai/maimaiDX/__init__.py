@@ -53,9 +53,9 @@ rr50 = on_regex(r"^dlxrr(50)?(\s*\d+)?$", re.I)
 sunlist = on_regex(r"^dlx([sc]un|寸|🤏)(\s*\d+?)?$", re.I)
 locklist = on_regex(r"^dlx(suo|锁|🔒)(\s*\d+?)?$", re.I)
 
-songinfo = on_regex(r"^id\s*\d+$", re.I)
-playinfo = on_regex(r"^info\s*.+$", re.I)
-scoreinfo = on_regex(r"^(score|分数表)\s*(绿|黄|红|紫|白)\s*\d+$", re.I)
+songinfo = on_regex(r"^(chart|id)\s*.+$", re.I)
+playinfo = on_regex(r"^(score|info)\s*.+$", re.I)
+scoreinfo = on_regex(r"^(detail|分数表)\s*(绿|黄|红|紫|白)\s*.+$", re.I)
 playaudio = on_regex(r"^dlx点歌\s*.+$", re.I)
 randomsong = on_regex(r"^随(歌|个|首|张)\s*(绿|黄|红|紫|白)?\s*\d+(\.\d|\+)?$")
 maiwhat = on_fullmatch("mai什么", ignorecase=True)
@@ -66,7 +66,7 @@ wcb = on_regex(
 )
 
 whatSong = on_regex(r"^((search|查歌)\s*.+|.+是什么歌)$", re.I)
-aliasSearch = on_regex(r"^(查看?别名\s*\d+|\d+有什么别名)$")
+aliasSearch = on_regex(r"^((alias|查看?别名)\s*.+|.+有什么别名)$")
 
 all_plate = on_regex(r"^(plate|看姓名框)$", re.I)
 all_frame = on_regex(r"^(frame|看背景)$", re.I)
@@ -139,8 +139,7 @@ async def records_to_b50(
 ):
     sd = list()
     dx = list()
-    if is_fit or is_fd:
-        charts = await get_chart_stats()
+    charts = await get_chart_stats()
     mask_enabled = False
     if not records:
         for song in songList:
@@ -197,15 +196,15 @@ async def records_to_b50(
         song_id = record["song_id"]
         song_data = [d for d in songList if d["id"] == str(song_id)][0]
         is_new = song_data["basic_info"]["is_new"]
+        fit_diff = get_fit_diff(
+            str(record["song_id"]), record["level_index"], record["ds"], charts
+        )
         if is_fit or is_fd:
             if record["ra"] == 0:
                 continue
             if record["achievements"] > 0 and record["dxScore"] == 0:
                 mask_enabled = True
                 continue
-            fit_diff = get_fit_diff(
-                str(record["song_id"]), record["level_index"], record["ds"], charts
-            )
             record["s_ra"] = record["ds"] if is_fit else record["ra"]
             record["ds"] = round(fit_diff, 2)
             record["ra"] = int(
@@ -214,6 +213,8 @@ async def records_to_b50(
                 * get_ra_in(record["rate"])
                 / 100
             )
+        else:
+            record["s_ra"] = round(fit_diff, 2)
         if is_dxs:
             if record["achievements"] > 0 and record["dxScore"] == 0:
                 mask_enabled = True
@@ -249,7 +250,12 @@ async def records_to_b50(
             dx, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
         )
         dx.clear()
-        for record in [i for i in all_records if i["ra"] >= all_records[49]["ra"]]:
+        for record in [
+            i
+            for i in all_records
+            if i["ra"]
+            >= all_records[49 if len(all_records) > 50 else len(all_records) - 1]["ra"]
+        ]:
             song_id = record["song_id"]
             song_data = [d for d in songList if d["id"] == str(song_id)][0]
             is_new = song_data["basic_info"]["is_new"]
@@ -348,6 +354,43 @@ async def compare_b50(sender_records, target_records, songList):
 
 def get_ra_in(rate: str) -> float:
     return ratings[rate][1]
+
+
+async def get_info_by_name(name, songList):
+    rep_ids = await find_songid_by_alias(name, songList)
+    if not rep_ids:
+        return 2, None
+    for song_id in rep_ids.copy():
+        song_info = find_song_by_id(song_id, songList)
+        if not song_info:
+            rep_ids.remove(song_id)
+            continue
+        song_id_len = len(song_id)
+        if song_id_len < 5:
+            other_id = f"1{int(song_id):04d}"
+            if other_id in rep_ids:
+                continue
+            other_info = find_song_by_id(other_id, songList)
+            if other_info:
+                rep_ids.append(other_id)
+    if not rep_ids:
+        return 2, None
+    elif len(rep_ids) > 20:
+        return 3, rep_ids
+    elif len(rep_ids) > 1:
+        output_lst = set()
+        for song_id in sorted(rep_ids, key=int):
+            song_info = find_song_by_id(song_id, songList)
+            song_title = song_info["title"]
+            output_lst.add(song_title)
+
+        return 1, output_lst
+
+    song_info = find_song_by_id(song_id, songList)
+    if not song_info:
+        return 2, None
+
+    return 0, song_info
 
 
 @best50.handle()
@@ -1567,23 +1610,46 @@ async def _(event: MessageEvent):
 @songinfo.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    song_id = re.search(r"\d+", msg).group()
+    match = re.fullmatch(r"(?:chart|id)\s*(.+)", msg, re.I)
+    if not match:
+        return
+
+    song = match.group(1)
+    if not song:
+        return
+
     songList = await get_music_data()
-    song_info = find_song_by_id(song_id, songList)
-    if not song_info:
-        msg = MessageSegment.text("迪拉熊没有找到匹配的乐曲")
-    else:
-        await songinfo.send(
+    result, song_info = await get_info_by_name(song, songList)
+    if result == 1:
+        msg = MessageSegment.text(f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}")
+        await songinfo.finish(msg)
+    elif result == 2:
+        await songinfo.finish(
             (
                 MessageSegment.reply(event.message_id),
-                MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
+                MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
         )
-        if song_info["basic_info"]["genre"] == "宴会場":
-            img = await utage_music_info(song_data=song_info)
-        else:
-            img = await music_info(song_data=song_info)
-        msg = MessageSegment.image(img)
+    elif result == 3:
+        await songinfo.finish(
+            (
+                MessageSegment.reply(event.message_id),
+                MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            )
+        )
+    await songinfo.send(
+        (
+            MessageSegment.reply(event.message_id),
+            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
+        )
+    )
+    if song_info["basic_info"]["genre"] == "宴会場":
+        img = await utage_music_info(song_data=song_info)
+    else:
+        img = await music_info(song_data=song_info)
+    msg = MessageSegment.image(img)
     await songinfo.send((MessageSegment.reply(event.message_id), msg))
 
 
@@ -1591,12 +1657,20 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    match = re.fullmatch(r"info\s*(.+)", msg, re.I)
+    match = re.fullmatch(r"(?:score|info)\s*(.+)", msg, re.I)
     if not match:
         return
 
     song = match.group(1)
     if not song:
+        return
+
+    songList = await get_music_data()
+    result, song_info = await get_info_by_name(song, songList)
+    if result == 1:
+        msg = MessageSegment.text(f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}")
+        await playinfo.finish(msg)
+    elif result == 2:
         await playinfo.finish(
             (
                 MessageSegment.reply(event.message_id),
@@ -1604,62 +1678,11 @@ async def _(event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
         )
-    songList = await get_music_data()
-    song_info = find_song_by_id(song, songList)
-    if not song_info:
-        rep_ids = await find_songid_by_alias(song, songList)
-        if not rep_ids:
-            await playinfo.finish(
-                (
-                    MessageSegment.reply(event.message_id),
-                    MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-            )
-        for song_id in rep_ids.copy():
-            song_info = find_song_by_id(song_id, songList)
-            if not song_info:
-                rep_ids.remove(song_id)
-                continue
-            song_id_len = len(song_id)
-            if song_id_len < 5:
-                other_id = f"1{int(song_id):04d}"
-                if other_id in rep_ids:
-                    continue
-                other_info = find_song_by_id(other_id, songList)
-                if other_info:
-                    rep_ids.append(other_id)
-        if not rep_ids:
-            await playinfo.finish(
-                (
-                    MessageSegment.reply(event.message_id),
-                    MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-            )
-        elif len(rep_ids) == 1:
-            song_id = rep_ids.pop()
-            song_info = find_song_by_id(song_id, songList)
-        elif len(rep_ids) > 20:
-            await playinfo.finish(
-                (
-                    MessageSegment.reply(event.message_id),
-                    MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-            )
-        else:
-            output_lst = "迪拉熊找到啦~结果有："
-            for song_id in sorted(rep_ids, key=int):
-                song_info = find_song_by_id(song_id, songList)
-                song_title = song_info["title"]
-                output_lst += f"\r\n{song_id}：{song_title}"
-            await playinfo.finish(MessageSegment.text(output_lst))
-    if not song_info:
+    elif result == 3:
         await playinfo.finish(
             (
                 MessageSegment.reply(event.message_id),
-                MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+                MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
         )
@@ -1674,32 +1697,46 @@ async def _(event: MessageEvent):
 @scoreinfo.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    pattern = r"(绿|黄|红|紫|白)\s*(\d+)"
+    pattern = r"(绿|黄|红|紫|白)\s*(.+)"
     match = re.search(pattern, msg)
     type_index = ["绿", "黄", "红", "紫", "白"].index(match.group(1))
-    song_id = match.group(2)
+    song = match.group(2)
+    if not song:
+        return
+
     songList = await get_music_data()
-    song_info = find_song_by_id(song_id, songList)
-    if (
-        song_info
-        and song_info["basic_info"]["genre"] != "宴会場"
-        and len(song_info["level"]) > type_index
+    result, song_info = await get_info_by_name(song, songList)
+    if result == 1:
+        msg = MessageSegment.text(f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}")
+        await scoreinfo.finish(msg)
+    elif (
+        result == 2
+        or song_info["basic_info"]["genre"] == "宴会場"
+        or len(song_info["level"]) <= type_index
     ):
-        await scoreinfo.send(
+        await scoreinfo.finish(
             (
                 MessageSegment.reply(event.message_id),
-                MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
+                MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
         )
-        img = await score_info(song_data=song_info, index=type_index)
-        msg = MessageSegment.image(img)
+    elif result == 3:
+        await scoreinfo.finish(
+            (
+                MessageSegment.reply(event.message_id),
+                MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            )
+        )
     await scoreinfo.send(
         (
             MessageSegment.reply(event.message_id),
-            MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
+    img = await score_info(song_data=song_info, index=type_index)
+    msg = MessageSegment.image(img)
 
 
 @playaudio.handle()
@@ -1709,68 +1746,45 @@ async def _(event: MessageEvent):
     if not match:
         return
 
-    songList = await get_music_data()
     song = match.group(1)
-    rep_ids = await find_songid_by_alias(song, songList)
-    if rep_ids:
-        song_info = find_song_by_id(song_id=rep_ids[0], songList=songList)
-        if not song_info:
-            await playaudio.finish(
-                (
-                    MessageSegment.reply(event.message_id),
-                    MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-            )
-        songname = song_info["title"]
-        await playaudio.send(
+    if not song:
+        return
+
+    songList = await get_music_data()
+    result, song_info = await get_info_by_name(song, songList)
+    if result == 1:
+        msg = MessageSegment.text(f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}")
+        await playaudio.finish(msg)
+    elif result == 2:
+        await playaudio.finish(
             (
-                MessageSegment.text(
-                    f"迪拉熊找到啦~\n开始播放{song_info["id"]}. {songname}"
-                ),
-                MessageSegment.image(Path("./Static/Maimai/Function/0.png")),
+                MessageSegment.reply(event.message_id),
+                MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
         )
-        music_path = f"./Cache/Music/{rep_ids[0][-4:].lstrip("0")}.mp3"
-        if not os.path.exists(music_path):
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"https://assets2.lxns.net/maimai/music/{rep_ids[0][-4:].lstrip("0")}.mp3"
-                ) as resp:
-                    with open(music_path, "wb") as fd:
-                        async for chunk in resp.content.iter_chunked(1024):
-                            fd.write(chunk)
-        await playaudio.send(MessageSegment.record(music_path))
-    else:
-        song_info = find_song_by_id(song, songList)
-        if song_info:
-            songname = song_info["title"]
-            await playaudio.send(
-                (
-                    MessageSegment.text(
-                        f"迪拉熊找到啦~\n开始播放{song_info["id"]}. {songname}"
-                    ),
-                    MessageSegment.image(Path("./Static/Maimai/Function/0.png")),
-                )
+    elif result == 3:
+        await playaudio.finish(
+            (
+                MessageSegment.reply(event.message_id),
+                MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
-            music_path = f"./Cache/Music/{song[-4:].lstrip("0")}.mp3"
-            if not os.path.exists(music_path):
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
-                        f"https://assets2.lxns.net/maimai/music/{song[-4:].lstrip("0")}.mp3"
-                    ) as resp:
-                        with open(music_path, "wb") as fd:
-                            async for chunk in resp.content.iter_chunked(1024):
-                                fd.write(chunk)
-            await playaudio.send(MessageSegment.record(music_path))
-        else:
-            await playaudio.send(
-                (
-                    MessageSegment.reply(event.message_id),
-                    MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-            )
+        )
+    songname = song_info["title"]
+    await playaudio.send(
+        MessageSegment.text(f"迪拉熊正在准备播放{songname}，稍等一下mai~")
+    )
+    music_path = f"./Cache/Music/{song_info["id"][-4:].lstrip("0")}.mp3"
+    if not os.path.exists(music_path):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://assets2.lxns.net/maimai/music/{song_info["id"][-4:].lstrip("0")}.mp3"
+            ) as resp:
+                with open(music_path, "wb") as fd:
+                    async for chunk in resp.content.iter_chunked(1024):
+                        fd.write(chunk)
+    await playaudio.send(MessageSegment.record(music_path))
 
 
 @randomsong.handle()
@@ -1883,12 +1897,12 @@ async def _(event: MessageEvent):
             )
         )
     else:
-        output_lst = "迪拉熊找到啦~结果有："
+        output_lst = set()
         for song_id in sorted(rep_ids, key=int):
             song_info = find_song_by_id(song_id, songList)
             song_title = song_info["title"]
-            output_lst += f"\r\n{song_id}：{song_title}"
-        msg = MessageSegment.text(output_lst)
+            output_lst.add(song_title)
+        msg = MessageSegment.text(f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(output_lst)}")
     await whatSong.send(msg)
 
 

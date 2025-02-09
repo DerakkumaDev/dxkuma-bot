@@ -1,6 +1,6 @@
 # 迪拉熊Bot
 
-![Static Badge](https://img.shields.io/badge/Dev-2025.01.16-blue)
+![Static Badge](https://img.shields.io/badge/Dev-2025.02.10-blue)
 ![Static Badge](https://img.shields.io/badge/license-AGPLv3-orange)
 ![Static Badge](https://img.shields.io/badge/python-3.13%2B-green)
 

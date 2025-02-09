@@ -452,7 +452,9 @@ async def _(event: GroupMessageEvent):
         await aud_tip.send(
             (
                 MessageSegment.reply(event.message_id),
-                MessageSegment.text(f"开始播放第{data["index"]}行的歌曲"),
+                MessageSegment.text(
+                    f"迪拉熊正在准备播放第{data["index"]}行的歌曲，稍等一下mai~"
+                ),
             )
         )
         music_path = f"./Cache/Music/{data["music_id"] % 10000}.mp3"
@@ -494,11 +496,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if len(leaderboard_output) > 9:
             break
 
-    avg = (
-        sum(d[1] for d in scores) / len(scores)
-        if len(scores) > 0
-        else 0
-    )
+    avg = sum(d[1] for d in scores) / len(scores) if len(scores) > 0 else 0
     msg = "\r\n".join(leaderboard_output)
     msg = f"猜歌准确率排行榜Top{len(leaderboard_output)}：\r\n{msg}\r\n\r\n玩家数：{len(leaderboard)}/{len(scores)}\r\n平均达成率：{avg:.4%}"
     await rank.send(msg)

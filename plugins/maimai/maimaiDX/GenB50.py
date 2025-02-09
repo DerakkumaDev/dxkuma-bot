@@ -388,15 +388,15 @@ async def music_to_part(
     ttf = ImageFont.truetype(ttf_bold_path, size=76)
     if "." not in str(achievements):
         achievements = f"{achievements}.0"
-    achievements = f"{achievements}".split(".")
+    achievements = str(achievements).split(".")
     achievements1 = f"{achievements[0]}."
     achievements2 = achievements[1].ljust(4, "0")[:4]
     text_position = (375, 155)
-    text_content = f"{achievements1}"
+    text_content = str(achievements1)
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
     text_position = (text_position[0] + ttf.getlength(text_content), 155)
     ttf = ImageFont.truetype(ttf_bold_path, size=54)
-    text_content = f"{achievements2}"
+    text_content = str(achievements2)
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
     text_position = (text_position[0] + ttf.getlength(text_content), 155)
     ttf = ImageFont.truetype(ttf_bold_path, size=65)
@@ -410,7 +410,7 @@ async def music_to_part(
     text_content1 = "#"
     text_len = ttf1.getlength(text_content1)
     ttf2 = ImageFont.truetype(ttf_bold_path, size=30)
-    text_content2 = f"{index}"
+    text_content2 = str(index)
     xdiff = (text_len + ttf2.getlength(text_content2)) / 2
     text_position = (text_position[0] - int(xdiff), 270)
     draw.text(
@@ -420,49 +420,49 @@ async def music_to_part(
     draw.text(
         text_position, text_content2, font=ttf2, fill=(255, 255, 255), anchor="ls"
     )
-    # 乐曲ID
-    ttf = ImageFont.truetype(ttf_bold_path, size=24)
-    text_position = (388, 270)
-    text_content = "ID:"
-    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="ls")
-    text_position = (text_position[0] + ttf.getlength(text_content), 270)
-    ttf = ImageFont.truetype(ttf_bold_path, size=30)
-    text_content = f"{song_id}"
-    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="ls")
     # 定数和ra
     if b_type == "fit50":
         ds_str = f"{ds:.2f}"
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
         diff = ds - s_ra
-        ImageDraw.Draw(partbase).text(
+        draw.text(
             (376, 172),
             f"{"+" if diff > 0 else "±" if diff == 0 else ""}{diff:.2f}",
             font=ttf,
             fill=color,
             anchor="lm",
         )
+        s_ra_str = "定数"
     elif b_type == "fd50":
         ds_str = f"{ds:.2f}"
+        s_ra_str = "Rating"
     else:
         ds_str = str(ds)
+        s_ra_str = "拟合"
+    ttf = ImageFont.truetype(ttf_bold_path, size=30)
+    text_position = (388, 270)
+    text_content = str(s_ra)
+    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="ls")
+    text_position = (text_position[0] + ttf.getlength(text_content), 272)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=24)
+    text_content = s_ra_str
+    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="ls")
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
-    ds_str = f"{ds_str}".split(".")
+    ds_str = str(ds_str).split(".")
     text_position = (376, 215)
     text_content = f"{ds_str[0]}."
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
     text_position = (text_position[0] + ttf.getlength(text_content), 215)
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
-    text_content = f"{ds_str[1]}"
+    text_content = str(ds_str[1])
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
 
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
-    ImageDraw.Draw(partbase).text(
-        (550, 202), str(ra), font=ttf, fill=color, anchor="rm"
-    )
+    draw.text((550, 202), str(ra), font=ttf, fill=color, anchor="rm")
     if b_type in ("cf50", "fd50"):
         ttf = ImageFont.truetype(ttf_bold_path, size=20)
         diff = ra - s_ra
-        ImageDraw.Draw(partbase).text(
+        draw.text(
             (550, 172),
             f"{"+" if diff > 0 else "±" if diff == 0 else ""}{diff}",
             font=ttf,
@@ -474,7 +474,7 @@ async def music_to_part(
     text_position = (730, 270)
     song_data = [d for d in songList if d["id"] == str(song_id)][0]
     sum_dxscore = sum(song_data["charts"][level_index]["notes"]) * 3
-    text_content = f"{sum_dxscore}"
+    text_content = str(sum_dxscore)
     draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs")
     text_position = (text_position[0] - ttf.getlength(text_content), 270)
     ttf = ImageFont.truetype(ttf_bold_path, size=30)
@@ -647,6 +647,7 @@ async def generateb50(
 
     # BG
     b50 = Image.open(maimai_Static / "b50_bg.png")
+    draw = ImageDraw.Draw(b50)
 
     # 底板
     frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
@@ -736,11 +737,11 @@ async def generateb50(
 
     # 名字
     ttf = ImageFont.truetype(ttf2_regular_path, size=24)
-    ImageDraw.Draw(b50).text((186, 108), nickname, font=ttf, fill=(0, 0, 0))
+    draw.text((186, 108), nickname, font=ttf, fill=(0, 0, 0))
 
     # rating合计
     ttf = ImageFont.truetype(ttf2_bold_path, size=14)
-    ImageDraw.Draw(b50).text(
+    draw.text(
         (334, 154),
         (
             f"Best35：{b35_ra} | Best15：{b15_ra}"
@@ -767,9 +768,7 @@ async def generateb50(
     }
     type_name = type_names[type] if type in type_names else "Best 50"
     ttf = ImageFont.truetype(ttf2_bold_path, size=32)
-    ImageDraw.Draw(b50).text(
-        (720, 740), type_name, font=ttf, fill=(138, 49, 6), anchor="mm"
-    )
+    draw.text((720, 740), type_name, font=ttf, fill=(138, 49, 6), anchor="mm")
 
     # b50
     b35 = await draw_best(b35, type, songList)
@@ -822,6 +821,7 @@ async def generate_wcb(
             frame = config[qq]["frame"]
 
     bg = Image.open("./Static/maimai/wcb_bg.png")
+    draw = ImageDraw.Draw(bg)
 
     # 底板
     if level or ds or gen:
@@ -905,7 +905,7 @@ async def generate_wcb(
 
     # 名字
     ttf = ImageFont.truetype(ttf2_regular_path, size=24)
-    ImageDraw.Draw(bg).text((186, 108), nickname, font=ttf, fill=(0, 0, 0))
+    draw.text((186, 108), nickname, font=ttf, fill=(0, 0, 0))
 
     if level:
         # 绘制的完成表的等级贴图
@@ -926,7 +926,7 @@ async def generate_wcb(
         fcfs_y = 362
         for rate in rate_list:
             rate_num = rate_count[rate]
-            ImageDraw.Draw(bg).text(
+            draw.text(
                 (rate_x, rate_y),
                 f"{rate_num}/{all_count}",
                 font=ttf,
@@ -936,7 +936,7 @@ async def generate_wcb(
             rate_x += 118
         for fcfs in fcfs_list:
             fcfs_num = rate_count[fcfs]
-            ImageDraw.Draw(bg).text(
+            draw.text(
                 (fcfs_x, fcfs_y),
                 f"{fcfs_num}/{all_count}",
                 font=ttf,
@@ -948,9 +948,7 @@ async def generate_wcb(
     # 页码
     page_text = f"{page} / {all_page_num}"
     ttf = ImageFont.truetype(font=ttf_black_path, size=70)
-    ImageDraw.Draw(bg).text(
-        (260, 850), page_text, font=ttf, fill=(255, 255, 255), anchor="mm"
-    )
+    draw.text((260, 850), page_text, font=ttf, fill=(255, 255, 255), anchor="mm")
 
     # 绘制当前页面的成绩
     records_parts = await draw_best(input_records, type="wcb", songList=songList)
