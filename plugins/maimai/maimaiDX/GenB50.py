@@ -660,7 +660,7 @@ async def generateb50(
     if not os.path.exists(plate_path):
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/plate/{plate.lstrip("0")}.png"
+                f"https://assets2.lxns.net/maimai/plate/{int(plate)}.png"
             ) as resp:
                 with open(plate_path, "wb") as fd:
                     async for chunk in resp.content.iter_chunked(1024):
@@ -837,7 +837,7 @@ async def generate_wcb(
     if not os.path.exists(plate_path):
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/plate/{plate.lstrip("0")}.png"
+                f"https://assets2.lxns.net/maimai/plate/{int(plate)}.png"
             ) as resp:
                 with open(plate_path, "wb") as fd:
                     async for chunk in resp.content.iter_chunked(1024):

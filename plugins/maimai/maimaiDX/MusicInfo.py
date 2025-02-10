@@ -6,7 +6,6 @@ from PIL import Image, ImageDraw, ImageFont
 
 from util.Config import config
 from util.Data import get_chart_stats
-from util.DivingFish import get_player_record
 from .Config import (
     font_path,
     maimai_Static,
@@ -54,7 +53,7 @@ async def music_info(song_data):
     drawtext = ImageDraw.Draw(bg)
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{song_data["id"][-4:].lstrip("0")}.png"
+    cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -196,10 +195,11 @@ async def music_info(song_data):
         notes.insert(0, total_num)
         notes.append(dx_num)
         for i, note in enumerate(notes):
-            notes_position = (notes_x, notes_y)
-            drawtext.text(
-                notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
-            )
+            if note > 0:
+                notes_position = (notes_x, notes_y)
+                drawtext.text(
+                    notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
+                )
             notes_y += 80
         notes_x += 170
 
@@ -236,29 +236,14 @@ async def music_info(song_data):
     return img_bytes
 
 
-async def play_info(song_data, qq: str):
-    data, status = await get_player_record(qq, song_data["id"])
-    if status == 400:
-        msg = "迪拉熊没有找到你的信息"
-        return msg
-    if status == 200:
-        if not data:
-            msg = "迪拉熊没有找到匹配的乐曲"
-            return msg
-        records = data[song_data["id"]]
-        if not records:
-            msg = "迪拉熊没有找到你在这首乐曲上的成绩"
-            return msg
-    elif not data:
-        msg = "（查分器出了点问题）"
-        return msg
-
+async def play_info(data, song_data):
+    records = data[song_data["id"]]
     # 底图
     bg = Image.open("./Static/maimai/playinfo_bg.png")
     drawtext = ImageDraw.Draw(bg)
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{song_data["id"][-4:].lstrip("0")}.png"
+    cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -480,7 +465,7 @@ async def utage_music_info(song_data, index=0):
     drawtext = ImageDraw.Draw(bg)
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{song_data["id"][-4:].lstrip("0")}.png"
+    cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -582,10 +567,11 @@ async def utage_music_info(song_data, index=0):
     if song_type == "SD":
         notes.insert(3, 0)
     for note in notes:
-        notes_position = (notes_x, notes_y)
-        drawtext.text(
-            notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
-        )
+        if note > 0:
+            notes_position = (notes_x, notes_y)
+            drawtext.text(
+                notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
+            )
         notes_x += 170
     total_num = sum(notes)
     drawtext.text(
@@ -593,6 +579,12 @@ async def utage_music_info(song_data, index=0):
     )
     dx_num = total_num * 3
     drawtext.text((863, 1415), str(dx_num), anchor="mm", font=ttf, fill=(28, 43, 110))
+
+    # 谱师
+    ttf = ImageFont.truetype(ttf_regular_path, size=20)
+    drawtext.text(
+        (730, 1545), chart["charter"], anchor="mm", font=ttf, fill=(131, 19, 158)
+    )
 
     overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
     overlay_draw = ImageDraw.Draw(overlay)
@@ -622,7 +614,7 @@ async def score_info(song_data, index):
     drawtext = ImageDraw.Draw(bg)
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{song_data["id"][-4:].lstrip("0")}.png"
+    cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -763,12 +755,15 @@ async def score_info(song_data, index):
                         ((notes[-1] * 100) - (100 * ex_weight)) / (notes[-1] * 100)
                     )
                     score += ex_score / 100
-            else:
-                score = 0
-            score_text = f"-{score:.4%}"
-            drawtext.text(
-                score_position, score_text, anchor="mm", font=ttf, fill=(255, 255, 255)
-            )
+                if score > 0:
+                    score_text = f"-{score:.4%}"
+                    drawtext.text(
+                        score_position,
+                        score_text,
+                        anchor="mm",
+                        font=ttf,
+                        fill=(255, 255, 255),
+                    )
             score_x += 200
         score_y += 80
 
@@ -777,10 +772,11 @@ async def score_info(song_data, index):
     notes_x = 251
     notes_y = 1778
     for note in notes:
-        notes_position = (notes_x, notes_y)
-        drawtext.text(
-            notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
-        )
+        if note > 0:
+            notes_position = (notes_x, notes_y)
+            drawtext.text(
+                notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
+            )
         notes_x += 200
 
     # 谱师
