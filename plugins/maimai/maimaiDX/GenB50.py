@@ -10,6 +10,7 @@ from PIL import Image, ImageFont, ImageDraw
 
 from plugins.maimai.maiWordle.GLOBAL_CONSTANT import version_df_maps
 from util.Config import config as Config
+from util.Draw import paste, text
 from .Config import (
     font_path,
     maimai_Static,
@@ -340,7 +341,6 @@ async def music_to_part(
     # 根据难度 底图
     partbase_path = maimai_Static / f"PartBase_{level_label}.png"
     partbase = Image.open(partbase_path)
-    draw = ImageDraw.Draw(partbase)
 
     # 歌曲封面
     jacket_path = f"./Cache/Jacket/{song_id % 10000}.png"
@@ -354,13 +354,14 @@ async def music_to_part(
                         fd.write(chunk)
     jacket = Image.open(jacket_path)
     jacket = resize_image(jacket, 0.56)
-    partbase.paste(jacket, (36, 41), jacket)
+    partbase = paste(partbase, jacket, (36, 41))
 
     # 歌曲分类 DX / SD
     icon_path = maimai_MusicType / f"{type}.png"
     icon = Image.open(icon_path)
     icon = resize_image(icon, 0.82)
-    partbase.paste(icon, (797, 16), icon)
+    partbase = paste(partbase, icon, (797, 16))
+    draw = ImageDraw.Draw(partbase)
 
     # 歌名
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
@@ -489,25 +490,25 @@ async def music_to_part(
         star = resize_image(star, 1.3)
         for i in range(stars):
             x_offset = i * star_width
-            partbase.paste(star, (x_offset + 570, 178), star)
+            partbase = paste(partbase, star, (x_offset + 570, 178))
 
     # 评价
     rate_path = maimai_Rank / f"{rate}.png"
     rate = Image.open(rate_path)
     rate = resize_image(rate, 0.87)
-    partbase.paste(rate, (770, 72), rate)
+    partbase = paste(partbase, rate, (770, 72))
 
     # fc ap
     if fc:
         fc_path = maimai_MusicIcon / f"{fc}.png"
         fc = Image.open(fc_path)
         fc = resize_image(fc, 76 / 61)
-        partbase.paste(fc, (781, 191), fc)
+        partbase = paste(partbase, fc, (781, 191))
     if fs:
         fs_path = maimai_MusicIcon / f"{fs}.png"
         fs = Image.open(fs_path)
         fs = resize_image(fs, 76 / 61)
-        partbase.paste(fs, (875, 191), fs)
+        partbase = paste(partbase, fs, (875, 191))
 
     partbase = partbase.resize((340, 110), Image.Resampling.LANCZOS)
     return partbase
@@ -547,7 +548,7 @@ async def draw_best(bests: list, type: str, songList):
                     **song_data, index=index + 1, b_type=type, songList=songList
                 )
                 # 将图片粘贴到底图上
-                base.paste(part, (x, y), part)
+                base = paste(base, part, (x, y))
                 # 增加x坐标，序列自增
                 x += 350
                 row_index += 1
@@ -567,6 +568,7 @@ async def draw_best(bests: list, type: str, songList):
 def rating_tj(b35max, b35min, b15max, b15min):
     ratingbase_path = maimai_Static / "rating_base.png"
     ratingbase = Image.open(ratingbase_path)
+    draw = ImageDraw.Draw(ratingbase)
     ttf = ImageFont.truetype(ttf_bold_path, size=30)
 
     b35max_diff = b35max - b35min
@@ -574,7 +576,6 @@ def rating_tj(b35max, b35min, b15max, b15min):
     b15max_diff = b15max - b15min
     b15min_diff = random.randint(1, 5)
 
-    draw = ImageDraw.Draw(ratingbase)
     draw.text((155, 64), font=ttf, text=f"+{str(b35max_diff)}", fill=(255, 255, 255))
     draw.text((155, 104), font=ttf, text=f"+{str(b35min_diff)}", fill=(255, 255, 255))
     draw.text((155, 170), font=ttf, text=f"+{str(b15max_diff)}", fill=(255, 255, 255))
@@ -647,13 +648,12 @@ async def generateb50(
 
     # BG
     b50 = Image.open(maimai_Static / "b50_bg.png")
-    draw = ImageDraw.Draw(b50)
 
     # 底板
     frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
     frame = Image.open(frame_path)
     frame = resize_image(frame, 0.95)
-    b50.paste(frame, (48, 45), frame)
+    b50 = paste(b50, frame, (48, 45))
 
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
@@ -666,13 +666,13 @@ async def generateb50(
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
     plate = Image.open(plate_path)
-    b50.paste(plate, (60, 60), plate)
+    b50 = paste(b50, plate, (60, 60))
 
     # 头像框
     iconbase_path = maimai_Static / "icon_base.png"
     iconbase = Image.open(iconbase_path)
     iconbase = resize_image(iconbase, 0.308)
-    b50.paste(iconbase, (60, 46), iconbase)
+    b50 = paste(b50, iconbase, (60, 46))
     # 头像
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -681,19 +681,19 @@ async def generateb50(
             icon = await resp.read()
     icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
     overlay = Image.new("RGBA", b50.size, (0, 0, 0, 0))
-    overlay.paste(icon, (73, 75))
+    overlay = paste(overlay, icon, (73, 75))
     b50 = Image.alpha_composite(b50, overlay)
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
     namebase = Image.open(namebase_path)
-    b50.paste(namebase, (0, 0), namebase)
+    b50 = paste(b50, namebase, (0, 0))
 
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
     dani = Image.open(dani_path)
     dani = resize_image(dani, 0.2)
-    b50.paste(dani, (400, 110), dani)
+    b50 = paste(b50, dani, (400, 110))
 
     # rating推荐
     if type == "b50" and is_rating_tj:
@@ -702,14 +702,14 @@ async def generateb50(
         b15max = b15[0]["ra"] if b15 else 0
         b15min = b15[-1]["ra"] if b15 else 0
         ratingbase = rating_tj(b35max, b35min, b15max, b15min)
-        b50.paste(ratingbase, (60, 197), ratingbase)
+        b50 = paste(b50, ratingbase, (60, 197))
 
     # rating框
     ratingbar = compute_ra(rating)
     ratingbar_path = maimai_Rating / f"UI_CMN_DXRating_{ratingbar:02d}.png"
     ratingbar = Image.open(ratingbar_path)
     ratingbar = resize_image(ratingbar, 0.26)
-    b50.paste(ratingbar, (175, 70), ratingbar)
+    b50 = paste(b50, ratingbar, (175, 70))
 
     # rating数字
     rating_str = str(rating).zfill(5)
@@ -729,11 +729,12 @@ async def generateb50(
         (18, 21), Image.Resampling.LANCZOS
     )
 
-    b50.paste(num1, (253, 77), num1)
-    b50.paste(num2, (267, 77), num2)
-    b50.paste(num3, (280, 77), num3)
-    b50.paste(num4, (294, 77), num4)
-    b50.paste(num5, (308, 77), num5)
+    b50 = paste(b50, num1, (253, 77))
+    b50 = paste(b50, num2, (267, 77))
+    b50 = paste(b50, num3, (280, 77))
+    b50 = paste(b50, num4, (294, 77))
+    b50 = paste(b50, num5, (308, 77))
+    draw = ImageDraw.Draw(b50)
 
     # 名字
     ttf = ImageFont.truetype(ttf2_regular_path, size=24)
@@ -773,20 +774,18 @@ async def generateb50(
     # b50
     b35 = await draw_best(b35, type, songList)
     b15 = await draw_best(b15, type, songList)
-    b50.paste(b35, (25, 795), b35)
-    b50.paste(b15, (25, 1985), b15)
+    b50 = paste(b50, b35, (25, 795))
+    b50 = paste(b50, b15, (25, 1985))
 
-    overlay = Image.new("RGBA", b50.size, (0, 0, 0, 0))
-    overlay_draw = ImageDraw.Draw(overlay)
     ttf = ImageFont.truetype(ttf_regular_path, size=16)
-    overlay_draw.text(
-        (overlay.width - 16, overlay.height - 16),
+    b50 = text(
+        b50,
+        xy=(overlay.width - 16, overlay.height - 16),
         font=ttf,
         text=f"ver.{Config.version[0]}.{Config.version[1]}{Config.version[2]}",
         fill=(255, 255, 255, 80),
         anchor="rb",
     )
-    b50 = Image.alpha_composite(b50, overlay)
 
     img_byte_arr = BytesIO()
     b50.save(img_byte_arr, format="PNG", optimize=True)
@@ -821,7 +820,6 @@ async def generate_wcb(
             frame = config[qq]["frame"]
 
     bg = Image.open("./Static/maimai/wcb_bg.png")
-    draw = ImageDraw.Draw(bg)
 
     # 底板
     if level or ds or gen:
@@ -830,7 +828,7 @@ async def generate_wcb(
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
     frame = Image.open(frame_path)
     frame = resize_image(frame, 0.95)
-    bg.paste(frame, (48, 45), frame)
+    bg = paste(bg, frame, (48, 45))
 
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
@@ -843,13 +841,13 @@ async def generate_wcb(
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
     plate = Image.open(plate_path)
-    bg.paste(plate, (60, 60), plate)
+    bg = paste(bg, plate, (60, 60))
 
     # 头像框
     iconbase_path = maimai_Static / "icon_base.png"
     iconbase = Image.open(iconbase_path)
     iconbase = resize_image(iconbase, 0.308)
-    bg.paste(iconbase, (60, 46), iconbase)
+    bg = paste(bg, iconbase, (60, 46))
     # 头像
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -858,26 +856,26 @@ async def generate_wcb(
             icon = await resp.read()
     icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
     overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
-    overlay.paste(icon, (73, 75))
+    overlay = paste(overlay, icon, (73, 75))
     bg = Image.alpha_composite(bg, overlay)
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
     namebase = Image.open(namebase_path)
-    bg.paste(namebase, (0, 0), namebase)
+    bg = paste(bg, namebase, (0, 0))
 
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
     dani = Image.open(dani_path)
     dani = resize_image(dani, 0.2)
-    bg.paste(dani, (400, 110), dani)
+    bg = paste(bg, dani, (400, 110))
 
     # rating框
     ratingbar = compute_ra(rating)
     ratingbar_path = maimai_Rating / f"UI_CMN_DXRating_{ratingbar:02d}.png"
     ratingbar = Image.open(ratingbar_path)
     ratingbar = resize_image(ratingbar, 0.26)
-    bg.paste(ratingbar, (175, 70), ratingbar)
+    bg = paste(bg, ratingbar, (175, 70))
 
     # rating数字
     rating_str = str(rating).zfill(5)
@@ -897,11 +895,12 @@ async def generate_wcb(
         (18, 21), Image.Resampling.LANCZOS
     )
 
-    bg.paste(num1, (253, 77), num1)
-    bg.paste(num2, (267, 77), num2)
-    bg.paste(num3, (280, 77), num3)
-    bg.paste(num4, (294, 77), num4)
-    bg.paste(num5, (308, 77), num5)
+    bg = paste(bg, num1, (253, 77))
+    bg = paste(bg, num2, (267, 77))
+    bg = paste(bg, num3, (280, 77))
+    bg = paste(bg, num4, (294, 77))
+    bg = paste(bg, num5, (308, 77))
+    draw = ImageDraw.Draw(bg)
 
     # 名字
     ttf = ImageFont.truetype(ttf2_regular_path, size=24)
@@ -912,7 +911,8 @@ async def generate_wcb(
         level_icon_path = maimai_Level / f"{level}.png"
         level_icon = Image.open(level_icon_path)
         level_icon = resize_image(level_icon, 0.70)
-        bg.paste(level_icon, (755 - (len(level) * 8), 45), level_icon)
+        bg = paste(bg, level_icon, (755 - (len(level) * 8), 45))
+        draw = ImageDraw.Draw(bg)
 
     if level or ds or gen:
         # 绘制各达成数目
@@ -952,19 +952,17 @@ async def generate_wcb(
 
     # 绘制当前页面的成绩
     records_parts = await draw_best(input_records, type="wcb", songList=songList)
-    bg.paste(records_parts, (25, 795), records_parts)
+    bg = paste(bg, records_parts, (25, 795))
 
-    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
-    overlay_draw = ImageDraw.Draw(overlay)
     ttf = ImageFont.truetype(ttf_regular_path, size=16)
-    overlay_draw.text(
-        (overlay.width - 16, overlay.height - 16),
+    bg = text(
+        bg,
+        xy=(overlay.width - 16, overlay.height - 16),
         font=ttf,
         text=f"ver.{Config.version[0]}.{Config.version[1]}{Config.version[2]}",
         fill=(255, 255, 255, 80),
         anchor="rb",
     )
-    bg = Image.alpha_composite(bg, overlay)
 
     img_byte_arr = BytesIO()
     bg.save(img_byte_arr, format="PNG", optimize=True)

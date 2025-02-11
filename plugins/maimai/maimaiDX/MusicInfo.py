@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from util.Config import config
 from util.Data import get_chart_stats
+from util.Draw import paste, text
 from .Config import (
     font_path,
     maimai_Static,
@@ -50,7 +51,6 @@ def format_songid(id):
 async def music_info(song_data):
     # 底图
     bg = Image.open("./Static/maimai/musicinfo_bg.png")
-    drawtext = ImageDraw.Draw(bg)
 
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
@@ -63,7 +63,8 @@ async def music_info(song_data):
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
     cover = Image.open(cover_path).resize((295, 295), Image.Resampling.LANCZOS)
-    bg.paste(cover, (204, 440), cover)
+    bg = paste(bg, cover, (204, 440))
+    drawtext = ImageDraw.Draw(bg)
 
     # 绘制标题
     song_title = song_data["title"]
@@ -132,12 +133,13 @@ async def music_info(song_data):
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
     type = resize_image(type, 0.7)
-    bg.paste(type, (694, 852), type)
+    bg = paste(bg, type, (694, 852))
     # version
     song_ver = song_data["basic_info"]["from"]
     song_ver = Image.open(maimai_Version / f"{song_ver}.png")
     song_ver = resize_image(song_ver, 0.8)
-    bg.paste(song_ver, (860, 768), song_ver)
+    bg = paste(bg, song_ver, (860, 768))
+    drawtext = ImageDraw.Draw(bg)
 
     # 等级
     ttf = ImageFont.truetype(ttf_black_path, size=50)
@@ -157,7 +159,8 @@ async def music_info(song_data):
             level_label = ["Basic", "Advanced", "Expert", "Master", "Re:MASTER"][i]
             plus_path = maimai_Plus / f"{level_label}.png"
             plus_icon = Image.open(plus_path)
-            bg.paste(plus_icon, (level_x + 33, level_y - 70), plus_icon)
+            bg = paste(bg, plus_icon, (level_x + 33, level_y - 70))
+            drawtext = ImageDraw.Draw(bg)
         level_position = (level_x, level_y)
         drawtext.text(
             level_position, song_level, anchor="mm", font=ttf, fill=level_color[i]
@@ -216,17 +219,15 @@ async def music_info(song_data):
         )
         charter_x += 292
 
-    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
-    overlay_draw = ImageDraw.Draw(overlay)
     ttf = ImageFont.truetype(ttf_regular_path, size=16)
-    overlay_draw.text(
-        (overlay.width - 16, overlay.height - 16),
+    bg = text(
+        bg,
+        xy=(bg.width - 16, bg.height - 16),
         font=ttf,
         text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
         fill=(255, 255, 255, 80),
         anchor="rb",
     )
-    bg = Image.alpha_composite(bg, overlay)
 
     img_byte_arr = BytesIO()
     bg.save(img_byte_arr, format="PNG", optimize=True)
@@ -240,7 +241,6 @@ async def play_info(data, song_data):
     records = data[song_data["id"]]
     # 底图
     bg = Image.open("./Static/maimai/playinfo_bg.png")
-    drawtext = ImageDraw.Draw(bg)
 
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
@@ -253,7 +253,8 @@ async def play_info(data, song_data):
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
     cover = Image.open(cover_path).resize((295, 295), Image.Resampling.LANCZOS)
-    bg.paste(cover, (204, 440), cover)
+    bg = paste(bg, cover, (204, 440))
+    drawtext = ImageDraw.Draw(bg)
 
     # 绘制标题
     song_title = song_data["title"]
@@ -322,12 +323,13 @@ async def play_info(data, song_data):
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
     type = resize_image(type, 0.7)
-    bg.paste(type, (694, 852), type)
+    bg = paste(bg, type, (694, 852))
     # version
     song_ver = song_data["basic_info"]["from"]
     song_ver = Image.open(maimai_Version / f"{song_ver}.png")
     song_ver = resize_image(song_ver, 0.8)
-    bg.paste(song_ver, (860, 760), song_ver)
+    bg = paste(bg, song_ver, (860, 760))
+    drawtext = ImageDraw.Draw(bg)
 
     # 绘制成绩
     score_color = [
@@ -369,7 +371,8 @@ async def play_info(data, song_data):
             level = level.replace("+", "")
             plus_path = maimai_Plus / f"{level_label}.png"
             plus_icon = Image.open(plus_path)
-            bg.paste(plus_icon, (plus_x, plus_y), plus_icon)
+            bg = paste(bg, plus_icon, (plus_x, plus_y))
+            drawtext = ImageDraw.Draw(bg)
         ttf = ImageFont.truetype(ttf_black_path, size=50)
         drawtext.text((level_x, level_y), level, font=ttf, fill=color, anchor="mm")
 
@@ -418,20 +421,23 @@ async def play_info(data, song_data):
         rate_path = maimai_Rank / f"{rate}.png"
         rate = Image.open(rate_path)
         rate = resize_image(rate, 0.5)
-        bg.paste(rate, (rate_x, rate_y), rate)
+        bg = paste(bg, rate, (rate_x, rate_y))
+        drawtext = ImageDraw.Draw(bg)
 
         # fc & fs
         if fc:
             fc_path = maimai_Static / f"playicon_{fc}.png"
             fc = Image.open(fc_path)
             fc = resize_image(fc, 0.33)
-            bg.paste(fc, (fc_x, fc_y), fc)
+            bg = paste(bg, fc, (fc_x, fc_y))
+            drawtext = ImageDraw.Draw(bg)
 
         if fs:
             fs_path = maimai_Static / f"playicon_{fs}.png"
             fs = Image.open(fs_path)
             fs = resize_image(fs, 0.33)
-            bg.paste(fs, (fs_x, fs_y), fs)
+            bg = paste(bg, fs, (fs_x, fs_y))
+            drawtext = ImageDraw.Draw(bg)
 
         # 定数->ra
         ttf = ImageFont.truetype(ttf_bold_path, size=20)
@@ -439,17 +445,15 @@ async def play_info(data, song_data):
             (dsra_x, dsra_y), f"{ds}->{ra}", font=ttf, fill=color, anchor="mm"
         )
 
-    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
-    overlay_draw = ImageDraw.Draw(overlay)
     ttf = ImageFont.truetype(ttf_regular_path, size=16)
-    overlay_draw.text(
-        (overlay.width - 16, overlay.height - 16),
+    bg = text(
+        bg,
+        xy=(bg.width - 16, bg.height - 16),
         font=ttf,
         text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
         fill=(255, 255, 255, 80),
         anchor="rb",
     )
-    bg = Image.alpha_composite(bg, overlay)
 
     img_byte_arr = BytesIO()
     bg.save(img_byte_arr, format="PNG", optimize=True)
@@ -462,7 +466,6 @@ async def play_info(data, song_data):
 async def utage_music_info(song_data, index=0):
     # 底图
     bg = Image.open("./Static/maimai/utage_musicinfo_bg.png")
-    drawtext = ImageDraw.Draw(bg)
 
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
@@ -475,7 +478,8 @@ async def utage_music_info(song_data, index=0):
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
     cover = Image.open(cover_path).resize((295, 295), Image.Resampling.LANCZOS)
-    bg.paste(cover, (204, 440), cover)
+    bg = paste(bg, cover, (204, 440))
+    drawtext = ImageDraw.Draw(bg)
 
     # 绘制标题
     song_title = song_data["title"]
@@ -546,12 +550,13 @@ async def utage_music_info(song_data, index=0):
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
     type = resize_image(type, 0.7)
-    bg.paste(type, (694, 852), type)
+    bg = paste(bg, type, (694, 852))
     # version
     song_ver = song_data["basic_info"]["from"]
     song_ver = Image.open(maimai_Version / f"{song_ver}.png")
     song_ver = resize_image(song_ver, 0.8)
-    bg.paste(song_ver, (860, 768), song_ver)
+    bg = paste(bg, song_ver, (860, 768))
+    drawtext = ImageDraw.Draw(bg)
 
     # 等级
     ttf = ImageFont.truetype(ttf_black_path, size=50)
@@ -586,17 +591,15 @@ async def utage_music_info(song_data, index=0):
         (730, 1545), chart["charter"], anchor="mm", font=ttf, fill=(131, 19, 158)
     )
 
-    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
-    overlay_draw = ImageDraw.Draw(overlay)
     ttf = ImageFont.truetype(ttf_regular_path, size=16)
-    overlay_draw.text(
-        (overlay.width - 16, overlay.height - 16),
+    bg = text(
+        bg,
+        xy=(bg.width - 16, bg.height - 16),
         font=ttf,
         text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
         fill=(255, 255, 255, 80),
         anchor="rb",
     )
-    bg = Image.alpha_composite(bg, overlay)
 
     img_byte_arr = BytesIO()
     bg.save(img_byte_arr, format="PNG", optimize=True)
@@ -611,7 +614,6 @@ async def score_info(song_data, index):
     bg = Image.open(
         f"./Static/maimai/Static/scoreinfo_bg_{["Basic", "Advanced", "Expert", "Master", "Re:MASTER"][index]}.png"
     )
-    drawtext = ImageDraw.Draw(bg)
 
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
@@ -624,7 +626,8 @@ async def score_info(song_data, index):
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
     cover = Image.open(cover_path).resize((295, 295), Image.Resampling.LANCZOS)
-    bg.paste(cover, (204, 440), cover)
+    bg = paste(bg, cover, (204, 440))
+    drawtext = ImageDraw.Draw(bg)
 
     # 绘制标题
     song_title = song_data["title"]
@@ -693,12 +696,13 @@ async def score_info(song_data, index):
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
     type = resize_image(type, 0.7)
-    bg.paste(type, (694, 852), type)
+    bg = paste(bg, type, (694, 852))
     # version
     song_ver = song_data["basic_info"]["from"]
     song_ver = Image.open(maimai_Version / f"{song_ver}.png")
     song_ver = resize_image(song_ver, 0.8)
-    bg.paste(song_ver, (860, 768), song_ver)
+    bg = paste(bg, song_ver, (860, 768))
+    drawtext = ImageDraw.Draw(bg)
 
     # 等级
     ttf = ImageFont.truetype(ttf_black_path, size=36)
@@ -715,7 +719,8 @@ async def score_info(song_data, index):
         level_label = ["Basic", "Advanced", "Expert", "Master", "Re:MASTER"][index]
         plus_path = maimai_Plus / f"{level_label}.png"
         plus_icon = Image.open(plus_path)
-        bg.paste(plus_icon, (302, 953), plus_icon)
+        bg = paste(bg, plus_icon, (302, 953))
+        drawtext = ImageDraw.Draw(bg)
     drawtext.text(
         (251, 1000), song_level, anchor="mm", font=ttf, fill=level_color[index]
     )
@@ -802,17 +807,15 @@ async def score_info(song_data, index):
             artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
         )
 
-    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
-    overlay_draw = ImageDraw.Draw(overlay)
     ttf = ImageFont.truetype(ttf_regular_path, size=16)
-    overlay_draw.text(
-        (overlay.width - 16, overlay.height - 16),
+    bg = text(
+        bg,
+        xy=(bg.width - 16, bg.height - 16),
         font=ttf,
         text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
         fill=(255, 255, 255, 80),
         anchor="rb",
     )
-    bg = Image.alpha_composite(bg, overlay)
 
     img_byte_arr = BytesIO()
     bg.save(img_byte_arr, format="PNG", optimize=True)
