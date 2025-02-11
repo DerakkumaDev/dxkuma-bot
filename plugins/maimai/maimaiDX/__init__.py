@@ -218,7 +218,7 @@ async def records_to_b50(
                 / 100
             )
         else:
-            record["s_ra"] = round(fit_diff, 2)
+            record["s_ra"] = round(fit_diff, 1)
         if is_dxs:
             if record["achievements"] > 0 and record["dxScore"] == 0:
                 mask_enabled = True
@@ -2027,7 +2027,9 @@ async def _(event: MessageEvent):
         )
     else:
         song_alias = "\r\n".join(sorted(alias))
-        msg = MessageSegment.text(f"迪拉熊找到啦~别名有：\r\n{song_alias}")
+        msg = MessageSegment.text(
+            f"迪拉熊找到啦~别名有：\r\n{song_alias}\r\n\r\n感谢落雪查分器、X-ray Bot及YuzuChaN Bot提供数据支持"
+        )
     await aliasSearch.send(msg)
 
 

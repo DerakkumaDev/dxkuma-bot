@@ -219,13 +219,20 @@ async def music_info(song_data):
         )
         charter_x += 292
 
-    ttf = ImageFont.truetype(ttf_regular_path, size=16)
+    ttf = ImageFont.truetype(ttf2_regular_path, size=16)
     bg = text(
-        bg,
+        text(
+            bg,
+            xy=(bg.width - 16, bg.height - 32),
+            font=ttf,
+            text=f"感谢水鱼查分器提供数据支持",
+            fill=(255, 255, 255, 205),
+            anchor="rb",
+        ),
         xy=(bg.width - 16, bg.height - 16),
         font=ttf,
         text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
-        fill=(255, 255, 255, 80),
+        fill=(255, 255, 255, 205),
         anchor="rb",
     )
 
@@ -445,13 +452,20 @@ async def play_info(data, song_data):
             (dsra_x, dsra_y), f"{ds}->{ra}", font=ttf, fill=color, anchor="mm"
         )
 
-    ttf = ImageFont.truetype(ttf_regular_path, size=16)
+    ttf = ImageFont.truetype(ttf2_regular_path, size=16)
     bg = text(
-        bg,
+        text(
+            bg,
+            xy=(bg.width - 16, bg.height - 32),
+            font=ttf,
+            text=f"感谢水鱼查分器提供数据支持",
+            fill=(255, 255, 255, 205),
+            anchor="rb",
+        ),
         xy=(bg.width - 16, bg.height - 16),
         font=ttf,
         text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
-        fill=(255, 255, 255, 80),
+        fill=(255, 255, 255, 205),
         anchor="rb",
     )
 
@@ -591,13 +605,20 @@ async def utage_music_info(song_data, index=0):
         (730, 1545), chart["charter"], anchor="mm", font=ttf, fill=(131, 19, 158)
     )
 
-    ttf = ImageFont.truetype(ttf_regular_path, size=16)
+    ttf = ImageFont.truetype(ttf2_regular_path, size=16)
     bg = text(
-        bg,
+        text(
+            bg,
+            xy=(bg.width - 16, bg.height - 32),
+            font=ttf,
+            text=f"感谢水鱼查分器提供数据支持",
+            fill=(255, 255, 255, 205),
+            anchor="rb",
+        ),
         xy=(bg.width - 16, bg.height - 16),
         font=ttf,
         text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
-        fill=(255, 255, 255, 80),
+        fill=(255, 255, 255, 205),
         anchor="rb",
     )
 
@@ -807,13 +828,20 @@ async def score_info(song_data, index):
             artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
         )
 
-    ttf = ImageFont.truetype(ttf_regular_path, size=16)
+    ttf = ImageFont.truetype(ttf2_regular_path, size=16)
     bg = text(
-        bg,
+        text(
+            bg,
+            xy=(bg.width - 16, bg.height - 32),
+            font=ttf,
+            text=f"感谢水鱼查分器提供数据支持",
+            fill=(255, 255, 255, 205),
+            anchor="rb",
+        ),
         xy=(bg.width - 16, bg.height - 16),
         font=ttf,
         text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
-        fill=(255, 255, 255, 80),
+        fill=(255, 255, 255, 205),
         anchor="rb",
     )
 

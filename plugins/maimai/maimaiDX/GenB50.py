@@ -550,9 +550,12 @@ async def draw_best(bests: list, type: str, songList):
                 song_data = bests[index]
                 if type == "b50":
                     fit_diff = get_fit_diff(
-                        str(song_data["song_id"]), song_data["level_index"], song_data["ds"], charts
+                        str(song_data["song_id"]),
+                        song_data["level_index"],
+                        song_data["ds"],
+                        charts,
                     )
-                    song_data["s_ra"] = round(fit_diff, 2)
+                    song_data["s_ra"] = round(fit_diff, 1)
                 # 传入数据生成图片
                 part = await music_to_part(
                     **song_data, index=index + 1, b_type=type, songList=songList
@@ -787,13 +790,20 @@ async def generateb50(
     b50 = paste(b50, b35, (25, 795))
     b50 = paste(b50, b15, (25, 1985))
 
-    ttf = ImageFont.truetype(ttf_regular_path, size=16)
+    ttf = ImageFont.truetype(ttf2_regular_path, size=16)
     b50 = text(
-        b50,
-        xy=(overlay.width - 16, overlay.height - 16),
+        text(
+            b50,
+            xy=(b50.width - 16, b50.height - 32),
+            font=ttf,
+            text=f"感谢水鱼查分器提供数据支持",
+            fill=(255, 255, 255, 205),
+            anchor="rb",
+        ),
+        xy=(b50.width - 16, b50.height - 16),
         font=ttf,
         text=f"ver.{Config.version[0]}.{Config.version[1]}{Config.version[2]}",
-        fill=(255, 255, 255, 80),
+        fill=(255, 255, 255, 205),
         anchor="rb",
     )
 
@@ -964,13 +974,20 @@ async def generate_wcb(
     records_parts = await draw_best(input_records, type="wcb", songList=songList)
     bg = paste(bg, records_parts, (25, 795))
 
-    ttf = ImageFont.truetype(ttf_regular_path, size=16)
+    ttf = ImageFont.truetype(ttf2_regular_path, size=16)
     bg = text(
-        bg,
-        xy=(overlay.width - 16, overlay.height - 16),
+        text(
+            bg,
+            xy=(bg.width - 16, bg.height - 32),
+            font=ttf,
+            text=f"感谢水鱼查分器提供数据支持",
+            fill=(255, 255, 255, 205),
+            anchor="rb",
+        ),
+        xy=(bg.width - 16, bg.height - 16),
         font=ttf,
         text=f"ver.{Config.version[0]}.{Config.version[1]}{Config.version[2]}",
-        fill=(255, 255, 255, 80),
+        fill=(255, 255, 255, 205),
         anchor="rb",
     )
 
