@@ -118,7 +118,7 @@ async def _(event: GroupMessageEvent):
         if key not in data:
             return
 
-        if data[key] - event.time > 300:
+        if event.time - data[key] >= 15:
             data.pop(key)
             return
 

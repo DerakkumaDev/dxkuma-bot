@@ -8,8 +8,8 @@ ping = on_fullmatch("ping", ignorecase=True)
 
 
 @ping.handle()
-async def _(bot: Bot, event):
-    if isinstance(event, GroupMessageEvent) and event.group_id != config.dev_group:
+async def _(event: GroupMessageEvent):
+    if event.group_id != config.dev_group:
         return
 
     await ping.send("PONG")
