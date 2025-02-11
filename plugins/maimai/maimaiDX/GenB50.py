@@ -434,15 +434,20 @@ async def music_to_part(
             fill=color,
             anchor="lm",
         )
-        s_ra_str = "定数"
+        s_ra_str = str(s_ra)
+        s_ra_str2 = "定数"
     elif b_type == "fd50":
         ds_str = f"{ds:.2f}"
-        s_ra_str = "Rating"
+        s_ra_str = str(s_ra)
+        s_ra_str2 = "Rating"
     elif b_type == "cf50":
-        s_ra_str = "Rating"
+        ds_str = str(ds)
+        s_ra_str = str(s_ra)
+        s_ra_str2 = "Rating"
     else:
         ds_str = str(ds)
-        s_ra_str = "拟合"
+        s_ra_str = f"{s_ra:.1f}"
+        s_ra_str2 = "拟合"
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
     ds_str = str(ds_str).split(".")
     text_position = (376, 215)
@@ -454,12 +459,10 @@ async def music_to_part(
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
     ttf = ImageFont.truetype(ttf_bold_path, size=30)
     text_position = (388, 270)
-    text_content = str(s_ra)
-    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="ls")
-    text_position = (text_position[0] + ttf.getlength(text_content), 272)
+    draw.text(text_position, s_ra_str, font=ttf, fill=(28, 43, 120), anchor="ls")
+    text_position = (text_position[0] + ttf.getlength(s_ra_str), 272)
     ttf = ImageFont.truetype(ttf2_bold_path, size=24)
-    text_content = s_ra_str
-    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="ls")
+    draw.text(text_position, s_ra_str2, font=ttf, fill=(28, 43, 120), anchor="ls")
 
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
     draw.text((550, 202), str(ra), font=ttf, fill=color, anchor="rm")
@@ -531,8 +534,7 @@ async def draw_best(bests: list, type: str, songList):
     base = Image.new(
         "RGBA", (1440, queue_nums * 110 + (queue_nums - 1) * 10), (0, 0, 0, 0)
     )
-    if type == "b50":
-        charts = await get_chart_stats()
+    charts = await get_chart_stats()
     # 通过循环构建列表并传入数据
     # 遍历列表中的选项
     # 循环生成列
@@ -548,14 +550,13 @@ async def draw_best(bests: list, type: str, songList):
             if index < len(bests):
                 # 根据索引从列表中抽取数据
                 song_data = bests[index]
-                if type == "b50":
-                    fit_diff = get_fit_diff(
+                if "s_ra" not in song_data:
+                    song_data["s_ra"] = get_fit_diff(
                         str(song_data["song_id"]),
                         song_data["level_index"],
                         song_data["ds"],
                         charts,
                     )
-                    song_data["s_ra"] = round(fit_diff, 1)
                 # 传入数据生成图片
                 part = await music_to_part(
                     **song_data, index=index + 1, b_type=type, songList=songList

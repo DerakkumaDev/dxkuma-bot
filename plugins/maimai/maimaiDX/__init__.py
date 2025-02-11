@@ -217,8 +217,6 @@ async def records_to_b50(
                 * get_ra_in(record["rate"])
                 / 100
             )
-        else:
-            record["s_ra"] = round(fit_diff, 1)
         if is_dxs:
             if record["achievements"] > 0 and record["dxScore"] == 0:
                 mask_enabled = True
