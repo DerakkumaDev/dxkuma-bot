@@ -6,14 +6,12 @@ from nonebot.adapters.onebot.v11 import (
 )
 from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
 
-from util.Config import config
 from util.exceptions import NotAllowedException, NeedToSwitchException, SkipException
 from .util import locks, Lock, States
 
 
 @event_preprocessor
 async def _(
-    bot: Bot,
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
     if event.is_tome():
@@ -25,15 +23,13 @@ async def _(
 
     locks[key].count += 1
     await locks[key].semaphore.acquire()
-    if locks[key].state == States.PROCESSED or (
-        bot.self_id not in config.allowed_accounts
-        and (
-            (locks[key].state == States.SKIPED)
-            or (locks[key].count > 1 and locks[key].state == States.NEED_TO_SWITCH)
-        )
-    ):
-        locks[key].count -= 1
-        locks[key].semaphore.release()
+    if locks[key].state == States.PROCESSED:
+        if locks[key].count > 1:
+            locks[key].count -= 1
+            locks[key].semaphore.release()
+        else:
+            locks.pop(key)
+
         raise SkipException
 
     return
