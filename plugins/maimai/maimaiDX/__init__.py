@@ -47,7 +47,7 @@ rate50 = on_regex(
 ap50 = on_regex(r"^dlxap(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
 fc50 = on_regex(r"^dlxfc(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
 cf50 = on_regex(r"^dlxcf(50)?(\s*\[CQ:at.*?\]\s*)$", re.I)
-fd50 = on_regex(r"^dlxfd(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
+sd50 = on_regex(r"^dlx(s|f)d(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
 all50 = on_regex(r"^dlx(all?(50)?|b)(\s*\[CQ:at.*?\]\s*)?$", re.I)
 rr50 = on_regex(r"^dlxrr(50)?(\s*\d+)?$", re.I)
 sunlist = on_regex(r"^dlx([sc]un|寸|🤏)(\s*\d+?)?$", re.I)
@@ -135,7 +135,7 @@ async def records_to_b50(
     fc_rules: list | None = None,
     rate_rules: list | None = None,
     is_fit: bool = False,
-    is_fd: bool = False,
+    is_sd: bool = False,
     is_dxs: bool = False,
     is_all: bool = False,
     dx_star_count: str | None = None,
@@ -203,13 +203,13 @@ async def records_to_b50(
         fit_diff = get_fit_diff(
             str(record["song_id"]), record["level_index"], record["ds"], charts
         )
-        if is_fit or is_fd:
+        if is_fit or is_sd:
             if record["ra"] == 0:
                 continue
             if record["achievements"] > 0 and record["dxScore"] == 0:
                 mask_enabled = True
                 continue
-            record["s_ra"] = record["ds"] if is_fit else record["ra"]
+            record["s_ra"] = record["ds"]
             record["ds"] = math.trunc(fit_diff * 100) / 100
             record["ra"] = math.trunc(
                 fit_diff
@@ -217,6 +217,8 @@ async def records_to_b50(
                 * get_ra_in(record["rate"])
                 / 100
             )
+            if is_sd:
+                record["diff"] = charts["charts"][str(song_id)][record["level_index"]]["std_dev"]
         if is_dxs:
             if record["achievements"] > 0 and record["dxScore"] == 0:
                 mask_enabled = True
@@ -276,15 +278,15 @@ async def records_to_b50(
     b15 = sorted(dx, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)[
         :15
     ]
-    if is_fd:
+    if is_sd:
         b35 = sorted(
             b35,
-            key=lambda x: (x["ra"] - x["s_ra"]) * x["ds"] * get_ra_in(record["rate"]),
+            key=lambda x: (x["ds"] >= x["s_ra"], x["diff"], x["ra"], x["ds"], x["achievements"]),
             reverse=True,
         )
         b15 = sorted(
             b15,
-            key=lambda x: (x["ra"] - x["s_ra"]) * x["ds"] * get_ra_in(record["rate"]),
+            key=lambda x: (x["ds"] >= x["s_ra"], x["diff"], x["ra"], x["ds"], x["achievements"]),
             reverse=True,
         )
     return b35, b15, mask_enabled
@@ -1144,7 +1146,7 @@ async def _(event: MessageEvent):
     await cf50.send(msg)
 
 
-@fd50.handle()
+@sd50.handle()
 async def _(event: MessageEvent):
     target_qq = event.get_user_id()
     for message in event.get_message():
@@ -1167,7 +1169,7 @@ async def _(event: MessageEvent):
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await fd50.finish(msg)
+            await sd50.finish(msg)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
@@ -1177,17 +1179,17 @@ async def _(event: MessageEvent):
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await fd50.finish(msg)
+        await sd50.finish(msg)
     elif not data:
         msg = (
             MessageSegment.at(event.user_id),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await fd50.finish(msg)
+        await sd50.finish(msg)
     records = data["records"]
     if not records:
-        await fd50.finish(
+        await sd50.finish(
             (
                 MessageSegment.at(event.user_id),
                 MessageSegment.text(
@@ -1197,20 +1199,20 @@ async def _(event: MessageEvent):
             )
         )
     songList = await get_music_data()
-    b35, b15, mask_enabled = await records_to_b50(records, songList, is_fd=True)
+    b35, b15, mask_enabled = await records_to_b50(records, songList, is_sd=True)
     if not b35 and not b15:
         if mask_enabled:
             msg = f"迪拉熊无法获取{"你" if target_qq == event.get_user_id() else "他"}的真实成绩"
         else:
             msg = f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩"
-        await fd50.finish(
+        await sd50.finish(
             (
                 MessageSegment.at(event.user_id),
                 MessageSegment.text(msg),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
         )
-    await fd50.send(
+    await sd50.send(
         (
             MessageSegment.at(event.user_id),
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
@@ -1224,11 +1226,11 @@ async def _(event: MessageEvent):
         nickname=nickname,
         qq=target_qq,
         dani=dani,
-        type="fd50",
+        type="sd50",
         songList=songList,
     )
     msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
-    await fd50.send(msg)
+    await sd50.send(msg)
 
 
 @all50.handle()

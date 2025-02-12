@@ -331,8 +331,9 @@ async def music_to_part(
     type: str,
     index: int,
     b_type: str,
-    songList,
     s_ra,
+    songList,
+    diff=-1,
     preferred=None,
 ):
     color = (255, 255, 255)
@@ -426,7 +427,6 @@ async def music_to_part(
     if b_type == "fit50":
         ds_str = f"{math.trunc(ds * 100) / 100:.2f}"
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
-        diff = ds - s_ra
         draw.text(
             (376, 172),
             f"{"+" if diff > 0 else "±" if diff == 0 else ""}{math.trunc(diff * 100) / 100:.2f}",
@@ -436,10 +436,18 @@ async def music_to_part(
         )
         s_ra_str = str(s_ra)
         s_ra_str2 = "定数"
-    elif b_type == "fd50":
+    elif b_type == "sd50":
         ds_str = f"{math.trunc(ds * 100) / 100:.2f}"
+        ttf = ImageFont.truetype(ttf_bold_path, size=24)
+        draw.text(
+            (376, 172),
+            f"±{math.trunc(diff * 100) / 100:.2f}",
+            font=ttf,
+            fill=color,
+            anchor="lm",
+        )
         s_ra_str = str(s_ra)
-        s_ra_str2 = "Rating"
+        s_ra_str2 = "定数"
     elif b_type == "cf50":
         ds_str = str(ds)
         s_ra_str = str(s_ra)
@@ -466,9 +474,8 @@ async def music_to_part(
 
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
     draw.text((550, 202), str(ra), font=ttf, fill=color, anchor="rm")
-    if b_type in ("cf50", "fd50"):
+    if b_type == "cf50":
         ttf = ImageFont.truetype(ttf_bold_path, size=20)
-        diff = ra - s_ra
         draw.text(
             (550, 172),
             f"{"+" if diff > 0 else "±" if diff == 0 else ""}{diff}",
@@ -550,7 +557,11 @@ async def draw_best(bests: list, type: str, songList):
             if index < len(bests):
                 # 根据索引从列表中抽取数据
                 song_data = bests[index]
-                if "s_ra" not in song_data:
+                if type == "fit50":
+                    song_data["diff"] = song_data["ds"] - song_data["s_ra"]
+                elif type == "cf50":
+                    song_data["diff"] = song_data["ra"] - song_data["s_ra"]
+                elif "diff" not in song_data:
                     song_data["s_ra"] = get_fit_diff(
                         str(song_data["song_id"]),
                         song_data["level_index"],
@@ -777,7 +788,7 @@ async def generateb50(
         "ap50": "全完美 Best 50",
         "fc50": "全连 Best 50",
         "cf50": "对比 Best 50",
-        "fd50": "Best 拟合—定数差 50（含金量b50）",
+        "sd50": "Best 成绩标准差 50（含金量b50）",
         "all50": "全成绩 Best 50",
         "rr50": "",
     }
