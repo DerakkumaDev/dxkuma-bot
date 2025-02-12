@@ -1,3 +1,4 @@
+import math
 import shelve
 from io import BytesIO
 
@@ -21,9 +22,9 @@ async def gen_avatar(pic: bytes) -> bytes:
     if width > height:
         img = img.crop(
             (
-                int(width / 2 - height / 2),
+                math.ceil(width / 2 - height / 2),
                 0,
-                int(width / 2 + height / 2),
+                math.ceil(width / 2 + height / 2),
                 height,
             )
         )
@@ -31,9 +32,9 @@ async def gen_avatar(pic: bytes) -> bytes:
         img = img.crop(
             (
                 0,
-                int(height / 2 - width / 2),
+                math.ceil(height / 2 - width / 2),
                 width,
-                int(height / 2 + width / 2),
+                math.ceil(height / 2 + width / 2),
             )
         )
 

@@ -165,7 +165,7 @@ async def records_to_b50(
                         "Master",
                         "Re:MASTER",
                     ][i],
-                    "ra": int(j * 22.512),
+                    "ra": math.trunc(j * 22.512),
                     "rate": "sssp",
                     "song_id": int(song["id"]),
                     "title": song["title"],
@@ -210,8 +210,8 @@ async def records_to_b50(
                 mask_enabled = True
                 continue
             record["s_ra"] = record["ds"] if is_fit else record["ra"]
-            record["ds"] = round(fit_diff, 2)
-            record["ra"] = int(
+            record["ds"] = math.trunc(fit_diff * 100) / 100
+            record["ra"] = math.trunc(
                 fit_diff
                 * (record["achievements"] if record["achievements"] < 100.5 else 100.5)
                 * get_ra_in(record["rate"])
@@ -228,7 +228,7 @@ async def records_to_b50(
                     / (sum(song_data["charts"][record["level_index"]]["notes"]) * 3)
                     * 101
                 )
-                record["ra"] = int(
+                record["ra"] = math.trunc(
                     record["ds"]
                     * record["achievements"]
                     * get_ra_in(record["rate"])

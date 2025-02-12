@@ -151,7 +151,7 @@ async def _(bot: Bot):
     leaderboard_output = list()
     count = min(len(leaderboard), 5)  # 最多显示5个人，取实际人数和5的较小值
     for i, (qq, total_count) in enumerate(leaderboard[:count], start=1):
-        user_name = (await bot.get_stranger_info(user_id=int(qq)))["nickname"]
+        user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
         rank_str = f"{i}. {user_name}：{total_count}"
         leaderboard_output.append(rank_str)
 

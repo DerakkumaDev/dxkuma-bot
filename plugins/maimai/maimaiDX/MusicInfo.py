@@ -1,3 +1,4 @@
+import math
 import os
 from io import BytesIO
 
@@ -27,8 +28,8 @@ ttf2_regular_path = font_path / "NotoSansCJKsc-Regular.otf"
 
 def resize_image(image, scale):
     # 计算缩放后的目标尺寸
-    width = int(image.width * scale)
-    height = int(image.height * scale)
+    width = math.ceil(image.width * scale)
+    height = math.ceil(image.height * scale)
 
     # 缩放图像
     resized_image = image.resize((width, height), Image.Resampling.LANCZOS)
@@ -177,7 +178,7 @@ async def music_info(song_data):
         ds_position = (ds_x, ds_y)
         drawtext.text(
             ds_position,
-            f"{song_ds} ({get_fit_diff(song_data["id"], i, song_ds, charts):.2f})",
+            f"{song_ds} ({math.trunc(get_fit_diff(song_data["id"], i, song_ds, charts) * 100) / 100:.2f})",
             anchor="mm",
             font=ttf,
             fill=(28, 43, 110),
@@ -782,7 +783,7 @@ async def score_info(song_data, index):
                     )
                     score += ex_score / 100
                 if score > 0:
-                    score_text = f"-{score:.4%}"
+                    score_text = f"{-(math.trunc(score * 10000) / 10000):.4%}"
                     drawtext.text(
                         score_position,
                         score_text,

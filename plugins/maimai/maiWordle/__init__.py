@@ -1,7 +1,7 @@
-from asyncio import Lock
 import math
 import os
 import re
+from asyncio import Lock
 from io import BytesIO
 from pathlib import Path
 from random import SystemRandom
@@ -371,8 +371,8 @@ async def _(event: GroupMessageEvent):
 
         cover = Image.open(cover_path)
         pers = 1 / math.sqrt(random.randint(16, 25))
-        size_x = int(cover.height * pers)
-        size_y = int(cover.height * pers)
+        size_x = math.ceil(cover.height * pers)
+        size_y = math.ceil(cover.width * pers)
         pos_x = random.randint(0, cover.height - size_x)
         pos_y = random.randint(0, cover.width - size_y)
         pice = cover.crop((pos_x, pos_y, pos_x + size_x, pos_y + size_y))
@@ -482,15 +482,15 @@ async def _(bot: Bot, event: GroupMessageEvent):
             current_index = i
             current_score = achi
 
-        user_name = (await bot.get_stranger_info(user_id=int(qq)))["nickname"]
-        rank_str = f"{current_index}. {user_name}：{achi:.4%} × {times}"
+        user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
+        rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 10000) / 10000:.4%} × {times}"
         leaderboard_output.append(rank_str)
         if len(leaderboard_output) > 9:
             break
 
     avg = sum(d[1] for d in scores) / len(scores) if len(scores) > 0 else 0
     msg = "\r\n".join(leaderboard_output)
-    msg = f"猜歌准确率排行榜Top{len(leaderboard_output)}：\r\n{msg}\r\n\r\n玩家数：{len(leaderboard)}/{len(scores)}\r\n平均达成率：{avg:.4%}"
+    msg = f"猜歌准确率排行榜Top{len(leaderboard_output)}：\r\n{msg}\r\n\r\n玩家数：{len(leaderboard)}/{len(scores)}\r\n平均达成率：{math.trunc(avg * 10000) / 10000:.4%}"
     await rank.send(msg)
 
 
@@ -524,11 +524,11 @@ async def _(bot: Bot, event: GroupMessageEvent):
             if s_index > i:
                 continue
 
-            user_name = (await bot.get_stranger_info(user_id=int(qq)))["nickname"]
+            user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
             if i == index:
-                rank_str = f"{current_index}. {user_name}：{achi:.4%}"
+                rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 10000) / 10000:.4%}"
             else:
-                rank_str = f"{current_index}. {user_name}：{achi:.4%} × {times}"
+                rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 10000) / 10000:.4%} × {times}"
 
             leaderboard_output.append(rank_str)
 

@@ -68,8 +68,8 @@ def find_song_by_id(song_id, songList):
 
 def resize_image(image, scale):
     # 计算缩放后的目标尺寸
-    width = int(image.width * scale)
-    height = int(image.height * scale)
+    width = math.ceil(image.width * scale)
+    height = math.ceil(image.height * scale)
 
     # 缩放图像
     resized_image = image.resize((width, height), Image.Resampling.LANCZOS)
@@ -414,22 +414,22 @@ async def music_to_part(
     ttf2 = ImageFont.truetype(ttf_bold_path, size=30)
     text_content2 = str(index)
     xdiff = (text_len + ttf2.getlength(text_content2)) / 2
-    text_position = (text_position[0] - int(xdiff), 270)
+    text_position = (math.ceil(text_position[0] - xdiff), 270)
     draw.text(
         text_position, text_content1, font=ttf1, fill=(255, 255, 255), anchor="ls"
     )
-    text_position = (text_position[0] + int(text_len), 270)
+    text_position = (math.ceil(text_position[0] + text_len), 270)
     draw.text(
         text_position, text_content2, font=ttf2, fill=(255, 255, 255), anchor="ls"
     )
     # 定数和ra
     if b_type == "fit50":
-        ds_str = f"{ds:.2f}"
+        ds_str = f"{math.trunc(ds * 100) / 100:.2f}"
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
         diff = ds - s_ra
         draw.text(
             (376, 172),
-            f"{"+" if diff > 0 else "±" if diff == 0 else ""}{diff:.2f}",
+            f"{"+" if diff > 0 else "±" if diff == 0 else ""}{math.trunc(diff * 100) / 100:.2f}",
             font=ttf,
             fill=color,
             anchor="lm",
@@ -437,7 +437,7 @@ async def music_to_part(
         s_ra_str = str(s_ra)
         s_ra_str2 = "定数"
     elif b_type == "fd50":
-        ds_str = f"{ds:.2f}"
+        ds_str = f"{math.trunc(ds * 100) / 100:.2f}"
         s_ra_str = str(s_ra)
         s_ra_str2 = "Rating"
     elif b_type == "cf50":
@@ -446,7 +446,7 @@ async def music_to_part(
         s_ra_str2 = "Rating"
     else:
         ds_str = str(ds)
-        s_ra_str = f"{s_ra:.1f}"
+        s_ra_str = f"{math.trunc(s_ra * 10) / 10:.1f}"
         s_ra_str2 = "拟合"
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
     ds_str = str(ds_str).split(".")
@@ -523,7 +523,7 @@ async def music_to_part(
 async def draw_best(bests: list, type: str, songList):
     index = 0
     # 计算列数
-    queue_nums = int(len(bests) / 4) + 1
+    queue_nums = math.ceil(len(bests) / 4)
     # 初始化行列标号
     queue_index = 0
     row_index = 0
