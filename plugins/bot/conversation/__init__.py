@@ -48,7 +48,7 @@ async def _(event: GroupMessageEvent):
 @wxhn.handle()
 async def _(event: GroupMessageEvent):
     msg = (
-        MessageSegment.reply(event.message_id),
+        MessageSegment.at(event.user_id),
         MessageSegment.text("迪拉熊也喜欢你mai~❤️"),
         MessageSegment.image(Path("./Static/LikeYou/0.png")),
     )
@@ -61,21 +61,21 @@ async def _(event: GroupMessageEvent):
     roll_list = re.findall(r"(?<=是)(.+?)(?=还|$)", text)
     if not roll_list:
         msg = (
-            MessageSegment.reply(event.message_id),
+            MessageSegment.at(event.user_id),
             MessageSegment.text("没有选项要让迪拉熊怎么选嘛~"),
             MessageSegment.image(Path("./Static/Roll/1.png")),
         )
         await roll.finish(msg)
     if len(set(roll_list)) == 1:
         msg = (
-            MessageSegment.reply(event.message_id),
+            MessageSegment.at(event.user_id),
             MessageSegment.text("就一个选项要让迪拉熊怎么选嘛~"),
             MessageSegment.image(Path("./Static/Roll/1.png")),
         )
         await roll.finish(msg)
     output = random.choice(roll_list)
     msg = (
-        MessageSegment.reply(event.message_id),
+        MessageSegment.at(event.user_id),
         MessageSegment.text(f"迪拉熊建议你选择“{output}”呢~"),
         MessageSegment.image(Path("./Static/Roll/0.png")),
     )
@@ -106,7 +106,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 @eatbreak.handle()
 async def _(event: GroupMessageEvent):
     msg = (
-        MessageSegment.reply(event.message_id),
+        MessageSegment.at(event.user_id),
         MessageSegment.text("谢谢mai~"),
         MessageSegment.image(Path("./Static/EatBreak/0.png")),
     )

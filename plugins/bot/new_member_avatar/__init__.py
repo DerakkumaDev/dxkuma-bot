@@ -83,11 +83,11 @@ async def _(event: GroupMessageEvent):
 
     await avatar.send(
         (
-            MessageSegment.reply(event.message_id),
+            MessageSegment.at(event.user_id),
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
-    msg = MessageSegment.reply(event.message_id)
+    msg = MessageSegment.at(event.user_id)
 
     for pic_url in pic_urls:
         async with aiohttp.ClientSession() as session:
@@ -126,11 +126,11 @@ async def _(event: GroupMessageEvent):
 
     await avatar.send(
         (
-            MessageSegment.reply(event.message_id),
+            MessageSegment.at(event.user_id),
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
-    msg = MessageSegment.reply(event.message_id)
+    msg = MessageSegment.at(event.user_id)
 
     for pic_url in pic_urls:
         async with aiohttp.ClientSession() as session:

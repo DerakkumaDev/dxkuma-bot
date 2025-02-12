@@ -116,7 +116,7 @@ async def _(event: GroupMessageEvent):
         if not not_opened:
             await open_chars.send(
                 (
-                    MessageSegment.reply(event.message_id),
+                    MessageSegment.at(user_id),
                     MessageSegment.text("这个字已经开过了哦，换一个吧~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
@@ -141,7 +141,7 @@ async def _(event: GroupMessageEvent):
 
                 await open_chars.send(
                     (
-                        MessageSegment.reply(event.message_id),
+                        MessageSegment.at(user_id),
                         MessageSegment.image(Path(cover_path)),
                         MessageSegment.text(i[0]),
                     )
@@ -190,7 +190,7 @@ async def _(event: GroupMessageEvent):
 
             await all_message_handle.send(
                 (
-                    MessageSegment.reply(event.message_id),
+                    MessageSegment.at(user_id),
                     MessageSegment.image(Path(cover_path)),
                     MessageSegment.text(i[0]),
                 )
@@ -355,7 +355,7 @@ async def _(event: GroupMessageEvent):
         data["part"].add(user_id)
         await pic_tip.send(
             (
-                MessageSegment.reply(event.message_id),
+                MessageSegment.at(user_id),
                 MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
             )
         )
@@ -443,7 +443,7 @@ async def _(event: GroupMessageEvent):
         data["part"].add(user_id)
         await aud_tip.send(
             (
-                MessageSegment.reply(event.message_id),
+                MessageSegment.at(user_id),
                 MessageSegment.text(
                     f"迪拉熊正在准备播放第{data["index"]}行的歌曲，稍等一下mai~"
                 ),

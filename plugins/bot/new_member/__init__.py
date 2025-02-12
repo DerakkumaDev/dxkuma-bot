@@ -22,11 +22,11 @@ groupRequest = on_type(GroupRequestEvent)
 
 @groupIncrease.handle()
 async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
-    qq = event.get_user_id()
-    if qq == bot.self_id:
+    qq = event.user_id
+    if event.get_user_id() == bot.self_id:
         return
     group_id = event.group_id
-    user_name = (await bot.get_stranger_info(user_id=int(qq)))["nickname"]
+    user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
     if group_id == config.special_group:
         msg = MessageSegment.text(
             f"恭喜{user_name}（{qq}）发现了迪拉熊宝藏地带，发送dlxhelp试一下吧~"
@@ -42,9 +42,9 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
 
 @groupDecrease.handle()
 async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
-    qq = event.get_user_id()
+    qq = event.user_id
     group_id = event.group_id
-    user_name = (await bot.get_stranger_info(user_id=int(qq)))["nickname"]
+    user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
     if group_id == config.special_group:
         msg = MessageSegment.text(f"很遗憾，{user_name}（{qq}）离开了迪拉熊的小窝QAQ")
     else:
@@ -74,9 +74,9 @@ async def _(bot: Bot, event: GroupRequestEvent):
     if event.sub_type != "invite":
         return
     await event.approve(bot)
-    qq = event.get_user_id()
+    qq = event.user_id
     group_id = event.group_id
-    user_name = (await bot.get_stranger_info(user_id=int(qq)))["nickname"]
+    user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
     msg = MessageSegment.text(
         f"迪拉熊由{user_name}（{qq}）邀请加入了本群，发送dlxhelp和迪拉熊一起玩吧~"
     )
