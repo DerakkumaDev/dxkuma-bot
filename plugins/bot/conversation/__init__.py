@@ -49,6 +49,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     msg = (
         MessageSegment.at(event.user_id),
+        MessageSegment.text(" "),
         MessageSegment.text("迪拉熊也喜欢你mai~❤️"),
         MessageSegment.image(Path("./Static/LikeYou/0.png")),
     )
@@ -62,6 +63,7 @@ async def _(event: GroupMessageEvent):
     if not roll_list:
         msg = (
             MessageSegment.at(event.user_id),
+            MessageSegment.text(" "),
             MessageSegment.text("没有选项要让迪拉熊怎么选嘛~"),
             MessageSegment.image(Path("./Static/Roll/1.png")),
         )
@@ -69,6 +71,7 @@ async def _(event: GroupMessageEvent):
     if len(set(roll_list)) == 1:
         msg = (
             MessageSegment.at(event.user_id),
+            MessageSegment.text(" "),
             MessageSegment.text("就一个选项要让迪拉熊怎么选嘛~"),
             MessageSegment.image(Path("./Static/Roll/1.png")),
         )
@@ -76,6 +79,7 @@ async def _(event: GroupMessageEvent):
     output = random.choice(roll_list)
     msg = (
         MessageSegment.at(event.user_id),
+        MessageSegment.text(" "),
         MessageSegment.text(f"迪拉熊建议你选择“{output}”呢~"),
         MessageSegment.image(Path("./Static/Roll/0.png")),
     )
@@ -107,6 +111,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     msg = (
         MessageSegment.at(event.user_id),
+        MessageSegment.text(" "),
         MessageSegment.text("谢谢mai~"),
         MessageSegment.image(Path("./Static/EatBreak/0.png")),
     )

@@ -117,6 +117,7 @@ async def _(event: GroupMessageEvent):
             await open_chars.send(
                 (
                     MessageSegment.at(user_id),
+                    MessageSegment.text(" "),
                     MessageSegment.text("这个字已经开过了哦，换一个吧~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
@@ -356,6 +357,7 @@ async def _(event: GroupMessageEvent):
         await pic_tip.send(
             (
                 MessageSegment.at(user_id),
+                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
             )
         )
@@ -444,6 +446,7 @@ async def _(event: GroupMessageEvent):
         await aud_tip.send(
             (
                 MessageSegment.at(user_id),
+                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"迪拉熊正在准备播放第{data["index"]}行的歌曲，稍等一下mai~"
                 ),
