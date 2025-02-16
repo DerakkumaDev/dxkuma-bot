@@ -92,7 +92,7 @@ async def find_songid_by_alias(name, song_list):
 
     # 芝士查找
     for info in song_list:
-        if name.casefold() in info["title"].casefold():
+        if name.casefold() == info["title"].casefold():
             matched_ids.append(info["id"])
 
     alias_list = await get_alias_list_lxns()

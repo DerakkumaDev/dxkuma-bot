@@ -486,14 +486,14 @@ async def _(bot: Bot, event: GroupMessageEvent):
             current_score = achi
 
         user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
-        rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 10000) / 10000:.4%} × {times}"
+        rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 1000000) / 1000000:.4%} × {times}"
         leaderboard_output.append(rank_str)
         if len(leaderboard_output) > 9:
             break
 
     avg = sum(d[1] for d in scores) / len(scores) if len(scores) > 0 else 0
     msg = "\r\n".join(leaderboard_output)
-    msg = f"猜歌准确率排行榜Top{len(leaderboard_output)}：\r\n{msg}\r\n\r\n玩家数：{len(leaderboard)}/{len(scores)}\r\n平均达成率：{math.trunc(avg * 10000) / 10000:.4%}"
+    msg = f"猜歌准确率排行榜Top{len(leaderboard_output)}：\r\n{msg}\r\n\r\n玩家数：{len(leaderboard)}/{len(scores)}\r\n平均达成率：{math.trunc(avg * 1000000) / 1000000:.4%}"
     await rank.send(msg)
 
 
@@ -529,9 +529,9 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
             user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
             if i == index:
-                rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 10000) / 10000:.4%}"
+                rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 1000000) / 1000000:.4%}"
             else:
-                rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 10000) / 10000:.4%} × {times}"
+                rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 1000000) / 1000000:.4%} × {times}"
 
             leaderboard_output.append(rank_str)
 

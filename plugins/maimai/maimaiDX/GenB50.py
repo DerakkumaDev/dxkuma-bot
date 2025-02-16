@@ -114,19 +114,19 @@ def compute_record(records: list):
         fc = record["fc"]
         fs = record["fs"]
 
-        if achieve >= 80.0000:
+        if achieve >= 80.0:
             output["clear"] += 1
-        if achieve >= 97.0000:
+        if achieve >= 97.0:
             output["s"] += 1
-        if achieve >= 98.0000:
+        if achieve >= 98.0:
             output["sp"] += 1
-        if achieve >= 99.0000:
+        if achieve >= 99.0:
             output["ss"] += 1
-        if achieve >= 99.5000:
+        if achieve >= 99.5:
             output["ssp"] += 1
-        if achieve >= 100.0000:
+        if achieve >= 100.0:
             output["sss"] += 1
-        if achieve >= 100.5000:
+        if achieve >= 100.5:
             output["sssp"] += 1
 
         if fc:
@@ -218,7 +218,9 @@ def records_filter(
                 continue
         filted_records.append(record)
     filted_records = sorted(
-        filted_records, key=lambda x: (x["achievements"], x["ra"]), reverse=True
+        filted_records,
+        key=lambda x: (x["level_index"], x["achievements"], x["ra"]),
+        reverse=True,
     )
     return filted_records, mask_enabled
 
@@ -250,15 +252,15 @@ def get_page_records(records, page):
 def dxscore_proc(dxscore, sum_dxscore):
     percentage = (dxscore / sum_dxscore) * 100
 
-    if percentage < 85.00:
+    if percentage < 85.0:
         return 0, 0
-    if percentage < 90.00:
+    if percentage < 90.0:
         return 1, 1
-    if percentage < 93.00:
+    if percentage < 93.0:
         return 1, 2
-    if percentage < 95.00:
+    if percentage < 95.0:
         return 2, 3
-    if percentage < 97.00:
+    if percentage < 97.0:
         return 2, 4
     return 3, 5
 
@@ -530,7 +532,7 @@ async def music_to_part(
 async def draw_best(bests: list, type: str, songList):
     index = 0
     # 计算列数
-    queue_nums = math.ceil(len(bests) / 4)
+    queue_nums = 1 if len(bests) < 4 else 1 + math.ceil((len(bests) - 3) / 4)
     # 初始化行列标号
     queue_index = 0
     row_index = 0

@@ -783,7 +783,7 @@ async def score_info(song_data, index):
                     )
                     score += ex_score / 100
                 if score > 0:
-                    score_text = f"{-(math.trunc(score * 10000) / 10000):.4%}"
+                    score_text = f"{-(math.trunc(score * 1000000) / 1000000):.4%}"
                     drawtext.text(
                         score_position,
                         score_text,
