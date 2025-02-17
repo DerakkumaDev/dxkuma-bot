@@ -1500,8 +1500,7 @@ async def _(event: MessageEvent):
     else:
         page = 1
     all_page_num = math.ceil(len(filted_records) / 55)
-    if page > all_page_num:
-        page = all_page_num
+    page = min(page, all_page_num)
     await sunlist.send(
         (
             MessageSegment.at(qq),
@@ -1584,8 +1583,7 @@ async def _(event: MessageEvent):
     else:
         page = 1
     all_page_num = math.ceil(len(filted_records) / 55)
-    if page > all_page_num:
-        page = all_page_num
+    page = min(page, all_page_num)
     await locklist.send(
         (
             MessageSegment.at(qq),
@@ -1672,8 +1670,7 @@ async def _(event: MessageEvent):
     else:
         page = 1
     all_page_num = math.ceil(len(filted_records) / 55)
-    if page > all_page_num:
-        page = all_page_num
+    page = min(page, all_page_num)
     await wcb.send(
         (
             MessageSegment.at(qq),

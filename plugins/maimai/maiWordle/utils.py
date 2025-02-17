@@ -104,7 +104,8 @@ async def generate_message_state(game_data, user_id):
 
             char_all_open.append(
                 (
-                    f"猜对了！第{game_content['index']}行的歌曲是{game_content['title']}",
+                    game_content['index'],
+                    game_content['title'],
                     game_content["music_id"],
                 )
             )
@@ -152,7 +153,8 @@ async def check_music_id(game_data, music_ids: list, user_id):
 
                 guess_success.append(
                     (
-                        f"猜对了！第{game_content['index']}行的歌曲是{game_content['title']}",
+                        game_content['index'],
+                        game_content['title'],
                         game_content["music_id"],
                     )
                 )

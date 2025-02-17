@@ -129,12 +129,12 @@ async def _(event: GroupMessageEvent):
         )
         await openchars.update_game_data(group_id, game_data)
         if char_all_open:
-            for i in char_all_open:
-                cover_path = f"./Cache/Jacket/{i[1] % 10000}.png"
+            for i, title, id in char_all_open:
+                cover_path = f"./Cache/Jacket/{id % 10000}.png"
                 if not os.path.exists(cover_path):
                     async with aiohttp.ClientSession() as session:
                         async with session.get(
-                            f"https://assets2.lxns.net/maimai/jacket/{i[1] % 10000}.png"
+                            f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
                         ) as resp:
                             with open(cover_path, "wb") as fd:
                                 async for chunk in resp.content.iter_chunked(1024):
@@ -143,8 +143,10 @@ async def _(event: GroupMessageEvent):
                 await open_chars.send(
                     (
                         MessageSegment.at(user_id),
+                        MessageSegment.text(" "),
+                        MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
                         MessageSegment.image(Path(cover_path)),
-                        MessageSegment.text(i[0]),
+                        MessageSegment.text(title),
                     )
                 )
 
@@ -178,12 +180,12 @@ async def _(event: GroupMessageEvent):
         if not guess_success:
             return
 
-        for i in guess_success:
-            cover_path = f"./Cache/Jacket/{i[1] % 10000}.png"
+        for i, title, id in guess_success:
+            cover_path = f"./Cache/Jacket/{id % 10000}.png"
             if not os.path.exists(cover_path):
                 async with aiohttp.ClientSession() as session:
                     async with session.get(
-                        f"https://assets2.lxns.net/maimai/jacket/{i[1] % 10000}.png"
+                        f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
                     ) as resp:
                         with open(cover_path, "wb") as fd:
                             async for chunk in resp.content.iter_chunked(1024):
@@ -192,8 +194,10 @@ async def _(event: GroupMessageEvent):
             await all_message_handle.send(
                 (
                     MessageSegment.at(user_id),
+                    MessageSegment.text(" "),
+                    MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
                     MessageSegment.image(Path(cover_path)),
-                    MessageSegment.text(i[0]),
+                    MessageSegment.text(title),
                 )
             )
         is_game_over, game_state, _, game_data = await generate_message_state(
