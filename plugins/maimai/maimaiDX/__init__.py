@@ -92,7 +92,7 @@ async def find_songid_by_alias(name, song_list):
 
     # 芝士查找
     for info in song_list:
-        if name.casefold() == info["title"].casefold():
+        if name.casefold() == info["title"].casefold() or name == info["id"]:
             matched_ids.append(info["id"])
 
     alias_list = await get_alias_list_lxns()
@@ -848,7 +848,7 @@ async def _(event: MessageEvent):
             )
         )
     msg_text = event.get_plaintext().replace("+", "p").casefold()
-    rate_rules = re.findall(r"s{1,3}p?|a{1,3}|b{1,3}|[cd]", msg_text)
+    rate_rules = re.findall(r"s{1,3}p?|a{1,3}|b{1,3}|[cd]", msg_text, re.I)
     songList = await get_music_data()
     rate35, rate15, _ = await records_to_b50(records, songList, rate_rules=rate_rules)
     if not rate35 and not rate15:
@@ -1974,6 +1974,13 @@ async def _(event: MessageEvent):
             )
         )
     song = random.choice(s_songs)
+    await randomsong.send(
+        (
+            MessageSegment.at(event.user_id),
+            MessageSegment.text(" "),
+            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
+        )  # 绘制中
+    )
     if song["basic_info"]["genre"] == "宴会場":
         img = await utage_music_info(song_data=song)
     else:
@@ -1986,6 +1993,13 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     songList = await get_music_data()
     song = random.choice(songList)
+    await maiwhat.send(
+        (
+            MessageSegment.at(event.user_id),
+            MessageSegment.text(" "),
+            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
+        )  # 绘制中
+    )
     if song["basic_info"]["genre"] == "宴会場":
         img = await utage_music_info(song_data=song)
     else:
@@ -2100,6 +2114,7 @@ async def _(event: MessageEvent):
         )
     song_id = int(song_info["id"]) - 10000
     alias = set()
+    alias.add(song_info["id"])
     alias_list = await get_alias_list_lxns()
     for d in alias_list["aliases"]:
         if d["song_id"] == song_id:

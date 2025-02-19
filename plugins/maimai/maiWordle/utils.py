@@ -1,10 +1,12 @@
 import unicodedata
+from datetime import datetime
 from random import SystemRandom
 
 from pykakasi import kakasi
 
 from util.Data import get_music_data
 from .ranking import ranking
+from .times import times
 
 random = SystemRandom()
 kks = kakasi()
@@ -41,7 +43,8 @@ async def generate_game_data():
     return game_data
 
 
-async def generate_message_state(game_data, user_id):
+def generate_message_state(game_data, user_id):
+    now = datetime.now()
     game_state = list()
     char_all_open = list()
     for game_content in game_data["game_contents"]:
@@ -82,7 +85,7 @@ async def generate_message_state(game_data, user_id):
         if is_all_open:
             game_content["is_correct"] = True
 
-            await ranking.add_score(
+            ranking.add_score(
                 user_id,
                 game_content["opc_times"],
                 len(game_content["tips"]),
@@ -90,10 +93,11 @@ async def generate_message_state(game_data, user_id):
                 game_content["aud_times"],
                 True,
             )
+            times.add(user_id, now.year, now.month, now.day)
             for player in game_content["part"]:
                 if player == user_id:
                     continue
-                await ranking.add_score(
+                ranking.add_score(
                     player,
                     game_content["opc_times"],
                     len(game_content["tips"]),
@@ -101,6 +105,7 @@ async def generate_message_state(game_data, user_id):
                     game_content["aud_times"],
                     False,
                 )
+                times.add(player, now.year, now.month, now.day)
 
             char_all_open.append(
                 (
@@ -121,7 +126,8 @@ async def generate_message_state(game_data, user_id):
     return is_game_over, "\r\n".join(game_state), char_all_open, game_data
 
 
-async def check_music_id(game_data, music_ids: list, user_id):
+def check_music_id(game_data, music_ids: list, user_id):
+    now = datetime.now()
     guess_success = list()
     for music_id in music_ids:
         for game_content in game_data["game_contents"]:
@@ -131,7 +137,7 @@ async def check_music_id(game_data, music_ids: list, user_id):
             ):
                 game_content["is_correct"] = True
 
-                await ranking.add_score(
+                ranking.add_score(
                     user_id,
                     game_content["opc_times"],
                     len(game_content["tips"]),
@@ -139,10 +145,11 @@ async def check_music_id(game_data, music_ids: list, user_id):
                     game_content["aud_times"],
                     True,
                 )
+                times.add(user_id, now.year, now.month, now.day)
                 for player in game_content["part"]:
                     if player == user_id:
                         continue
-                    await ranking.add_score(
+                    ranking.add_score(
                         player,
                         game_content["opc_times"],
                         len(game_content["tips"]),
@@ -150,6 +157,7 @@ async def check_music_id(game_data, music_ids: list, user_id):
                         game_content["aud_times"],
                         False,
                     )
+                    times.add(player, now.year, now.month, now.day)
 
                 guess_success.append(
                     (

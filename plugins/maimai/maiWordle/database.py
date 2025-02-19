@@ -21,14 +21,14 @@ class OpenChars(object):
             game_data = data.setdefault(str(group_id), await generate_game_data())
             return game_data
 
-    async def game_over(self, group_id: int):
+    def game_over(self, group_id: int):
         with shelve.open(self.data_path) as data:
             if str(group_id) not in data:
                 return
 
             data.pop(str(group_id))
 
-    async def open_char(self, group_id: int, chars: str, user_id: int):
+    def open_char(self, group_id: int, chars: str, user_id: int):
         with shelve.open(self.data_path) as data:
             if str(group_id) in data:
                 game_data = data[str(group_id)]
@@ -46,7 +46,7 @@ class OpenChars(object):
 
         return None, None
 
-    async def get_game_data(self, group_id: int):
+    def get_game_data(self, group_id: int):
         with shelve.open(self.data_path) as data:
             if str(group_id) in data:
                 game_data = data[str(group_id)]

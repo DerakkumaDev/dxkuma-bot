@@ -10,7 +10,7 @@ class Ranking(object):
     def __init__(self):
         self.data_path = "./data/wordle_ranking.db"
 
-    async def add_score(
+    def add_score(
         self,
         user_id: int,
         oc_times: int,
@@ -18,7 +18,7 @@ class Ranking(object):
         pt_times: int,
         ad_times: int,
         is_guesser: bool,
-    ):
+    ) -> None:
         obj = {
             "oc_times": oc_times,
             "it_times": it_times,
@@ -35,7 +35,7 @@ class Ranking(object):
 
             data.setdefault(str(user_id), [obj])
 
-    async def get_avg_scores(self):
+    def get_avg_scores(self) -> list[tuple[str, float, int]]:
         achis = list()
         with shelve.open(self.data_path) as data:
             for user_id, scores in data.items():
@@ -51,7 +51,7 @@ class Ranking(object):
 
         return achis
 
-    async def get_score(self, user_id):
+    def get_score(self, user_id: int) -> tuple[float, int]:
         with shelve.open(self.data_path) as data:
             if str(user_id) in data:
                 l = len(data[str(user_id)])
@@ -68,7 +68,7 @@ class Ranking(object):
         pt_times: int = 0,
         ad_times: int = 0,
         is_guesser: bool = False,
-    ):
+    ) -> float:
         score = 1.01
         if oc_times <= 0:
             score *= 1.002

@@ -18,7 +18,7 @@ shelve.Unpickler = Unpickler
 avatar = on_regex(r"^(旅行伙伴加入|相框\d+)", rule=to_me())
 
 
-async def gen_avatar(pic: bytes, id) -> bytes:
+def gen_avatar(pic: bytes, id) -> bytes:
     img = Image.open(BytesIO(pic))
     width, height = img.size
     if width > height:
@@ -114,7 +114,7 @@ async def _(event: GroupMessageEvent):
             async with session.get(pic_url) as resp:
                 icon = await resp.read()
 
-        img_bytes = await gen_avatar(icon, id)
+        img_bytes = gen_avatar(icon, id)
 
         msg += (MessageSegment.image(img_bytes),)
 
