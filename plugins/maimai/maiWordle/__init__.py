@@ -29,7 +29,7 @@ lock = Lock()
 
 start_open_chars = on_regex(r"^dlx猜歌$", re.I)
 open_chars = on_regex(r"^开\s*.+$")
-all_message_handle = on_message(block=False)
+all_message_handle = on_message(priority=999)
 pass_game = on_regex(r"^(结束猜歌|将大局逆转吧)$")
 info_tip = on_regex(r"^(提示|提醒|信息)\s*[1-5]?$")
 pic_tip = on_regex(r"^(封面|曲绘|图片?)\s*[1-5]?$")
@@ -232,7 +232,7 @@ async def _(event: GroupMessageEvent):
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
     async with lock:
-        game_data = await openchars.get_game_data(group_id)
+        game_data = openchars.get_game_data(group_id)
         if not game_data:
             return
 
@@ -317,7 +317,7 @@ async def _(event: GroupMessageEvent):
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
     async with lock:
-        game_data = await openchars.get_game_data(group_id)
+        game_data = openchars.get_game_data(group_id)
         if not game_data:
             return
 
@@ -407,7 +407,7 @@ async def _(event: GroupMessageEvent):
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
     async with lock:
-        game_data = await openchars.get_game_data(group_id)
+        game_data = openchars.get_game_data(group_id)
         if not game_data:
             return
 

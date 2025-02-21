@@ -7,7 +7,7 @@ repeater_group = config.repeater_group
 shortest = config.shortest_length
 blacklist = config.blacklist
 
-m = on_message(block=False)
+m = on_message(priority=1000)
 
 last_message = dict()
 message_times = dict()

@@ -1922,20 +1922,17 @@ async def _(event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
         )
-    songname = song_info["title"]
+
+    song_id = int(song_info["id"]) % 10000
     await playaudio.send(
-        MessageSegment.text(f"迪拉熊正在准备播放{songname}，稍等一下mai~")
+        MessageSegment.music_custom(
+            url=f"https://maimai.lxns.net/songs?game=maimai&song_id={song_id}",
+            audio=f"https://assets2.lxns.net/maimai/music/{song_id}.mp3",
+            title=song_info["title"],
+            content=song_info["basic_info"]["artist"],
+            img_url=f"https://assets2.lxns.net/maimai/jacket/{song_id}.png"
+        )
     )
-    music_path = f"./Cache/Music/{int(song_info["id"]) % 10000}.mp3"
-    if not os.path.exists(music_path):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"https://assets2.lxns.net/maimai/music/{int(song_info["id"]) % 10000}.mp3"
-            ) as resp:
-                with open(music_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
-    await playaudio.send(MessageSegment.record(music_path))
 
 
 @randomsong.handle()
