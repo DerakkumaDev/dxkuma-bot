@@ -23,6 +23,7 @@ from .Config import (
     maimai_MusicType,
     maimai_MusicIcon,
     maimai_Rank,
+    maimai_Class,
 )
 
 shelve.Pickler = Pickler
@@ -722,6 +723,12 @@ async def generateb50(
     dani = resize_image(dani, 0.2)
     b50 = paste(b50, dani, (400, 110))
 
+    # 阶级
+    class_path = maimai_Class / "0.png"
+    cla = Image.open(class_path)
+    cla = resize_image(cla, 0.2)
+    b50 = paste(b50, cla, (400, 60))
+
     # rating推荐
     if type == "b50" and is_rating_tj:
         b35max = b35[0]["ra"] if b35 else 0
@@ -739,28 +746,28 @@ async def generateb50(
     b50 = paste(b50, ratingbar, (175, 70))
 
     # rating数字
-    rating_str = str(rating).zfill(5)
+    rating_str = str(rating).rjust(5)
     num1 = Image.open(f"./Static/maimai/number/{rating_str[0]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
     num2 = Image.open(f"./Static/maimai/number/{rating_str[1]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
     num3 = Image.open(f"./Static/maimai/number/{rating_str[2]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
     num4 = Image.open(f"./Static/maimai/number/{rating_str[3]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
     num5 = Image.open(f"./Static/maimai/number/{rating_str[4]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
 
-    b50 = paste(b50, num1, (253, 77))
-    b50 = paste(b50, num2, (267, 77))
-    b50 = paste(b50, num3, (280, 77))
-    b50 = paste(b50, num4, (294, 77))
-    b50 = paste(b50, num5, (308, 77))
+    b50 = paste(b50, num1, (253, 78))
+    b50 = paste(b50, num2, (267, 78))
+    b50 = paste(b50, num3, (281, 78))
+    b50 = paste(b50, num4, (294, 78))
+    b50 = paste(b50, num5, (308, 78))
     draw = ImageDraw.Draw(b50)
 
     # 名字
@@ -904,6 +911,12 @@ async def generate_wcb(
     dani = resize_image(dani, 0.2)
     bg = paste(bg, dani, (400, 110))
 
+    # 阶级
+    class_path = maimai_Class / "0.png"
+    cla = Image.open(class_path)
+    cla = resize_image(cla, 0.2)
+    bg = paste(bg, cla, (400, 60))
+
     # rating框
     ratingbar = compute_ra(rating)
     ratingbar_path = maimai_Rating / f"UI_CMN_DXRating_{ratingbar:02d}.png"
@@ -912,28 +925,28 @@ async def generate_wcb(
     bg = paste(bg, ratingbar, (175, 70))
 
     # rating数字
-    rating_str = str(rating).zfill(5)
+    rating_str = str(rating).rjust(5)
     num1 = Image.open(f"./Static/maimai/number/{rating_str[0]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
     num2 = Image.open(f"./Static/maimai/number/{rating_str[1]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
     num3 = Image.open(f"./Static/maimai/number/{rating_str[2]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
     num4 = Image.open(f"./Static/maimai/number/{rating_str[3]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
     num5 = Image.open(f"./Static/maimai/number/{rating_str[4]}.png").resize(
-        (18, 21), Image.Resampling.LANCZOS
+        (18, 20), Image.Resampling.LANCZOS
     )
 
-    bg = paste(bg, num1, (253, 77))
-    bg = paste(bg, num2, (267, 77))
-    bg = paste(bg, num3, (280, 77))
-    bg = paste(bg, num4, (294, 77))
-    bg = paste(bg, num5, (308, 77))
+    bg = paste(bg, num1, (253, 78))
+    bg = paste(bg, num2, (267, 78))
+    bg = paste(bg, num3, (281, 78))
+    bg = paste(bg, num4, (294, 78))
+    bg = paste(bg, num5, (308, 78))
     draw = ImageDraw.Draw(bg)
 
     # 名字

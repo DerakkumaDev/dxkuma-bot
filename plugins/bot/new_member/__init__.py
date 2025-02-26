@@ -26,14 +26,14 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
     if event.get_user_id() == bot.self_id:
         return
     group_id = event.group_id
-    user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
+    user_info = await bot.get_stranger_info(user_id=qq)
     if group_id == config.special_group:
         msg = MessageSegment.text(
-            f"恭喜{user_name}（{qq}）发现了迪拉熊宝藏地带，发送dlxhelp试一下吧~"
+            f"恭喜{user_info["nickname"]}（{user_info["qid"] or qq}）发现了迪拉熊宝藏地带，发送dlxhelp试一下吧~"
         )
     else:
         msg = MessageSegment.text(
-            f"欢迎{user_name}（{qq}）加入本群，发送dlxhelp和迪拉熊一起玩吧~"
+            f"欢迎{user_info["nickname"]}（{user_info["qid"] or qq}）加入本群，发送dlxhelp和迪拉熊一起玩吧~"
         )
     await groupIncrease.send(
         (msg, MessageSegment.image(Path("./Static/MemberChange/0.png")))
@@ -44,11 +44,15 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
 async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
     qq = event.user_id
     group_id = event.group_id
-    user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
+    user_info = await bot.get_stranger_info(user_id=qq)
     if group_id == config.special_group:
-        msg = MessageSegment.text(f"很遗憾，{user_name}（{qq}）离开了迪拉熊的小窝QAQ")
+        msg = MessageSegment.text(
+            f"很遗憾，{user_info["nickname"]}（{user_info["qid"] or qq}）离开了迪拉熊的小窝QAQ"
+        )
     else:
-        msg = MessageSegment.text(f"{user_name}（{qq}）离开了迪拉熊QAQ")
+        msg = MessageSegment.text(
+            f"{user_info["nickname"]}（{user_info["qid"] or qq}）离开了迪拉熊QAQ"
+        )
     await groupDecrease.send(
         (msg, MessageSegment.image(Path("./Static/MemberChange/1.png")))
     )
@@ -76,9 +80,9 @@ async def _(bot: Bot, event: GroupRequestEvent):
     await event.approve(bot)
     qq = event.user_id
     group_id = event.group_id
-    user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
+    user_info = await bot.get_stranger_info(user_id=qq)
     msg = MessageSegment.text(
-        f"迪拉熊由{user_name}（{qq}）邀请加入了本群，发送dlxhelp和迪拉熊一起玩吧~"
+        f"迪拉熊由{user_info["nickname"]}（{user_info["qid"] or qq}）邀请加入了本群，发送dlxhelp和迪拉熊一起玩吧~"
     )
     await bot.send_msg(
         group_id=group_id,

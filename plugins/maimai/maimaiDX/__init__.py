@@ -7,8 +7,8 @@ from random import SystemRandom
 
 import aiohttp
 from dill import Pickler, Unpickler
-from nonebot import on_fullmatch, on_regex
-from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment
+from nonebot import on_fullmatch, on_message, on_regex
+from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 
 from util.Data import (
     get_chart_stats,
@@ -18,6 +18,7 @@ from util.Data import (
     get_alias_list_xray,
 )
 from util.DivingFish import get_player_data, get_player_records, get_player_record
+from util.Rule import regex
 from .GenB50 import (
     compute_record,
     generateb50,
@@ -36,19 +37,16 @@ shelve.Unpickler = Unpickler
 
 random = SystemRandom()
 
-best50 = on_regex(r"^dlxb?50(\s*\[CQ:at.*?\]\s*)?$", re.I)
-fit50 = on_regex(r"^dlxf50(\s*\[CQ:at.*?\]\s*)?$", re.I)
-dxs50 = on_regex(r"^dlxs50(\s*\[CQ:at.*?\]\s*)?$", re.I)
-star50 = on_regex(r"^dlxx50(\s*[1-5])+(\s*\[CQ:at.*?\]\s*)?$", re.I)
-rate50 = on_regex(
-    r"^dlxr50(\s*(s{1,3}(p|\+)?|a{1,3}|b{1,3}|[cd]))+?(\s*\[CQ:at.*?\]\s*)?$",
-    re.I,
-)
-ap50 = on_regex(r"^dlxap(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
-fc50 = on_regex(r"^dlxfc(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
-cf50 = on_regex(r"^dlxcf(50)?(\s*\[CQ:at.*?\]\s*)$", re.I)
-sd50 = on_regex(r"^dlx(s|f)d(50)?(\s*\[CQ:at.*?\]\s*)?$", re.I)
-all50 = on_regex(r"^dlx(all?(50)?|b)(\s*\[CQ:at.*?\]\s*)?$", re.I)
+best50 = on_message(regex(r"^dlxb?50$", re.I))
+fit50 = on_fullmatch("dlxf50", ignorecase=True)
+dxs50 = on_fullmatch("dlxs50", ignorecase=True)
+star50 = on_message(regex(r"^dlxx50(\s*[1-5])+$", re.I))
+rate50 = on_message(regex(r"^dlxr50(\s*(s{1,3}(p|\+)?|a{1,3}|b{1,3}|[cd]))+?$", re.I))
+ap50 = on_message(regex(r"^dlxap(50)?$", re.I))
+fc50 = on_message(regex(r"^dlxfc(50)?$", re.I))
+cf50 = on_message(regex(r"^dlxcf(50)?$", re.I))
+sd50 = on_message(regex(r"^dlx(s|f)d(50)?$", re.I))
+all50 = on_message(regex(r"^dlx(all?(50)?|b)$", re.I))
 rr50 = on_regex(r"^dlxrr(50)?(\s*\d+)?$", re.I)
 sunlist = on_regex(r"^dlx([sc]un|寸|🤏)(\s*\d+?)?$", re.I)
 locklist = on_regex(r"^dlx(suo|锁|🔒)(\s*\d+?)?$", re.I)
@@ -424,25 +422,33 @@ async def get_info_by_name(name, music_type, songList):
 
 
 @best50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
+    sender_qq = event.user_id
     target_qq = event.get_user_id()
+    user_info = await bot.get_stranger_info(user_id=target_qq)
     for message in event.get_message():
         if message.type != "at":
             continue
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if target_qq == bot.self_id:
+            return
+        if "isBlock" not in user_info and "isBlocked" not in user_info:
+            sender_qq = target_qq
+            break
+        else:
+            with shelve.open("./data/user_config.db") as config:
+                if (
+                    target_qq not in config
+                    or "allow_other" not in config[target_qq]
+                    or config[target_qq]["allow_other"]
+                ):
+                    break
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
+                MessageSegment.at(sender_qq),
                 MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
@@ -451,7 +457,7 @@ async def _(event: MessageEvent):
     data, status = await get_player_data(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
+            MessageSegment.at(sender_qq),
             MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
@@ -461,7 +467,7 @@ async def _(event: MessageEvent):
         await best50.finish(msg)
     elif status == 403:
         msg = (
-            MessageSegment.at(event.user_id),
+            MessageSegment.at(sender_qq),
             MessageSegment.text(" "),
             MessageSegment.text(
                 f"{"你" if target_qq == event.get_user_id() else "他"}在查分器启用了隐私或者没有同意查分器的用户协议"
@@ -471,7 +477,7 @@ async def _(event: MessageEvent):
         await best50.finish(msg)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
+            MessageSegment.at(sender_qq),
             MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
@@ -486,7 +492,7 @@ async def _(event: MessageEvent):
     )
     if not b35 and not b15:
         msg = (
-            MessageSegment.at(event.user_id),
+            MessageSegment.at(sender_qq),
             MessageSegment.text(" "),
             MessageSegment.text(
                 f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
@@ -496,7 +502,7 @@ async def _(event: MessageEvent):
         await best50.finish(msg)
     await best50.send(
         (
-            MessageSegment.at(event.user_id),
+            MessageSegment.at(sender_qq),
             MessageSegment.text(" "),
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
@@ -512,12 +518,12 @@ async def _(event: MessageEvent):
         type="b50",
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    msg = (MessageSegment.at(sender_qq), MessageSegment.image(img))
     await best50.send(msg)
 
 
 @ap50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     target_qq = event.get_user_id()
     for message in event.get_message():
         if message.type != "at":
@@ -525,6 +531,8 @@ async def _(event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
+        if target_qq == bot.self_id:
+            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -608,7 +616,7 @@ async def _(event: MessageEvent):
 
 
 @fc50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     target_qq = event.get_user_id()
     for message in event.get_message():
         if message.type != "at":
@@ -616,6 +624,8 @@ async def _(event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
+        if target_qq == bot.self_id:
+            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -699,7 +709,7 @@ async def _(event: MessageEvent):
 
 
 @fit50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     target_qq = event.get_user_id()
     for message in event.get_message():
         if message.type != "at":
@@ -707,6 +717,8 @@ async def _(event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
+        if target_qq == bot.self_id:
+            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -792,7 +804,7 @@ async def _(event: MessageEvent):
 
 
 @rate50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     target_qq = event.get_user_id()
     for message in event.get_message():
         if message.type != "at":
@@ -800,6 +812,8 @@ async def _(event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
+        if target_qq == bot.self_id:
+            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -885,7 +899,7 @@ async def _(event: MessageEvent):
 
 
 @dxs50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     target_qq = event.get_user_id()
     for message in event.get_message():
         if message.type != "at":
@@ -893,6 +907,8 @@ async def _(event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
+        if target_qq == bot.self_id:
+            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -978,7 +994,7 @@ async def _(event: MessageEvent):
 
 
 @star50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     target_qq = event.get_user_id()
     for message in event.get_message():
         if message.type != "at":
@@ -986,6 +1002,8 @@ async def _(event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
+        if target_qq == bot.self_id:
+            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1074,14 +1092,17 @@ async def _(event: MessageEvent):
 
 
 @cf50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     sender_qq = event.get_user_id()
+    target_qq = None
     for message in event.get_message():
         if message.type != "at":
             continue
         target_qq = message.data["qq"]
         if target_qq == sender_qq:
             continue
+        if target_qq == bot.self_id:
+            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1098,6 +1119,14 @@ async def _(event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
             await cf50.finish(msg)
+    if target_qq == None:
+        msg = (
+            MessageSegment.at(sender_qq),
+            MessageSegment.text(" "),
+            MessageSegment.text("你没有比较任何人"),
+            MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
+        )
+        await cf50.finish(msg)
     if target_qq == sender_qq:
         msg = (
             MessageSegment.at(sender_qq),
@@ -1215,7 +1244,7 @@ async def _(event: MessageEvent):
 
 
 @sd50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     target_qq = event.get_user_id()
     for message in event.get_message():
         if message.type != "at":
@@ -1223,6 +1252,8 @@ async def _(event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
+        if target_qq == bot.self_id:
+            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1308,7 +1339,7 @@ async def _(event: MessageEvent):
 
 
 @all50.handle()
-async def _(event: MessageEvent):
+async def _(bot: Bot, event: MessageEvent):
     target_qq = event.get_user_id()
     for message in event.get_message():
         if message.type != "at":
@@ -1316,6 +1347,8 @@ async def _(event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
+        if target_qq == bot.self_id:
+            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1930,7 +1963,7 @@ async def _(event: MessageEvent):
             audio=f"https://assets2.lxns.net/maimai/music/{song_id}.mp3",
             title=song_info["title"],
             content=song_info["basic_info"]["artist"],
-            img_url=f"https://assets2.lxns.net/maimai/jacket/{song_id}.png"
+            img_url=f"https://assets2.lxns.net/maimai/jacket/{song_id}.png",
         )
     )
 

@@ -1,5 +1,4 @@
 from nonebot.adapters.onebot.v11 import (
-    Bot,
     GroupMessageEvent,
     GroupIncreaseNoticeEvent,
     GroupDecreaseNoticeEvent,

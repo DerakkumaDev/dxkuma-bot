@@ -45,6 +45,6 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
         message_times[gid].add(hash(qq))
         if len(message_times.get(gid)) == config.shortest_times:
-            await bot.send_group_msg(group_id=event.group_id, message=message)
+            await m.send(message)
 
         last_message[gid] = message_str
