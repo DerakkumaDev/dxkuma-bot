@@ -555,5 +555,5 @@ async def _(bot: Bot, event: GroupMessageEvent):
     msg = "\r\n".join(leaderboard_output)
     msg = f"您在排行榜上的位置：\r\n{msg}\r\n\r\n注：若长时间不参与猜歌游戏，将不计入排行榜，重新参与十首歌即可重新上榜。"
     await rank.send(
-        MessageSegment.at(user_id), MessageSegment.text(" "), MessageSegment.text(msg)
+        (MessageSegment.at(user_id), MessageSegment.text(" "), MessageSegment.text(msg))
     )

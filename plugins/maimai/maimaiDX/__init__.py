@@ -264,13 +264,22 @@ async def records_to_b50(
             song_data = [d for d in songList if d["id"] == str(song_id)][0]
             is_new = song_data["basic_info"]["is_new"]
             if is_new:
-                dx.append(record)
+                if len(dx) < 15:
+                    dx.append(record)
+                    all_records.remove(record)
+            elif len(sd) < 35:
+                sd.append(record)
                 all_records.remove(record)
-                if len(dx) >= 15:
+            if len(dx) >= 15 and len(sd) >= 35:
+                break
+        else:
+            for i in all_records:
+                if len(sd) < 35:
+                    sd.append(i)
+                elif len(dx) < 15:
+                    dx.append(i)
+                else:
                     break
-        if len(dx) < 15:
-            dx.extend(all_records[36 : 51 - len(dx)])
-        sd = all_records[:35]
         return sd, dx, mask_enabled
     b35 = sorted(sd, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)[
         :35
