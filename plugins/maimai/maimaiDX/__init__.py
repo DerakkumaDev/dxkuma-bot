@@ -48,7 +48,7 @@ cf50 = on_message(regex(r"^dlxcf(50)?$", re.I))
 sd50 = on_message(regex(r"^dlx(s|f)d(50)?$", re.I))
 all50 = on_message(regex(r"^dlx(all?(50)?|b)$", re.I))
 rr50 = on_regex(r"^dlxrr(50)?(\s*\d+)?$", re.I)
-sunlist = on_regex(r"^dlx([sc]un|寸|🤏)(\s*\d+?)?$", re.I)
+sunlist = on_regex(r"^dlx(sunn?|cun|寸|🤏)(\s*\d+?)?$", re.I)
 locklist = on_regex(r"^dlx(suo|锁|🔒)(\s*\d+?)?$", re.I)
 
 songinfo = on_regex(r"^(chart|id)\s*((dx|sd|标准?)\s*)?.+$", re.I)

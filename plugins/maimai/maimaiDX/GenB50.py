@@ -159,18 +159,6 @@ def compute_record(records: list):
     return output
 
 
-def get_min_score(notes: list[int]):
-    weight = [1, 2, 3, 1, 5]
-    base_score = 5
-    sum_score = 0
-    for i in range(0, 5):
-        if i == 3 and len(notes) < 5:
-            sum_score += notes[i] * weight[4] * base_score
-            break
-        sum_score += notes[i] * weight[i] * base_score
-    return (1 - ((sum_score - 1) / sum_score)) * 100
-
-
 def records_filter(
     records: list,
     level: str | None = None,
@@ -195,7 +183,7 @@ def records_filter(
             or (gen != "舞" and record["level_index"] == 4)
         ):
             continue
-        min_score = get_min_score(song_data["charts"][record["level_index"]]["notes"])
+        min_score = 1 / song_data["charts"][record["level_index"]]["notes"][-1]
         if is_sun:
             if record["dxScore"] == 0:
                 mask_enabled = True
@@ -220,7 +208,11 @@ def records_filter(
         filted_records.append(record)
     filted_records = sorted(
         filted_records,
-        key=lambda x: (x["level_index"], x["achievements"], x["ra"]),
+        key=lambda x: (
+            0 if level or ds else float(x["level"].replace("+", ".1")),
+            x["achievements"],
+            x["ra"],
+        ),
         reverse=True,
     )
     return filted_records, mask_enabled
