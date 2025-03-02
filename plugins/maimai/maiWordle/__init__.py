@@ -4,13 +4,13 @@ import re
 from asyncio import Lock
 from io import BytesIO
 from pathlib import Path
-from random import SystemRandom
 
 import aiohttp
 import soundfile
 from PIL import Image
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
+from numpy import random
 
 from util.Data import (
     get_alias_list_lxns,
@@ -23,7 +23,7 @@ from .ranking import ranking
 from .times import times
 from .utils import generate_message_state, check_music_id, generate_success_state
 
-random = SystemRandom()
+rng = random.default_rng()
 
 lock = Lock()
 
@@ -254,7 +254,7 @@ async def _(event: GroupMessageEvent):
                 )
                 return
 
-            data = random.choice(game_contents)
+            data = rng.choice(game_contents)
 
         if data["is_correct"]:
             await info_tip.send(
@@ -302,7 +302,7 @@ async def _(event: GroupMessageEvent):
             return
 
         data["part"].add(user_id)
-        tip_key = random.choice(tip_keys)
+        tip_key = rng.choice(tip_keys)
         data["tips"].append(tip_key)
         await openchars.update_game_data(group_id, game_data)
 
@@ -339,7 +339,7 @@ async def _(event: GroupMessageEvent):
                 )
                 return
 
-            data = random.choice(game_contents)
+            data = rng.choice(game_contents)
 
         if data["is_correct"]:
             await pic_tip.send(
@@ -381,11 +381,11 @@ async def _(event: GroupMessageEvent):
                         fd.write(chunk)
 
     cover = Image.open(cover_path)
-    pers = 1 / math.sqrt(random.randint(16, 25))
+    pers = 1 / math.sqrt(rng.integers(16, 26))
     size_x = math.ceil(cover.height * pers)
     size_y = math.ceil(cover.width * pers)
-    pos_x = random.randint(0, cover.height - size_x)
-    pos_y = random.randint(0, cover.width - size_y)
+    pos_x = rng.integers(0, cover.height - size_x, endpoint=True)
+    pos_y = rng.integers(0, cover.width - size_y, endpoint=True)
     pice = cover.crop((pos_x, pos_y, pos_x + size_x, pos_y + size_y))
     pice = pice.resize((480, 480), Image.Resampling.LANCZOS)
     img_byte_arr = BytesIO()
@@ -429,7 +429,7 @@ async def _(event: GroupMessageEvent):
                 )
                 return
 
-            data = random.choice(game_contents)
+            data = rng.choice(game_contents)
 
         if data["is_correct"]:
             await aud_tip.send(
@@ -473,7 +473,7 @@ async def _(event: GroupMessageEvent):
                         fd.write(chunk)
 
     audio_data, samplerate = soundfile.read(music_path)
-    pos = random.randint(0, len(audio_data) - samplerate)
+    pos = rng.integers(0, len(audio_data) - samplerate, endpoint=True)
     audio = audio_data[pos : pos + samplerate]
     aud_byte_arr = BytesIO()
     soundfile.write(aud_byte_arr, audio, samplerate, format="MP3")

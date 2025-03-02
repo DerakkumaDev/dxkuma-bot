@@ -1,7 +1,6 @@
 import os
 import traceback
 from pathlib import Path
-from random import SystemRandom
 
 from PIL import Image, UnidentifiedImageError
 from aiohttp import ClientError
@@ -10,11 +9,12 @@ from nonebot.adapters.onebot.v11 import MessageSegment, Event, MessageEvent
 from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
 from nonebot.internal.matcher import Matcher
 from nonebot.message import run_postprocessor
+from numpy import random
 
 from util.Config import config
 from util.exceptions import NotAllowedException, NeedToSwitchException
 
-random = SystemRandom()
+rng = random.default_rng()
 
 PICPATH = "./Static/Gallery/SFW/"
 
@@ -59,7 +59,7 @@ async def _(event: Event, matcher: Matcher, exception: Exception | None):
         )
         await matcher.finish(feedback)
     for _ in range(3):
-        file = random.choice(files)
+        file = rng.choice(files)
         pic_path = os.path.join(path, file)
         if check_image(pic_path):
             break

@@ -1,14 +1,14 @@
 import unicodedata
 from datetime import datetime
-from random import SystemRandom
 
+from numpy import random
 from pykakasi import kakasi
 
 from util.Data import get_music_data
 from .ranking import ranking
 from .times import times
 
-random = SystemRandom()
+rng = random.default_rng()
 kks = kakasi()
 
 
@@ -23,7 +23,7 @@ async def generate_game_data():
     game_contents = list()
     temp_game_contents_ids = list()
     while len(game_contents) <= 4:
-        music = random.choice(await get_music_data())
+        music = rng.choice(await get_music_data())
         if music["id"] in temp_game_contents_ids:
             continue
         game_contents.append(
@@ -109,8 +109,8 @@ def generate_message_state(game_data, user_id):
 
             char_all_open.append(
                 (
-                    game_content['index'],
-                    game_content['title'],
+                    game_content["index"],
+                    game_content["title"],
                     game_content["music_id"],
                 )
             )
@@ -161,8 +161,8 @@ def check_music_id(game_data, music_ids: list, user_id):
 
                 guess_success.append(
                     (
-                        game_content['index'],
-                        game_content['title'],
+                        game_content["index"],
+                        game_content["title"],
                         game_content["music_id"],
                     )
                 )

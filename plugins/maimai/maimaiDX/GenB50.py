@@ -2,11 +2,11 @@ import math
 import os
 import shelve
 from io import BytesIO
-from random import SystemRandom
 
 import aiohttp
 from dill import Pickler, Unpickler
 from PIL import Image, ImageFont, ImageDraw
+from numpy import random
 
 from plugins.maimai.maiWordle.GLOBAL_CONSTANT import version_df_maps
 from util.Config import config as Config
@@ -29,7 +29,7 @@ from .Config import (
 shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler
 
-random = SystemRandom()
+rng = random.default_rng()
 
 ratings = {
     "app": [1.01, 0],
@@ -189,11 +189,12 @@ def records_filter(
                 mask_enabled = True
                 continue
             passed = False
-            for _, ra_dt in ratings.items():
-                max_acc = ra_dt[0] * 100
-                min_acc = max_acc - min_score
-                if min_acc <= record["achievements"] < max_acc:
-                    passed = True
+            ra_kv = list(ratings.items())
+            ra_k = list(ratings.keys())
+            max_acc = ra_kv[ra_k.index(record["rate"]) - 1][1][0] * 100
+            min_acc = max_acc - min_score
+            if min_acc <= record["achievements"] < max_acc:
+                passed = True
             if not passed:
                 continue
         if is_lock:
@@ -592,9 +593,9 @@ def rating_tj(b35max, b35min, b15max, b15min):
     ttf = ImageFont.truetype(ttf_bold_path, size=30)
 
     b35max_diff = b35max - b35min
-    b35min_diff = random.randint(1, 5)
+    b35min_diff = rng.integers(1, 6)
     b15max_diff = b15max - b15min
-    b15min_diff = random.randint(1, 5)
+    b15min_diff = rng.integers(1, 6)
 
     draw.text((155, 64), font=ttf, text=f"+{str(b35max_diff)}", fill=(255, 255, 255))
     draw.text((155, 104), font=ttf, text=f"+{str(b35min_diff)}", fill=(255, 255, 255))

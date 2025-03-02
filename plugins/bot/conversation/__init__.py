@@ -1,16 +1,16 @@
 import re
 from pathlib import Path
-from random import SystemRandom
 
 from nonebot import on_fullmatch, on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageSegment, GroupMessageEvent
 from nonebot.rule import to_me
+from numpy import random
 
 from plugins.bot.concurrent_lock.util import locks
 from util.Config import config
 from util.exceptions import NeedToSwitchException
 
-random = SystemRandom()
+rng = random.default_rng()
 
 xc = on_regex(r"^(香草|想草|xc)(迪拉熊|dlx)$", re.I)
 wxhn = on_regex(r"^(迪拉熊|dlx)我喜欢你$", re.I)
@@ -34,8 +34,8 @@ conversations = {
 
 @xc.handle()
 async def _(event: GroupMessageEvent):
-    weights = [11, 11, 11, 11, 11, 11, 11, 11, 11, 1]
-    ran_number = random.choices(range(1, 11), weights=weights, k=1)[0]
+    weights = [0.011, 0.011, 0.011, 0.011, 0.011, 0.011, 0.011, 0.011, 0.011, 0.01]
+    ran_number = rng.choice(range(1, 11), p=weights)
     text = conversations[ran_number]
     if ran_number == 10:
         pic_path = "./Static/WannaCao/1.png"
@@ -76,7 +76,7 @@ async def _(event: GroupMessageEvent):
             MessageSegment.image(Path("./Static/Roll/1.png")),
         )
         await roll.finish(msg)
-    output = random.choice(roll_list)
+    output = rng.choice(roll_list)
     msg = (
         MessageSegment.at(event.user_id),
         MessageSegment.text(" "),
@@ -96,12 +96,12 @@ async def _(bot: Bot, event: GroupMessageEvent):
     ):
         raise NeedToSwitchException
 
-    weight = 1
+    sato = False
     if bot.self_id in config.allowed_accounts:
-        weight = random.randint(0, 9)
+        sato = rng.choice([True, False], p=[0.1, 0.9])
 
     imgpath = "./Static/Cum/0.png"
-    if weight == 0:
+    if sato:
         imgpath = "./Static/Cum/1.png"
     msg = MessageSegment.image(Path(imgpath))
     await cum.send(msg)

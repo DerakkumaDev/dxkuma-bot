@@ -1,11 +1,11 @@
 from pathlib import Path
-from random import SystemRandom
 
 from nonebot import on_type
 from nonebot.adapters.onebot.v11 import Bot, MessageSegment, PokeNotifyEvent
 from nonebot.rule import to_me
+from numpy import random
 
-random = SystemRandom()
+rng = random.default_rng()
 
 poke = on_type(PokeNotifyEvent, to_me())
 
@@ -30,8 +30,19 @@ async def _(bot: Bot, event: PokeNotifyEvent):
     qq = event.get_user_id()
     if not event.group_id or qq == bot.self_id:
         return
-    weights = [9, 9, 9, 9, 9, 9, 9, 9, 4, 4]
-    ran_number = random.choices(range(1, 11), weights=weights, k=1)[0]
+    weights = [
+        0.1125,
+        0.1125,
+        0.1125,
+        0.1125,
+        0.1125,
+        0.1125,
+        0.1125,
+        0.1125,
+        0.05,
+        0.05,
+    ]
+    ran_number = rng.choice(range(1, 11), p=weights)
     text = conversations[ran_number]
     filename = f"{ran_number - 1}.png"
     file_path = POKE_PIC / filename

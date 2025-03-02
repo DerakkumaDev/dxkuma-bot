@@ -4,12 +4,12 @@ import os
 import re
 import shelve
 from pathlib import Path
-from random import SystemRandom
 
 from PIL import Image, UnidentifiedImageError
 from dill import Pickler, Unpickler
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
+from numpy import random
 
 from util.Config import config
 from util.exceptions import NotAllowedException
@@ -17,7 +17,7 @@ from util.exceptions import NotAllowedException
 shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler
 
-random = SystemRandom()
+rng = random.default_rng()
 
 rand_pic = on_regex(r"^(随机)?(迪拉熊|dlx)((涩|色|瑟)图|st)?$", re.I)
 rank = on_regex(r"^(迪拉熊|dlx)(排行榜|rank)$", re.I)
@@ -99,8 +99,8 @@ async def _(bot: Bot, event: GroupMessageEvent):
     elif group_id == config.special_group:  # 不被限制的 group_id
         pass
     else:
-        weight = random.randint(0, 9)
-        if weight == 0:
+        sato = rng.choice([True, False], p=[0.1, 0.9])
+        if sato:
             if type == "sfw":
                 msg = MessageSegment.text(
                     "迪拉熊提醒你：注意不要过度刷屏，给其他人带来麻烦哦，再试一下吧~"
@@ -119,7 +119,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         )
         await rand_pic.finish(msg)
     for _ in range(3):
-        file = random.choice(files)
+        file = rng.choice(files)
         pic_path = os.path.join(path, file)
         if check_image(pic_path):
             break

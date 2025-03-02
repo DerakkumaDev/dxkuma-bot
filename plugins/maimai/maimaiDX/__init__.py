@@ -3,12 +3,12 @@ import os
 import re
 import shelve
 from pathlib import Path
-from random import SystemRandom
 
 import aiohttp
 from dill import Pickler, Unpickler
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
+from numpy import random
 
 from util.Data import (
     get_chart_stats,
@@ -35,7 +35,7 @@ from .MusicInfo import music_info, play_info, utage_music_info, score_info
 shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler
 
-random = SystemRandom()
+rng = random.default_rng()
 
 best50 = on_message(regex(r"^dlxb?50$", re.I))
 fit50 = on_fullmatch("dlxf50", ignorecase=True)
@@ -199,7 +199,7 @@ async def records_to_b50(
         song_data = [d for d in songList if d["id"] == str(song_id)][0]
         is_new = song_data["basic_info"]["is_new"]
         fit_diff = get_fit_diff(
-            str(record["song_id"]), record["level_index"], record["ds"], charts
+            str(song_id), record["level_index"], record["ds"], charts
         )
         if is_fit or is_sd:
             if record["ra"] == 0:
@@ -2012,7 +2012,7 @@ async def _(event: MessageEvent):
                 MessageSegment.text(msg),
             )
         )
-    song = random.choice(s_songs)
+    song = rng.choice(s_songs)
     await randomsong.send(
         (
             MessageSegment.at(event.user_id),
@@ -2031,7 +2031,7 @@ async def _(event: MessageEvent):
 @maiwhat.handle()
 async def _(event: MessageEvent):
     songList = await get_music_data()
-    song = random.choice(songList)
+    song = rng.choice(songList)
     await maiwhat.send(
         (
             MessageSegment.at(event.user_id),
