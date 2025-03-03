@@ -34,7 +34,7 @@ conversations = {
 
 @xc.handle()
 async def _(event: GroupMessageEvent):
-    weights = [0.011, 0.011, 0.011, 0.011, 0.011, 0.011, 0.011, 0.011, 0.011, 0.01]
+    weights = [0.11, 0.11, 0.11, 0.11, 0.11, 0.11, 0.11, 0.11, 0.11, 0.01]
     ran_number = rng.choice(range(1, 11), p=weights)
     text = conversations[ran_number]
     if ran_number == 10:
