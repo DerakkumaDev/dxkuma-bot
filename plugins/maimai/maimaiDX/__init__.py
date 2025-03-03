@@ -19,9 +19,9 @@ from util.Data import (
 )
 from util.DivingFish import get_player_data, get_player_records, get_player_record
 from util.Rule import regex
-from .GenB50 import (
+from .GenBests import (
     compute_record,
-    generateb50,
+    generatebests,
     generate_wcb,
     get_page_records,
     ratings,
@@ -127,7 +127,7 @@ async def find_songid_by_alias(name, song_list):
     return matched_ids
 
 
-async def records_to_b50(
+async def records_to_bests(
     records: list | None,
     songList,
     fc_rules: list | None = None,
@@ -313,12 +313,12 @@ async def records_to_b50(
     return b35, b15, mask_enabled
 
 
-async def compare_b50(sender_records, target_records, songList):
+async def compare_bests(sender_records, target_records, songList):
     handle_type = len(sender_records) > len(target_records)
     sd = list()
     dx = list()
     mask_enabled = False
-    b35, b15, mask_enabled = await records_to_b50(sender_records, songList)
+    b35, b15, mask_enabled = await records_to_bests(sender_records, songList)
     if not b35 and not b15:
         return sd, dx, mask_enabled
     sd_min = b35[-1]["ra"] if b35 else -1
@@ -518,7 +518,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=b35,
         b15=b15,
         nickname=nickname,
@@ -590,7 +590,7 @@ async def _(bot: Bot, event: MessageEvent):
             )
         )
     songList = await get_music_data()
-    ap35, ap15, _ = await records_to_b50(records, songList, ["ap", "app"])
+    ap35, ap15, _ = await records_to_bests(records, songList, ["ap", "app"])
     if not ap35 and not ap15:
         await ap50.finish(
             (
@@ -611,7 +611,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=ap35,
         b15=ap15,
         nickname=nickname,
@@ -683,7 +683,7 @@ async def _(bot: Bot, event: MessageEvent):
             )
         )
     songList = await get_music_data()
-    fc35, fc15, _ = await records_to_b50(records, songList, ["fc", "fcp"])
+    fc35, fc15, _ = await records_to_bests(records, songList, ["fc", "fcp"])
     if not fc35 and not fc15:
         await fc50.finish(
             (
@@ -704,7 +704,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=fc35,
         b15=fc15,
         nickname=nickname,
@@ -776,7 +776,7 @@ async def _(bot: Bot, event: MessageEvent):
             )
         )
     songList = await get_music_data()
-    b35, b15, mask_enabled = await records_to_b50(records, songList, is_fit=True)
+    b35, b15, mask_enabled = await records_to_bests(records, songList, is_fit=True)
     if not b35 and not b15:
         if mask_enabled:
             msg = f"迪拉熊无法获取{"你" if target_qq == event.get_user_id() else "他"}的真实成绩"
@@ -799,7 +799,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=b35,
         b15=b15,
         nickname=nickname,
@@ -873,7 +873,7 @@ async def _(bot: Bot, event: MessageEvent):
     msg_text = event.get_plaintext().replace("+", "p").casefold()
     rate_rules = re.findall(r"s{1,3}p?|a{1,3}|b{1,3}|[cd]", msg_text, re.I)
     songList = await get_music_data()
-    rate35, rate15, _ = await records_to_b50(records, songList, rate_rules=rate_rules)
+    rate35, rate15, _ = await records_to_bests(records, songList, rate_rules=rate_rules)
     if not rate35 and not rate15:
         await rate50.finish(
             (
@@ -894,7 +894,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=rate35,
         b15=rate15,
         nickname=nickname,
@@ -966,7 +966,7 @@ async def _(bot: Bot, event: MessageEvent):
             )
         )
     songList = await get_music_data()
-    dxs35, dxs15, mask_enabled = await records_to_b50(records, songList, is_dxs=True)
+    dxs35, dxs15, mask_enabled = await records_to_bests(records, songList, is_dxs=True)
     if not dxs35 and not dxs15:
         if mask_enabled:
             msg = f"迪拉熊无法获取{"你" if target_qq == event.get_user_id() else "他"}的真实成绩"
@@ -989,7 +989,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=dxs35,
         b15=dxs15,
         nickname=nickname,
@@ -1062,7 +1062,7 @@ async def _(bot: Bot, event: MessageEvent):
         )
     songList = await get_music_data()
     find = re.fullmatch(r"dlxx50((?:\s*[1-5])+)", event.get_plaintext(), re.I)
-    star35, star15, mask_enabled = await records_to_b50(
+    star35, star15, mask_enabled = await records_to_bests(
         records, songList, is_dxs=True, dx_star_count=find.group(1)
     )
     if not star35 and not star15:
@@ -1087,7 +1087,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=star35,
         b15=star15,
         nickname=nickname,
@@ -1216,7 +1216,9 @@ async def _(bot: Bot, event: MessageEvent):
             )
         )
     songList = await get_music_data()
-    b35, b15, mask_enabled = await compare_b50(sender_records, target_records, songList)
+    b35, b15, mask_enabled = await compare_bests(
+        sender_records, target_records, songList
+    )
     if not b35 and not b15:
         if mask_enabled:
             msg = "迪拉熊无法获取真实成绩"
@@ -1239,7 +1241,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = target_data["nickname"]
     dani = target_data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=b35,
         b15=b15,
         nickname=nickname,
@@ -1311,7 +1313,7 @@ async def _(bot: Bot, event: MessageEvent):
             )
         )
     songList = await get_music_data()
-    b35, b15, mask_enabled = await records_to_b50(records, songList, is_sd=True)
+    b35, b15, mask_enabled = await records_to_bests(records, songList, is_sd=True)
     if not b35 and not b15:
         if mask_enabled:
             msg = f"迪拉熊无法获取{"你" if target_qq == event.get_user_id() else "他"}的真实成绩"
@@ -1334,7 +1336,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=b35,
         b15=b15,
         nickname=nickname,
@@ -1406,7 +1408,7 @@ async def _(bot: Bot, event: MessageEvent):
             )
         )
     songList = await get_music_data()
-    all35, all15, _ = await records_to_b50(records, songList, is_all=True)
+    all35, all15, _ = await records_to_bests(records, songList, is_all=True)
     await all50.send(
         (
             MessageSegment.at(event.user_id),
@@ -1416,7 +1418,7 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    img = await generateb50(
+    img = await generatebests(
         b35=all35,
         b15=all15,
         nickname=nickname,
@@ -1447,7 +1449,7 @@ async def _(event: MessageEvent):
             return
 
     songList = await get_music_data()
-    rr35, rr15, _ = await records_to_b50(
+    rr35, rr15, _ = await records_to_bests(
         None,
         songList,
         rating=rating,
@@ -1470,9 +1472,9 @@ async def _(event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
-    nickname = "ＡＡＡＡＡＡＡＡ"
+    nickname = "ｍａｉｍａｉ"
     dani = 22
-    img = await generateb50(
+    img = await generatebests(
         b35=rr35,
         b15=rr15,
         nickname=nickname,

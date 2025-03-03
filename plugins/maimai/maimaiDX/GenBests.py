@@ -641,7 +641,7 @@ def rating_tj(b35max, b35min, b15max, b15min):
     return ratingbase
 
 
-async def generateb50(
+async def generatebests(
     b35: list, b15: list, nickname: str, qq, dani: int, type: str, songList
 ):
     with shelve.open("./data/user_config.db") as config:
@@ -668,13 +668,13 @@ async def generateb50(
     rating = b35_ra + b15_ra
 
     # BG
-    b50 = Image.open(maimai_Static / "b50_bg.png")
+    bests = Image.open(maimai_Static / "b50_bg.png")
 
     # 底板
     frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
     frame = Image.open(frame_path)
     frame = resize_image(frame, 0.95)
-    b50 = paste(b50, frame, (48, 45))
+    bests = paste(bests, frame, (48, 45))
 
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
@@ -687,13 +687,13 @@ async def generateb50(
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
     plate = Image.open(plate_path)
-    b50 = paste(b50, plate, (60, 60))
+    bests = paste(bests, plate, (60, 60))
 
     # 头像框
     iconbase_path = maimai_Static / "icon_base.png"
     iconbase = Image.open(iconbase_path)
     iconbase = resize_image(iconbase, 0.308)
-    b50 = paste(b50, iconbase, (60, 46))
+    bests = paste(bests, iconbase, (60, 46))
     # 头像
     async with aiohttp.ClientSession() as session:
         async with session.get(
@@ -701,26 +701,26 @@ async def generateb50(
         ) as resp:
             icon = await resp.read()
     icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
-    overlay = Image.new("RGBA", b50.size, (0, 0, 0, 0))
+    overlay = Image.new("RGBA", bests.size, (0, 0, 0, 0))
     overlay = paste(overlay, icon, (73, 75))
-    b50 = Image.alpha_composite(b50, overlay)
+    bests = Image.alpha_composite(bests, overlay)
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
     namebase = Image.open(namebase_path)
-    b50 = paste(b50, namebase, (0, 0))
+    bests = paste(bests, namebase, (0, 0))
 
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
     dani = Image.open(dani_path)
     dani = resize_image(dani, 0.2)
-    b50 = paste(b50, dani, (400, 110))
+    bests = paste(bests, dani, (400, 110))
 
     # 阶级
     class_path = maimai_Class / "0.png"
     cla = Image.open(class_path)
     cla = resize_image(cla, 0.2)
-    b50 = paste(b50, cla, (400, 60))
+    bests = paste(bests, cla, (400, 60))
 
     # rating推荐
     if type == "b50" and is_rating_tj:
@@ -729,14 +729,14 @@ async def generateb50(
         b15max = b15[0]["ra"] if b15 else 0
         b15min = b15[-1]["ra"] if b15 else 0
         ratingbase = rating_tj(b35max, b35min, b15max, b15min)
-        b50 = paste(b50, ratingbase, (60, 197))
+        bests = paste(bests, ratingbase, (60, 197))
 
     # rating框
     ratingbar = compute_ra(rating)
     ratingbar_path = maimai_Rating / f"UI_CMN_DXRating_{ratingbar:02d}.png"
     ratingbar = Image.open(ratingbar_path)
     ratingbar = resize_image(ratingbar, 0.26)
-    b50 = paste(b50, ratingbar, (175, 70))
+    bests = paste(bests, ratingbar, (175, 70))
 
     # rating数字
     rating_str = str(rating).rjust(5)
@@ -756,12 +756,12 @@ async def generateb50(
         (18, 20), Image.Resampling.LANCZOS
     )
 
-    b50 = paste(b50, num1, (253, 78))
-    b50 = paste(b50, num2, (267, 78))
-    b50 = paste(b50, num3, (281, 78))
-    b50 = paste(b50, num4, (294, 78))
-    b50 = paste(b50, num5, (308, 78))
-    draw = ImageDraw.Draw(b50)
+    bests = paste(bests, num1, (253, 78))
+    bests = paste(bests, num2, (267, 78))
+    bests = paste(bests, num3, (281, 78))
+    bests = paste(bests, num4, (294, 78))
+    bests = paste(bests, num5, (308, 78))
+    draw = ImageDraw.Draw(bests)
 
     # 名字
     ttf = ImageFont.truetype(ttf2_regular_path, size=24)
@@ -798,31 +798,31 @@ async def generateb50(
     ttf = ImageFont.truetype(ttf2_bold_path, size=32)
     draw.text((720, 740), type_name, font=ttf, fill=(138, 49, 6), anchor="mm")
 
-    # b50
+    # bests
     b35 = await draw_best(b35, type, songList)
     b15 = await draw_best(b15, type, songList)
-    b50 = paste(b50, b35, (25, 795))
-    b50 = paste(b50, b15, (25, 1985))
+    bests = paste(bests, b35, (25, 795))
+    bests = paste(bests, b15, (25, 1985))
 
     ttf = ImageFont.truetype(ttf2_regular_path, size=16)
-    b50 = text(
+    bests = text(
         text(
-            b50,
-            xy=(b50.width - 16, b50.height - 32),
+            bests,
+            xy=(bests.width - 16, bests.height - 32),
             font=ttf,
             text=f"感谢水鱼查分器提供数据支持",
             fill=(255, 255, 255, 205),
             anchor="rb",
         ),
-        xy=(b50.width - 16, b50.height - 16),
+        xy=(bests.width - 16, bests.height - 16),
         font=ttf,
-        text=f"ver.{Config.version[0]}.{Config.version[1]}{Config.version[2]}",
+        text=f"Ver.{Config.version[0]}.{Config.version[1]}-{Config.version[2]}",
         fill=(255, 255, 255, 205),
         anchor="rb",
     )
 
     img_byte_arr = BytesIO()
-    b50.save(img_byte_arr, format="PNG", optimize=True)
+    bests.save(img_byte_arr, format="PNG", optimize=True)
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
 
@@ -1006,7 +1006,7 @@ async def generate_wcb(
         ),
         xy=(bg.width - 16, bg.height - 16),
         font=ttf,
-        text=f"ver.{Config.version[0]}.{Config.version[1]}{Config.version[2]}",
+        text=f"Ver.{Config.version[0]}.{Config.version[1]}-{Config.version[2]}",
         fill=(255, 255, 255, 205),
         anchor="rb",
     )

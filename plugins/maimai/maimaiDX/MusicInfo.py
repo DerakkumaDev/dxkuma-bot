@@ -16,7 +16,7 @@ from .Config import (
     maimai_MusicType,
     maimai_Rank,
 )
-from .GenB50 import get_fit_diff
+from .GenBests import get_fit_diff
 
 # 字体路径
 ttf_black_path = font_path / "rounded-x-mplus-1p-heavy.ttf"
@@ -232,7 +232,7 @@ async def music_info(song_data):
         ),
         xy=(bg.width - 16, bg.height - 16),
         font=ttf,
-        text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
+        text=f"Ver.{config.version[0]}.{config.version[1]}-{config.version[2]}",
         fill=(255, 255, 255, 205),
         anchor="rb",
     )
@@ -465,7 +465,7 @@ async def play_info(data, song_data):
         ),
         xy=(bg.width - 16, bg.height - 16),
         font=ttf,
-        text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
+        text=f"Ver.{config.version[0]}.{config.version[1]}-{config.version[2]}",
         fill=(255, 255, 255, 205),
         anchor="rb",
     )
@@ -618,7 +618,7 @@ async def utage_music_info(song_data, index=0):
         ),
         xy=(bg.width - 16, bg.height - 16),
         font=ttf,
-        text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
+        text=f"Ver.{config.version[0]}.{config.version[1]}-{config.version[2]}",
         fill=(255, 255, 255, 205),
         anchor="rb",
     )
@@ -841,7 +841,7 @@ async def score_info(song_data, index):
         ),
         xy=(bg.width - 16, bg.height - 16),
         font=ttf,
-        text=f"ver.{config.version[0]}.{config.version[1]}{config.version[2]}",
+        text=f"Ver.{config.version[0]}.{config.version[1]}-{config.version[2]}",
         fill=(255, 255, 255, 205),
         anchor="rb",
     )
