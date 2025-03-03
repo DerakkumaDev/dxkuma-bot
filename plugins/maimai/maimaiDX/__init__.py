@@ -38,6 +38,7 @@ shelve.Unpickler = Unpickler
 rng = random.default_rng()
 
 best50 = on_message(regex(r"^dlxb?50$", re.I))
+best40 = on_message(regex(r"^dlxb?40$", re.I))
 fit50 = on_fullmatch("dlxf50", ignorecase=True)
 dxs50 = on_fullmatch("dlxs50", ignorecase=True)
 star50 = on_message(regex(r"^dlxx50(\s*[1-5])+$", re.I))
@@ -136,6 +137,7 @@ async def records_to_bests(
     is_sd: bool = False,
     is_dxs: bool = False,
     is_all: bool = False,
+    is_old: bool = False,
     dx_star_count: str | None = None,
     rating: int = 0,
 ):
@@ -243,6 +245,13 @@ async def records_to_bests(
                 _, stars = dxscore_proc(record["dxScore"], sum_dxscore)
                 if str(stars) not in dx_star_count:
                     continue
+        if is_old:
+            record["ra"] = math.trunc(
+                record["ds"]
+                * (record["achievements"] if record["achievements"] < 100.5 else 100.5)
+                * get_ra_in_old(record["rate"])
+                / 100
+            )
         if record["ra"] == 0 or record["achievements"] > 101:
             continue
         if is_new or is_all:
@@ -282,7 +291,7 @@ async def records_to_bests(
                     break
         return sd, dx, mask_enabled
     b35 = sorted(sd, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)[
-        :35
+        : 25 if is_old else 35
     ]
     b15 = sorted(dx, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)[
         :15
@@ -379,6 +388,10 @@ async def compare_bests(sender_records, target_records, songList):
 
 def get_ra_in(rate: str) -> float:
     return ratings[rate][1]
+
+
+def get_ra_in_old(rate: str) -> float:
+    return ratings[rate][2]
 
 
 async def get_info_by_name(name, music_type, songList):
@@ -810,6 +823,88 @@ async def _(bot: Bot, event: MessageEvent):
     )
     msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
     await fit50.send(msg)
+
+
+@best40.handle()
+async def _(bot: Bot, event: MessageEvent):
+    target_qq = event.get_user_id()
+    for message in event.get_message():
+        if message.type != "at":
+            continue
+        target_qq = message.data["qq"]
+        if target_qq == event.get_user_id():
+            continue
+        if target_qq == bot.self_id:
+            return
+        with shelve.open("./data/user_config.db") as config:
+            if (
+                target_qq not in config
+                or "allow_other" not in config[target_qq]
+                or config[target_qq]["allow_other"]
+            ):
+                break
+    else:
+        if target_qq != event.get_user_id():
+            msg = (
+                MessageSegment.at(event.user_id),
+                MessageSegment.text(" "),
+                MessageSegment.text("他不允许其他人查询他的成绩"),
+                MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
+            )
+            await best40.finish(msg)
+    data, status = await get_player_records(target_qq)
+    if status == 400:
+        msg = (
+            MessageSegment.at(event.user_id),
+            MessageSegment.text(" "),
+            MessageSegment.text(
+                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
+            ),
+            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+        )
+        await best40.finish(msg)
+    elif not data:
+        msg = (
+            MessageSegment.at(event.user_id),
+            MessageSegment.text(" "),
+            MessageSegment.text("（查分器出了点问题）"),
+            MessageSegment.image(Path("./Static/maimai/-1.png")),
+        )
+        await best40.finish(msg)
+    records = data["records"]
+    if not records:
+        await best40.finish(
+            (
+                MessageSegment.at(event.user_id),
+                MessageSegment.text(" "),
+                MessageSegment.text(
+                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
+                ),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            )
+        )
+    songList = await get_music_data()
+    b25, b15, _ = await records_to_bests(records, songList, is_old=True)
+    await best40.send(
+        (
+            MessageSegment.at(event.user_id),
+            MessageSegment.text(" "),
+            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
+        )
+    )
+    nickname = data["nickname"]
+    dani = data["additional_rating"]
+    img = await generatebests(
+        b35=b25,
+        b15=b15,
+        nickname=nickname,
+        qq=target_qq,
+        dani=dani,
+        type="best40",
+        songList=songList,
+    )
+    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    await best40.send(msg)
 
 
 @rate50.handle()

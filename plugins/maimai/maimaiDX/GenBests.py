@@ -32,21 +32,21 @@ shelve.Unpickler = Unpickler
 rng = random.default_rng()
 
 ratings = {
-    "app": [1.01, 0],
-    "sssp": [1.005, 22.4],
-    "sss": [1.0, 21.6],
-    "ssp": [0.995, 21.1],
-    "ss": [0.99, 20.8],
-    "sp": [0.98, 20.3],
-    "s": [0.97, 20.0],
-    "aaa": [0.94, 16.8],
-    "aa": [0.9, 13.6],
-    "a": [0.8, 12.8],
-    "bbb": [0.75, 12.0],
-    "bb": [0.7, 11.2],
-    "b": [0.6, 9.6],
-    "c": [0.5, 8.0],
-    "d": [0.4, 6.4],
+    "app": [1.01, 22.4, 15.0],
+    "sssp": [1.005, 22.4, 15.0],
+    "sss": [1.0, 21.6, 14.0],
+    "ssp": [0.995, 21.1, 13.0],
+    "ss": [0.99, 20.8, 12.0],
+    "sp": [0.98, 20.3, 11.0],
+    "s": [0.97, 20.0, 10.0],
+    "aaa": [0.94, 16.8, 9.4],
+    "aa": [0.9, 15.2, 9.0],
+    "a": [0.8, 13.6, 8.0],
+    "bbb": [0.75, 12.0, 7.5],
+    "bb": [0.7, 11.2, 7.0],
+    "b": [0.6, 9.6, 6.0],
+    "c": [0.5, 8.0, 5.0],
+    "d": [0.4, 6.4, 4.0],
 }
 
 # 字体路径
@@ -183,7 +183,7 @@ def records_filter(
             or (gen != "舞" and record["level_index"] == 4)
         ):
             continue
-        min_score = 1 / song_data["charts"][record["level_index"]]["notes"][-1]
+        min_score = 1 / song_data["charts"][record["level_index"]]["notes"][-1] / 2
         if is_sun:
             if record["dxScore"] == 0:
                 mask_enabled = True
@@ -298,6 +298,28 @@ def compute_ra(ra: int):
         return 9
     if ra < 14999:
         return 10
+    return 11
+
+
+def compute_ra_old(ra: int):
+    if ra < 999:
+        return 1
+    if ra < 1999:
+        return 2
+    if ra < 2999:
+        return 3
+    if ra < 3999:
+        return 4
+    if ra < 4999:
+        return 5
+    if ra < 5999:
+        return 6
+    if ra < 6999:
+        return 7
+    if ra < 7999:
+        return 8
+    if ra < 8499:
+        return 9
     return 11
 
 
@@ -666,6 +688,8 @@ async def generatebests(
     b35_ra = sum(item["ra"] for item in b35)
     b15_ra = sum(item["ra"] for item in b15)
     rating = b35_ra + b15_ra
+    if type == "best40":
+        rating += 2100
 
     # BG
     bests = Image.open(maimai_Static / "b50_bg.png")
@@ -732,7 +756,7 @@ async def generatebests(
         bests = paste(bests, ratingbase, (60, 197))
 
     # rating框
-    ratingbar = compute_ra(rating)
+    ratingbar = compute_ra_old(rating) if type == "best40" else compute_ra(rating)
     ratingbar_path = maimai_Rating / f"UI_CMN_DXRating_{ratingbar:02d}.png"
     ratingbar = Image.open(ratingbar_path)
     ratingbar = resize_image(ratingbar, 0.26)
@@ -774,7 +798,11 @@ async def generatebests(
         (
             f"Best35：{b35_ra} | Best15：{b15_ra}"
             if type == "all50"
-            else f"历史版本：{b35_ra} | 现行版本：{b15_ra}"
+            else (
+                f"Best40：{b35_ra + b15_ra} | 段位RATING：2100"
+                if type == "best40"
+                else f"历史版本：{b35_ra} | 现行版本：{b15_ra}"
+            )
         ),
         font=ttf,
         fill=(255, 255, 255),
@@ -792,6 +820,7 @@ async def generatebests(
         "cf50": "对比 Best 50",
         "sd50": "Best 成绩标准差 50（含金量b50）",
         "all50": "全成绩 Best 50",
+        "best40": "Best 40",
         "rr50": "",
     }
     type_name = type_names[type] if type in type_names else "Best 50"
