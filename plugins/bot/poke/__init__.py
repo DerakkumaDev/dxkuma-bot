@@ -5,8 +5,6 @@ from nonebot.adapters.onebot.v11 import Bot, MessageSegment, PokeNotifyEvent
 from nonebot.rule import to_me
 from numpy import random
 
-rng = random.default_rng()
-
 poke = on_type(PokeNotifyEvent, to_me())
 
 POKE_PIC = Path("./Static/Poke/")
@@ -27,6 +25,7 @@ conversations = {
 
 @poke.handle()
 async def _(bot: Bot, event: PokeNotifyEvent):
+    rng = random.default_rng()
     qq = event.get_user_id()
     if not event.group_id or qq == bot.self_id:
         return

@@ -2,6 +2,7 @@ import math
 import os
 import re
 import shelve
+import time
 from pathlib import Path
 
 import aiohttp
@@ -34,8 +35,6 @@ from .MusicInfo import music_info, play_info, utage_music_info, score_info
 
 shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler
-
-rng = random.default_rng()
 
 best50 = on_message(regex(r"^dlxb?50$", re.I))
 best40 = on_message(regex(r"^dlxb?40$", re.I))
@@ -531,16 +530,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
         b15=b15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="b50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(sender_qq), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(sender_qq),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await best50.send(msg)
 
 
@@ -624,16 +655,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=ap35,
         b15=ap15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="ap50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await ap50.send(msg)
 
 
@@ -717,16 +780,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=fc35,
         b15=fc15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="fc50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await fc50.send(msg)
 
 
@@ -812,16 +907,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
         b15=b15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="fit50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await fit50.send(msg)
 
 
@@ -894,16 +1021,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=b25,
         b15=b15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="best40",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await best40.send(msg)
 
 
@@ -989,16 +1148,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=rate35,
         b15=rate15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="rate50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await rate50.send(msg)
 
 
@@ -1084,16 +1275,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=dxs35,
         b15=dxs15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="dxs50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await dxs50.send(msg)
 
 
@@ -1182,16 +1405,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=star35,
         b15=star15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="star50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await star50.send(msg)
 
 
@@ -1336,16 +1591,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = target_data["nickname"]
     dani = target_data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
         b15=b15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="cf50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(sender_qq), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await cf50.send(msg)
 
 
@@ -1431,16 +1718,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
         b15=b15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="sd50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await sd50.send(msg)
 
 
@@ -1513,16 +1832,48 @@ async def _(bot: Bot, event: MessageEvent):
     )
     nickname = data["nickname"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if target_qq not in config:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+        else:
+            if "frame" not in config[target_qq]:
+                frame = "200502"
+            else:
+                frame = config[target_qq]["frame"]
+            if "plate" not in config[target_qq]:
+                plate = "000101"
+            else:
+                plate = config[target_qq]["plate"]
+            if "rating_tj" not in config[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = config[target_qq]["rating_tj"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=all35,
         b15=all15,
         nickname=nickname,
-        qq=target_qq,
         dani=dani,
         type="all50",
+        icon=icon,
+        frame=frame,
+        plate=plate,
+        is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await all50.send(msg)
 
 
@@ -1567,18 +1918,32 @@ async def _(event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            "http://q.qlogo.cn/headimg_dl?dst_uin=0&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
     nickname = "ｍａｉｍａｉ"
     dani = 22
+    start_time = time.perf_counter()
     img = await generatebests(
         b35=rr35,
         b15=rr15,
         nickname=nickname,
-        qq="0",
         dani=dani,
         type="rr50",
+        icon=icon,
+        frame="200502",
+        plate="000101",
+        is_rating_tj=False,
         songList=songList,
     )
-    msg = (MessageSegment.at(event.user_id), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await rr50.send(msg)
 
 
@@ -1651,17 +2016,39 @@ async def _(event: MessageEvent):
     nickname = data["nickname"]
     rating = data["rating"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if qq not in config or "plate" not in config[qq]:
+            plate = "000101"
+        else:
+            plate = config[qq]["plate"]
+        if qq not in config or "frame" not in config[qq]:
+            frame = "200502"
+        else:
+            frame = config[qq]["frame"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generate_wcb(
-        qq=qq,
         page=page,
         nickname=nickname,
         dani=dani,
         rating=rating,
+        icon=icon,
+        frame=frame,
+        plate=plate,
         input_records=input_records,
         all_page_num=all_page_num,
         songList=songList,
     )
-    msg = (MessageSegment.at(qq), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(qq),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await sunlist.send(msg)
 
 
@@ -1734,17 +2121,39 @@ async def _(event: MessageEvent):
     nickname = data["nickname"]
     rating = data["rating"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if qq not in config or "plate" not in config[qq]:
+            plate = "000101"
+        else:
+            plate = config[qq]["plate"]
+        if qq not in config or "frame" not in config[qq]:
+            frame = "200502"
+        else:
+            frame = config[qq]["frame"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generate_wcb(
-        qq=qq,
         page=page,
         nickname=nickname,
         dani=dani,
         rating=rating,
+        icon=icon,
+        frame=frame,
+        plate=plate,
         input_records=input_records,
         all_page_num=all_page_num,
         songList=songList,
     )
-    msg = (MessageSegment.at(qq), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(qq),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await locklist.send(msg)
 
 
@@ -1822,8 +2231,22 @@ async def _(event: MessageEvent):
     nickname = data["nickname"]
     rating = data["rating"]
     dani = data["additional_rating"]
+    with shelve.open("./data/user_config.db") as config:
+        if qq not in config or "plate" not in config[qq]:
+            plate = "000101"
+        else:
+            plate = config[qq]["plate"]
+        if qq not in config or "frame" not in config[qq]:
+            frame = "200502"
+        else:
+            frame = config[qq]["frame"]
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
+        ) as resp:
+            icon = await resp.read()
+    start_time = time.perf_counter()
     img = await generate_wcb(
-        qq=qq,
         level=level,
         ds=ds,
         gen=gen,
@@ -1831,12 +2254,20 @@ async def _(event: MessageEvent):
         nickname=nickname,
         dani=dani,
         rating=rating,
+        icon=icon,
+        frame=frame,
+        plate=plate,
         input_records=input_records,
         rate_count=rate_count,
         all_page_num=all_page_num,
         songList=songList,
     )
-    msg = (MessageSegment.at(qq), MessageSegment.image(img))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(qq),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await wcb.send(msg)
 
 
@@ -1884,10 +2315,16 @@ async def _(event: MessageEvent):
         )
     )
     if song_info["basic_info"]["genre"] == "宴会場":
+        start_time = time.perf_counter()
         img = await utage_music_info(song_data=song_info)
     else:
+        start_time = time.perf_counter()
         img = await music_info(song_data=song_info)
-    msg = MessageSegment.image(img)
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await songinfo.send(msg)
 
 
@@ -1970,9 +2407,15 @@ async def _(event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
+    start_time = time.perf_counter()
     img = await play_info(data, song_info)
-    msg = MessageSegment.image(img)
-    await playinfo.send((MessageSegment.at(qq), msg))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(qq),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
+    await playinfo.send(msg)
 
 
 @scoreinfo.handle()
@@ -2021,8 +2464,13 @@ async def _(event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
+    start_time = time.perf_counter()
     img = await score_info(song_data=song_info, index=type_index)
-    msg = MessageSegment.image(img)
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await scoreinfo.send(msg)
 
 
@@ -2076,6 +2524,7 @@ async def _(event: MessageEvent):
 
 @randomsong.handle()
 async def _(event: MessageEvent):
+    rng = random.default_rng()
     msg = event.get_plaintext()
     pattern = r"(绿|黄|红|紫|白)?\s*((?:\d+)(?:\.\d|\+)?)"
     match = re.search(pattern, msg)
@@ -2091,6 +2540,8 @@ async def _(event: MessageEvent):
     s_songs = list()
     songList = await get_music_data()
     for song in songList:
+        if song["basic_info"]["genre"] == "宴会場":
+            continue
         s_list = song[s_type]
         if s_type == "ds":
             level = float(level)
@@ -2115,18 +2566,22 @@ async def _(event: MessageEvent):
             MessageSegment.at(event.user_id),
             MessageSegment.text(" "),
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )  # 绘制中
+        )
     )
-    if song["basic_info"]["genre"] == "宴会場":
-        img = await utage_music_info(song_data=song)
-    else:
-        img = await music_info(song_data=song)
-    msg = MessageSegment.image(img)
-    await randomsong.send((MessageSegment.at(event.user_id), msg))
+    start_time = time.perf_counter()
+    img = await music_info(song_data=song)
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
+    await randomsong.send(msg)
 
 
 @maiwhat.handle()
 async def _(event: MessageEvent):
+    rng = random.default_rng()
     songList = await get_music_data()
     song = rng.choice(songList)
     await maiwhat.send(
@@ -2134,14 +2589,21 @@ async def _(event: MessageEvent):
             MessageSegment.at(event.user_id),
             MessageSegment.text(" "),
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )  # 绘制中
+        )
     )
     if song["basic_info"]["genre"] == "宴会場":
+        start_time = time.perf_counter()
         img = await utage_music_info(song_data=song)
     else:
+        start_time = time.perf_counter()
         img = await music_info(song_data=song)
-    msg = MessageSegment.image(img)
-    await maiwhat.send((MessageSegment.at(event.user_id), msg))
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.at(event.user_id),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
+    await maiwhat.send(msg)
 
 
 @whatSong.handle()
@@ -2195,13 +2657,19 @@ async def _(event: MessageEvent):
             MessageSegment.at(event.user_id),
             MessageSegment.text(" "),
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )  # 绘制中
+        )
     )
     if song_info["basic_info"]["genre"] == "宴会場":
+        start_time = time.perf_counter()
         img = await utage_music_info(song_data=song_info)
     else:
+        start_time = time.perf_counter()
         img = await music_info(song_data=song_info)
-    msg = MessageSegment.image(img)
+    end_time = time.perf_counter()
+    msg = (
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
     await whatSong.send(msg)
 
 

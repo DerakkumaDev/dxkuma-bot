@@ -10,8 +10,6 @@ from plugins.bot.concurrent_lock.util import locks
 from util.Config import config
 from util.exceptions import NeedToSwitchException
 
-rng = random.default_rng()
-
 xc = on_regex(r"^(香草|想草|xc)(迪拉熊|dlx)$", re.I)
 wxhn = on_regex(r"^(迪拉熊|dlx)我喜欢你$", re.I)
 roll = on_regex(r"是.+还是.", rule=to_me())
@@ -34,6 +32,7 @@ conversations = {
 
 @xc.handle()
 async def _(event: GroupMessageEvent):
+    rng = random.default_rng()
     weights = [0.11, 0.11, 0.11, 0.11, 0.11, 0.11, 0.11, 0.11, 0.11, 0.01]
     ran_number = rng.choice(range(1, 11), p=weights)
     text = conversations[ran_number]
@@ -58,6 +57,7 @@ async def _(event: GroupMessageEvent):
 
 @roll.handle()
 async def _(event: GroupMessageEvent):
+    rng = random.default_rng()
     text = event.get_plaintext()
     roll_list = re.findall(r"(?<=是)(.+?)(?=还|$)", text)
     if not roll_list:
@@ -88,6 +88,7 @@ async def _(event: GroupMessageEvent):
 
 @cum.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
+    rng = random.default_rng()
     key = hash(f"{event.group_id}{event.user_id}{event.time}")
     if (
         key in locks

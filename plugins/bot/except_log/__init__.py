@@ -14,8 +14,6 @@ from numpy import random
 from util.Config import config
 from util.exceptions import NotAllowedException, NeedToSwitchException
 
-rng = random.default_rng()
-
 PICPATH = "./Static/Gallery/SFW/"
 
 
@@ -34,6 +32,7 @@ def check_image(imgpath: Path):
 
 @run_postprocessor
 async def _(event: Event, matcher: Matcher, exception: Exception | None):
+    rng = random.default_rng()
     if not exception or isinstance(
         exception,
         (

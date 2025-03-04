@@ -23,8 +23,6 @@ from .ranking import ranking
 from .times import times
 from .utils import generate_message_state, check_music_id, generate_success_state
 
-rng = random.default_rng()
-
 lock = Lock()
 
 start_open_chars = on_regex(r"^dlx猜歌$", re.I)
@@ -227,6 +225,7 @@ async def _(event: GroupMessageEvent):
 
 @info_tip.handle()
 async def _(event: GroupMessageEvent):
+    rng = random.default_rng()
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()
@@ -312,6 +311,7 @@ async def _(event: GroupMessageEvent):
 
 @pic_tip.handle()
 async def _(event: GroupMessageEvent):
+    rng = random.default_rng()
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()
@@ -402,6 +402,7 @@ async def _(event: GroupMessageEvent):
 
 @aud_tip.handle()
 async def _(event: GroupMessageEvent):
+    rng = random.default_rng()
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()

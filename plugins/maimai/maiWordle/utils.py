@@ -8,7 +8,6 @@ from util.Data import get_music_data
 from .ranking import ranking
 from .times import times
 
-rng = random.default_rng()
 kks = kakasi()
 
 
@@ -19,6 +18,7 @@ def check_game_over(game_data):
 
 
 async def generate_game_data():
+    rng = random.default_rng()
     game_data = {"open_chars": list()}
     game_contents = list()
     temp_game_contents_ids = list()

@@ -1,10 +1,8 @@
 import math
 import os
-import shelve
 from io import BytesIO
 
 import aiohttp
-from dill import Pickler, Unpickler
 from PIL import Image, ImageFont, ImageDraw
 from numpy import random
 
@@ -25,11 +23,6 @@ from .Config import (
     maimai_Rank,
     maimai_Class,
 )
-
-shelve.Pickler = Pickler
-shelve.Unpickler = Unpickler
-
-rng = random.default_rng()
 
 ratings = {
     "app": [1.01, 22.4, 15.0],
@@ -571,8 +564,9 @@ async def draw_best(bests: list, type: str, songList):
             max_row_index = 4  # 其他行4个
 
         # 循环生成行
+        bests_len = len(bests)
         while row_index < max_row_index:
-            if index < len(bests):
+            if index < bests_len:
                 # 根据索引从列表中抽取数据
                 song_data = bests[index]
                 if type == "fit50":
@@ -609,6 +603,7 @@ async def draw_best(bests: list, type: str, songList):
 
 
 def rating_tj(b35max, b35min, b15max, b15min):
+    rng = random.default_rng()
     ratingbase_path = maimai_Static / "rating_base.png"
     ratingbase = Image.open(ratingbase_path)
     draw = ImageDraw.Draw(ratingbase)
@@ -664,27 +659,17 @@ def rating_tj(b35max, b35min, b15max, b15min):
 
 
 async def generatebests(
-    b35: list, b15: list, nickname: str, qq, dani: int, type: str, songList
+    b35: list,
+    b15: list,
+    nickname: str,
+    dani: int,
+    type: str,
+    icon: bytes,
+    frame: str,
+    plate: str,
+    is_rating_tj: bool,
+    songList,
 ):
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config:
-            frame = "200502"
-            plate = "000101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[qq]:
-                frame = "200502"
-            else:
-                frame = config[qq]["frame"]
-            if "plate" not in config[qq]:
-                plate = "000101"
-            else:
-                plate = config[qq]["plate"]
-            if "rating_tj" not in config[qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[qq]["rating_tj"]
-
     b35_ra = sum(item["ra"] for item in b35)
     b15_ra = sum(item["ra"] for item in b15)
     rating = b35_ra + b15_ra
@@ -719,11 +704,6 @@ async def generatebests(
     iconbase = resize_image(iconbase, 0.308)
     bests = paste(bests, iconbase, (60, 46))
     # 头像
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
-        ) as resp:
-            icon = await resp.read()
     icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
     overlay = Image.new("RGBA", bests.size, (0, 0, 0, 0))
     overlay = paste(overlay, icon, (73, 75))
@@ -859,29 +839,21 @@ async def generatebests(
 
 
 async def generate_wcb(
-    qq: str,
     page: int,
     nickname: str,
     dani: int,
     rating: int,
     input_records,
     all_page_num,
+    icon: bytes,
+    frame: str,
+    plate: str,
     songList,
     level: str | None = None,
     ds: float | None = None,
     gen: str | None = None,
     rate_count=None,
 ):
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config or "plate" not in config[qq]:
-            plate = "000101"
-        else:
-            plate = config[qq]["plate"]
-        if level or ds or gen or qq not in config or "frame" not in config[qq]:
-            frame = "200502"
-        else:
-            frame = config[qq]["frame"]
-
     bg = Image.open("./Static/maimai/wcb_bg.png")
 
     # 底板
@@ -912,11 +884,6 @@ async def generate_wcb(
     iconbase = resize_image(iconbase, 0.308)
     bg = paste(bg, iconbase, (60, 46))
     # 头像
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
-        ) as resp:
-            icon = await resp.read()
     icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
     overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
     overlay = paste(overlay, icon, (73, 75))
