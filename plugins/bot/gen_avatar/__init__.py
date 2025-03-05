@@ -90,24 +90,13 @@ async def _(event: GroupMessageEvent):
 
     if not os.path.exists(f"./Static/GenAvatar/{id}.png"):
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("迪拉熊没有找到合适的背景"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await avatar.finish(msg)
+        await avatar.finish(msg, at_sender=True)
 
-    await avatar.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
-    msg = (
-        MessageSegment.at(event.user_id),
-        MessageSegment.text(" "),
-    )
+    await avatar.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
+    msg = tuple()
 
     for pic_url in pic_urls:
         async with aiohttp.ClientSession() as session:
@@ -118,4 +107,4 @@ async def _(event: GroupMessageEvent):
 
         msg += (MessageSegment.image(img_bytes),)
 
-    await avatar.send(msg)
+    await avatar.send(msg, at_sender=True)

@@ -13,5 +13,6 @@ maimai_DXScoreStar = maimai_src / "DXScoreStar"
 maimai_MusicType = maimai_src / "MusicType"
 maimai_MusicIcon = maimai_src / "MusicIcon"
 maimai_Rank = maimai_src / "Rank"
+maimai_Shougou = maimai_src / "Shougou"
 
 font_path = maimai_src / "font"

@@ -112,11 +112,10 @@ async def _(event: GroupMessageEvent):
         if not not_opened:
             await open_chars.send(
                 (
-                    MessageSegment.at(user_id),
-                    MessageSegment.text(" "),
                     MessageSegment.text("这个字已经开过了哦，换一个吧~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
-                )
+                ),
+                at_sender=True,
             )
             return
 
@@ -138,12 +137,11 @@ async def _(event: GroupMessageEvent):
 
                 await open_chars.send(
                     (
-                        MessageSegment.at(user_id),
-                        MessageSegment.text(" "),
                         MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
                         MessageSegment.image(Path(cover_path)),
                         MessageSegment.text(title),
-                    )
+                    ),
+                    at_sender=True,
                 )
 
         await open_chars.send(game_state)
@@ -189,12 +187,11 @@ async def _(event: GroupMessageEvent):
 
             await all_message_handle.send(
                 (
-                    MessageSegment.at(user_id),
-                    MessageSegment.text(" "),
                     MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
                     MessageSegment.image(Path(cover_path)),
                     MessageSegment.text(title),
-                )
+                ),
+                at_sender=True,
             )
         is_game_over, game_state, _, game_data = generate_message_state(
             game_data, user_id
@@ -364,11 +361,7 @@ async def _(event: GroupMessageEvent):
         await openchars.update_game_data(group_id, game_data)
 
     await pic_tip.send(
-        (
-            MessageSegment.at(user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
+        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     cover_path = f"./Cache/Jacket/{data["music_id"] % 10000}.png"
     if not os.path.exists(cover_path):
@@ -455,13 +448,10 @@ async def _(event: GroupMessageEvent):
         await openchars.update_game_data(group_id, game_data)
 
     await aud_tip.send(
-        (
-            MessageSegment.at(user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text(
-                f"迪拉熊正在准备播放第{data["index"]}行的歌曲，稍等一下mai~"
-            ),
-        )
+        MessageSegment.text(
+            f"迪拉熊正在准备播放第{data["index"]}行的歌曲，稍等一下mai~"
+        ),
+        at_sender=True,
     )
     music_path = f"./Cache/Music/{data["music_id"] % 10000}.mp3"
     if not os.path.exists(music_path):
@@ -555,6 +545,4 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
     msg = "\r\n".join(leaderboard_output)
     msg = f"您在排行榜上的位置：\r\n{msg}\r\n\r\n注：若长时间不参与猜歌游戏，将不计入排行榜，重新参与十首歌即可重新上榜。"
-    await rank.send(
-        (MessageSegment.at(user_id), MessageSegment.text(" "), MessageSegment.text(msg))
-    )
+    await rank.send(MessageSegment.text(msg), at_sender=True)

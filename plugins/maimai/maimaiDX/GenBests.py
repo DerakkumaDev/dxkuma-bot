@@ -22,6 +22,7 @@ from .Config import (
     maimai_MusicIcon,
     maimai_Rank,
     maimai_Class,
+    maimai_Shougou,
 )
 
 ratings = {
@@ -538,7 +539,7 @@ async def music_to_part(
     return partbase
 
 
-async def draw_best(bests: list, type: str, songList):
+async def draw_best(bests: list, type: str, songList, begin: int = 0):
     index = 0
     # 计算列数
     queue_nums = 1 if len(bests) < 4 else 1 + math.ceil((len(bests) - 3) / 4)
@@ -582,7 +583,7 @@ async def draw_best(bests: list, type: str, songList):
                     )
                 # 传入数据生成图片
                 part = await music_to_part(
-                    **song_data, index=index + 1, b_type=type, songList=songList
+                    **song_data, index=index + 1 + begin, b_type=type, songList=songList
                 )
                 # 将图片粘贴到底图上
                 base = paste(base, part, (x, y))
@@ -942,6 +943,12 @@ async def generate_wcb(
     ttf = ImageFont.truetype(ttf2_regular_path, size=24)
     draw.text((186, 108), nickname, font=ttf, fill=(0, 0, 0))
 
+    # 称号
+    shougou_path = maimai_Shougou / "Normal.png"
+    shougou = Image.open(shougou_path)
+    shougou = resize_image(shougou, 0.7)
+    bg = paste(bg, shougou, (237, 143))
+
     if level:
         # 绘制的完成表的等级贴图
         level_icon_path = maimai_Level / f"{level}.png"
@@ -987,7 +994,9 @@ async def generate_wcb(
     draw.text((260, 850), page_text, font=ttf, fill=(255, 255, 255), anchor="mm")
 
     # 绘制当前页面的成绩
-    records_parts = await draw_best(input_records, type="wcb", songList=songList)
+    records_parts = await draw_best(
+        input_records, type="wcb", begin=(page - 1) * 55, songList=songList
+    )
     bg = paste(bg, records_parts, (25, 795))
 
     ttf = ImageFont.truetype(ttf2_regular_path, size=16)

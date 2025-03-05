@@ -596,63 +596,49 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await ap50.finish(msg)
+            await ap50.finish(msg, at_sender=True)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await ap50.finish(msg)
+        await ap50.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await ap50.finish(msg)
+        await ap50.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await ap50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     ap35, ap15, _ = await records_to_bests(records, songList, ["ap", "app"])
     if not ap35 and not ap15:
         await ap50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有全完美的成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
-    await ap50.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await ap50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -693,11 +679,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await ap50.send(msg)
+    await ap50.send(msg, at_sender=True)
 
 
 @fc50.handle()
@@ -721,63 +706,49 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await fc50.finish(msg)
+            await fc50.finish(msg, at_sender=True)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await fc50.finish(msg)
+        await fc50.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await fc50.finish(msg)
+        await fc50.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await fc50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     fc35, fc15, _ = await records_to_bests(records, songList, ["fc", "fcp"])
     if not fc35 and not fc15:
         await fc50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有全连的成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
-    await fc50.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await fc50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -818,11 +789,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await fc50.send(msg)
+    await fc50.send(msg, at_sender=True)
 
 
 @fit50.handle()
@@ -846,42 +816,35 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await fit50.finish(msg)
+            await fit50.finish(msg, at_sender=True)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await fit50.finish(msg)
+        await fit50.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await fit50.finish(msg)
+        await fit50.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await fit50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     b35, b15, mask_enabled = await records_to_bests(records, songList, is_fit=True)
@@ -892,19 +855,12 @@ async def _(bot: Bot, event: MessageEvent):
             msg = f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩"
         await fit50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(msg),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
-    await fit50.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await fit50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -945,11 +901,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await fit50.send(msg)
+    await fit50.send(msg, at_sender=True)
 
 
 @best40.handle()
@@ -973,52 +928,39 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await best40.finish(msg)
+            await best40.finish(msg, at_sender=True)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await best40.finish(msg)
+        await best40.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await best40.finish(msg)
+        await best40.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await best40.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     b25, b15, _ = await records_to_bests(records, songList, is_old=True)
-    await best40.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await best40.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -1059,11 +1001,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await best40.send(msg)
+    await best40.send(msg, at_sender=True)
 
 
 @rate50.handle()
@@ -1087,42 +1028,35 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await rate50.finish(msg)
+            await rate50.finish(msg, at_sender=True)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await rate50.finish(msg)
+        await rate50.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await rate50.finish(msg)
+        await rate50.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await rate50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     msg_text = event.get_plaintext().replace("+", "p").casefold()
     rate_rules = re.findall(r"s{1,3}p?|a{1,3}|b{1,3}|[cd]", msg_text, re.I)
@@ -1131,21 +1065,14 @@ async def _(bot: Bot, event: MessageEvent):
     if not rate35 and not rate15:
         await rate50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
-    await rate50.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await rate50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -1186,11 +1113,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await rate50.send(msg)
+    await rate50.send(msg, at_sender=True)
 
 
 @dxs50.handle()
@@ -1214,42 +1140,35 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await dxs50.finish(msg)
+            await dxs50.finish(msg, at_sender=True)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await dxs50.finish(msg)
+        await dxs50.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await dxs50.finish(msg)
+        await dxs50.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await dxs50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     dxs35, dxs15, mask_enabled = await records_to_bests(records, songList, is_dxs=True)
@@ -1260,19 +1179,12 @@ async def _(bot: Bot, event: MessageEvent):
             msg = f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩"
         await dxs50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(msg),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
-    await dxs50.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await dxs50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -1313,11 +1225,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await dxs50.send(msg)
+    await dxs50.send(msg, at_sender=True)
 
 
 @star50.handle()
@@ -1341,42 +1252,35 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await star50.finish(msg)
+            await star50.finish(msg, at_sender=True)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await star50.finish(msg)
+        await star50.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await star50.finish(msg)
+        await star50.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await star50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     find = re.fullmatch(r"dlxx50((?:\s*[1-5])+)", event.get_plaintext(), re.I)
@@ -1390,19 +1294,12 @@ async def _(bot: Bot, event: MessageEvent):
             msg = f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩"
         await star50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(msg),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
-    await star50.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await star50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -1443,11 +1340,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await star50.send(msg)
+    await star50.send(msg, at_sender=True)
 
 
 @cf50.handle()
@@ -1472,98 +1368,78 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != sender_qq:
             msg = (
-                MessageSegment.at(sender_qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await cf50.finish(msg)
+            await cf50.finish(msg, at_sender=True)
     if target_qq == None:
         msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
             MessageSegment.text("你没有比较任何人"),
             MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
         )
-        await cf50.finish(msg)
+        await cf50.finish(msg, at_sender=True)
     if target_qq == sender_qq:
         msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
             MessageSegment.text("你不可以和自己比较"),
             MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
         )
-        await cf50.finish(msg)
+        await cf50.finish(msg, at_sender=True)
     sender_data, status = await get_player_records(sender_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
             MessageSegment.text("迪拉熊没有找到你的信息"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await cf50.finish(msg)
+        await cf50.finish(msg, at_sender=True)
     elif status == 403:
         msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
             MessageSegment.text("你在查分器启用了隐私或者没有同意查分器的用户协议"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await cf50.finish(msg)
+        await cf50.finish(msg, at_sender=True)
     elif not sender_data:
         msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await cf50.finish(msg)
+        await cf50.finish(msg, at_sender=True)
     target_data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
             MessageSegment.text("迪拉熊没有找到他的信息"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await cf50.finish(msg)
+        await cf50.finish(msg, at_sender=True)
     elif status == 403:
         msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
             MessageSegment.text("他在查分器启用了隐私或者没有同意查分器的用户协议"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await cf50.finish(msg)
+        await cf50.finish(msg, at_sender=True)
     elif not target_data:
         msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await cf50.finish(msg)
+        await cf50.finish(msg, at_sender=True)
     songList = await get_music_data()
     sender_records = sender_data["records"]
     if not sender_records:
         await cf50.finish(
             (
-                MessageSegment.at(sender_qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("你没有上传任何成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     target_records = target_data["records"]
     if not target_records:
         await cf50.finish(
             (
-                MessageSegment.at(sender_qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("他没有上传任何成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     b35, b15, mask_enabled = await compare_bests(
@@ -1576,19 +1452,12 @@ async def _(bot: Bot, event: MessageEvent):
             msg = "没有上传任何匹配的成绩"
         await cf50.finish(
             (
-                MessageSegment.at(sender_qq),
-                MessageSegment.text(" "),
                 MessageSegment.text(msg),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
-    await cf50.send(
-        (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await cf50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = target_data["nickname"]
     dani = target_data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -1629,11 +1498,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await cf50.send(msg)
+    await cf50.send(msg, at_sender=True)
 
 
 @sd50.handle()
@@ -1657,42 +1525,35 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await sd50.finish(msg)
+            await sd50.finish(msg, at_sender=True)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await sd50.finish(msg)
+        await sd50.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await sd50.finish(msg)
+        await sd50.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await sd50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     b35, b15, mask_enabled = await records_to_bests(records, songList, is_sd=True)
@@ -1703,19 +1564,12 @@ async def _(bot: Bot, event: MessageEvent):
             msg = f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩"
         await sd50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(msg),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
-    await sd50.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await sd50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -1756,11 +1610,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await sd50.send(msg)
+    await sd50.send(msg, at_sender=True)
 
 
 @all50.handle()
@@ -1784,52 +1637,39 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         if target_qq != event.get_user_id():
             msg = (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("他不允许其他人查询他的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
-            await all50.finish(msg)
+            await all50.finish(msg, at_sender=True)
     data, status = await get_player_records(target_qq)
     if status == 400:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text(
                 f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await all50.finish(msg)
+        await all50.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await all50.finish(msg)
+        await all50.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await all50.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text(
                     f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     all35, all15, _ = await records_to_bests(records, songList, is_all=True)
-    await all50.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await all50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
@@ -1870,11 +1710,10 @@ async def _(bot: Bot, event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await all50.send(msg)
+    await all50.send(msg, at_sender=True)
 
 
 @rr50.handle()
@@ -1886,11 +1725,10 @@ async def _(event: MessageEvent):
         if rating < 0:
             await rr50.send(
                 (
-                    MessageSegment.at(event.user_id),
-                    MessageSegment.text(" "),
                     MessageSegment.text("没有任何匹配的成绩"),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
+                ),
+                at_sender=True,
             )
             return
 
@@ -1903,21 +1741,14 @@ async def _(event: MessageEvent):
     if not rr35 and not rr15:
         await rr50.send(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("没有任何匹配的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
         return
 
-    await rr50.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await rr50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     async with aiohttp.ClientSession() as session:
         async with session.get(
             "http://q.qlogo.cn/headimg_dl?dst_uin=0&spec=640&img_type=png"
@@ -1940,11 +1771,10 @@ async def _(event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await rr50.send(msg)
+    await rr50.send(msg, at_sender=True)
 
 
 @sunlist.handle()
@@ -1953,29 +1783,24 @@ async def _(event: MessageEvent):
     data, status = await get_player_records(qq)
     if status == 400:
         msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
             MessageSegment.text("迪拉熊没有找到你的信息"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await sunlist.finish(msg)
+        await sunlist.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await sunlist.finish(msg)
+        await sunlist.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await sunlist.finish(
             (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("你没有上传任何成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     filted_records, mask_enabled = records_filter(
@@ -1988,11 +1813,10 @@ async def _(event: MessageEvent):
             msg = "你没有上传任何匹配的成绩"
         await sunlist.finish(
             (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text(msg),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     msg = event.get_plaintext()
     pattern = r"\d+"
@@ -2006,11 +1830,7 @@ async def _(event: MessageEvent):
     all_page_num = math.ceil(len(filted_records) / 55)
     page = min(page, all_page_num)
     await sunlist.send(
-        (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
+        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     input_records = get_page_records(filted_records, page=page)
     nickname = data["nickname"]
@@ -2045,11 +1865,10 @@ async def _(event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(qq),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await sunlist.send(msg)
+    await sunlist.send(msg, at_sender=True)
 
 
 @locklist.handle()
@@ -2058,29 +1877,24 @@ async def _(event: MessageEvent):
     data, status = await get_player_records(qq)
     if status == 400:
         msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
             MessageSegment.text("迪拉熊没有找到你的信息"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await locklist.finish(msg)
+        await locklist.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await locklist.finish(msg)
+        await locklist.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await locklist.finish(
             (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("你没有上传任何成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     filted_records, mask_enabled = records_filter(
@@ -2093,11 +1907,10 @@ async def _(event: MessageEvent):
             msg = "你没有上传任何匹配的成绩"
         await locklist.finish(
             (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text(msg),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     msg = event.get_plaintext()
     pattern = r"\d+"
@@ -2111,11 +1924,7 @@ async def _(event: MessageEvent):
     all_page_num = math.ceil(len(filted_records) / 55)
     page = min(page, all_page_num)
     await locklist.send(
-        (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
+        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     input_records = get_page_records(filted_records, page=page)
     nickname = data["nickname"]
@@ -2150,11 +1959,10 @@ async def _(event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(qq),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await locklist.send(msg)
+    await locklist.send(msg, at_sender=True)
 
 
 @wcb.handle()
@@ -2166,29 +1974,24 @@ async def _(event: MessageEvent):
     data, status = await get_player_records(qq)
     if status == 400:
         msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
             MessageSegment.text("迪拉熊没有找到你的信息"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await wcb.finish(msg)
+        await wcb.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await wcb.finish(msg)
+        await wcb.finish(msg, at_sender=True)
     records = data["records"]
     if not records:
         await wcb.finish(
             (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("你没有上传任何成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     songList = await get_music_data()
     level = match.group(1)
@@ -2204,11 +2007,10 @@ async def _(event: MessageEvent):
     if len(filted_records) == 0:
         await wcb.finish(
             (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("你没有上传任何匹配的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
 
     if match.group(3):
@@ -2219,13 +2021,7 @@ async def _(event: MessageEvent):
         page = 1
     all_page_num = math.ceil(len(filted_records) / 55)
     page = min(page, all_page_num)
-    await wcb.send(
-        (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
-    )
+    await wcb.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     input_records = get_page_records(filted_records, page=page)
     rate_count = compute_record(records=filted_records)
     nickname = data["nickname"]
@@ -2264,11 +2060,10 @@ async def _(event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(qq),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await wcb.send(msg)
+    await wcb.send(msg, at_sender=True)
 
 
 @songinfo.handle()
@@ -2292,27 +2087,21 @@ async def _(event: MessageEvent):
     elif result == 2:
         await songinfo.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     elif result == 3:
         await songinfo.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     await songinfo.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
+        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     if song_info["basic_info"]["genre"] == "宴会場":
         start_time = time.perf_counter()
@@ -2350,72 +2139,57 @@ async def _(event: MessageEvent):
     elif result == 2:
         await playinfo.finish(
             (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     elif result == 3:
         await playinfo.finish(
             (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     data, status = await get_player_record(qq, song_info["id"])
     if status == 400:
         msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
             MessageSegment.text("迪拉熊没有找到你的信息"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-        await playinfo.finish(msg)
+        await playinfo.finish(msg, at_sender=True)
     if status == 200:
         if not data:
             msg = (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
-            await playinfo.finish(msg)
+            await playinfo.finish(msg, at_sender=True)
         records = data[song_info["id"]]
         if not records:
             msg = (
-                MessageSegment.at(qq),
-                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊没有找到你在这首乐曲上的成绩"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
-            await playinfo.finish(msg)
+            await playinfo.finish(msg, at_sender=True)
     elif not data:
         msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
             MessageSegment.text("（查分器出了点问题）"),
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
-        await playinfo.finish(msg)
+        await playinfo.finish(msg, at_sender=True)
     await playinfo.send(
-        (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
+        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     start_time = time.perf_counter()
     img = await play_info(data, song_info)
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(qq),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await playinfo.send(msg)
+    await playinfo.send(msg, at_sender=True)
 
 
 @scoreinfo.handle()
@@ -2442,27 +2216,21 @@ async def _(event: MessageEvent):
     ):
         await scoreinfo.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     elif result == 3:
         await scoreinfo.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     await scoreinfo.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
+        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     start_time = time.perf_counter()
     img = await score_info(song_data=song_info, index=type_index)
@@ -2494,20 +2262,18 @@ async def _(event: MessageEvent):
     elif result == 2:
         await playaudio.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊没有找到匹配的乐曲"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     elif result == 3:
         await playaudio.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
 
     song_id = int(song_info["id"]) % 10000
@@ -2553,30 +2319,19 @@ async def _(event: MessageEvent):
             s_songs.append(song)
     if len(s_songs) == 0:
         msg = "迪拉熊没有找到匹配的乐曲"
-        await randomsong.finish(
-            (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
-                MessageSegment.text(msg),
-            )
-        )
+        await randomsong.finish(MessageSegment.text(msg), at_sender=True)
     song = rng.choice(s_songs)
     await randomsong.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
+        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     start_time = time.perf_counter()
     img = await music_info(song_data=song)
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await randomsong.send(msg)
+    await randomsong.send(msg, at_sender=True)
 
 
 @maiwhat.handle()
@@ -2585,11 +2340,7 @@ async def _(event: MessageEvent):
     songList = await get_music_data()
     song = rng.choice(songList)
     await maiwhat.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
+        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     if song["basic_info"]["genre"] == "宴会場":
         start_time = time.perf_counter()
@@ -2599,11 +2350,10 @@ async def _(event: MessageEvent):
         img = await music_info(song_data=song)
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.at(event.user_id),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
-    await maiwhat.send(msg)
+    await maiwhat.send(msg, at_sender=True)
 
 
 @whatSong.handle()
@@ -2622,10 +2372,10 @@ async def _(event: MessageEvent):
     if not name:
         await whatSong.finish(
             (
-                MessageSegment.at(event.user_id),
                 MessageSegment.text("迪拉熊不知道哦~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/2.png")),
-            )
+            ),
+            at_sender=True,
         )
 
     songList = await get_music_data()
@@ -2637,27 +2387,21 @@ async def _(event: MessageEvent):
     elif result == 2:
         await whatSong.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊不知道哦~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/2.png")),
-            )
+            ),
+            at_sender=True,
         )
     elif result == 3:
         await whatSong.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     await whatSong.send(
-        (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
-        )
+        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     if song_info["basic_info"]["genre"] == "宴会場":
         start_time = time.perf_counter()
@@ -2687,11 +2431,10 @@ async def _(event: MessageEvent):
     if not name:
         await aliasSearch.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊不知道哦~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/2.png")),
-            )
+            ),
+            at_sender=True,
         )
 
     songList = await get_music_data()
@@ -2703,20 +2446,18 @@ async def _(event: MessageEvent):
     elif result == 2:
         await aliasSearch.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("迪拉熊不知道哦~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/2.png")),
-            )
+            ),
+            at_sender=True,
         )
     elif result == 3:
         await aliasSearch.finish(
             (
-                MessageSegment.at(event.user_id),
-                MessageSegment.text(" "),
                 MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            )
+            ),
+            at_sender=True,
         )
     song_id = int(song_info["id"]) - 10000
     alias = set()
@@ -2735,15 +2476,14 @@ async def _(event: MessageEvent):
             alias |= set(d["Alias"])
     if not alias:
         msg = (
-            MessageSegment.at(event.user_id),
-            MessageSegment.text(" "),
             MessageSegment.text("迪拉熊不知道哦~"),
             MessageSegment.image(Path("./Static/Maimai/Function/2.png")),
         )
+        await aliasSearch.send(MessageSegment.text(msg), at_sender=True)
     else:
         song_alias = "\r\n".join(sorted(alias))
         msg = f"迪拉熊找到啦~别名有：\r\n{song_alias}\r\n\r\n感谢落雪查分器、X-ray Bot及YuzuChaN Bot提供数据支持"
-    await aliasSearch.send(MessageSegment.text(msg))
+        await aliasSearch.send(MessageSegment.text(msg))
 
 
 @all_frame.handle()
@@ -2771,12 +2511,10 @@ async def _(event: MessageEvent):
             ) as resp:
                 if resp.status != 200:
                     msg = (
-                        MessageSegment.at(qq),
-                        MessageSegment.text(" "),
                         MessageSegment.text("迪拉熊没有找到合适的姓名框"),
                         MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                     )
-                    await set_plate.finish(msg)
+                    await set_plate.finish(msg, at_sender=True)
 
                 with open(plate_path, "wb") as fd:
                     async for chunk in resp.content.iter_chunked(1024):
@@ -2794,9 +2532,7 @@ async def _(event: MessageEvent):
             config[qq] = cfg
 
     msg = "迪拉熊帮你换好啦~"
-    await set_plate.send(
-        (MessageSegment.at(qq), MessageSegment.text(" "), MessageSegment.text(msg))
-    )
+    await set_plate.send(MessageSegment.text(msg), at_sender=True)
 
 
 @set_frame.handle()
@@ -2819,19 +2555,13 @@ async def _(event: MessageEvent):
                     cfg["frame"] = id
                 config[qq] = cfg
 
-        msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊帮你换好啦~"),
-        )
+        msg = MessageSegment.text("迪拉熊帮你换好啦~")
     else:
         msg = (
-            MessageSegment.at(qq),
-            MessageSegment.text(" "),
             MessageSegment.text("迪拉熊没有找到合适的背景"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
-    await set_frame.send(msg)
+    await set_frame.send(msg, at_sender=True)
 
 
 @ratj_on.handle()
@@ -2849,9 +2579,7 @@ async def _(event: MessageEvent):
             config[qq] = cfg
 
     msg = "迪拉熊帮你改好啦~"
-    await ratj_on.send(
-        (MessageSegment.at(qq), MessageSegment.text(" "), MessageSegment.text(msg))
-    )
+    await ratj_on.send(MessageSegment.text(msg), at_sender=True)
 
 
 @ratj_off.handle()
@@ -2869,9 +2597,7 @@ async def _(event: MessageEvent):
             config[qq] = cfg
 
     msg = "迪拉熊帮你改好啦~"
-    await ratj_off.send(
-        (MessageSegment.at(qq), MessageSegment.text(" "), MessageSegment.text(msg))
-    )
+    await ratj_off.send(MessageSegment.text(msg), at_sender=True)
 
 
 @allow_other_on.handle()
@@ -2889,9 +2615,7 @@ async def _(event: MessageEvent):
             config[qq] = cfg
 
     msg = "迪拉熊帮你改好啦~"
-    await allow_other_on.send(
-        (MessageSegment.at(qq), MessageSegment.text(" "), MessageSegment.text(msg))
-    )
+    await allow_other_on.send(MessageSegment.text(msg), at_sender=True)
 
 
 @allow_other_off.handle()
@@ -2909,6 +2633,4 @@ async def _(event: MessageEvent):
             config[qq] = cfg
 
     msg = "迪拉熊帮你改好啦~"
-    await allow_other_off.send(
-        (MessageSegment.at(qq), MessageSegment.text(" "), MessageSegment.text(msg))
-    )
+    await allow_other_off.send(MessageSegment.text(msg), at_sender=True)
