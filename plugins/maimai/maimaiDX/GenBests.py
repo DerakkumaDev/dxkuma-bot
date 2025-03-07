@@ -172,12 +172,17 @@ def records_filter(
         if ds and record["ds"] != ds:
             continue
         song_data = find_song_by_id(str(record["song_id"]), songList)
-        if gen and (
-            (song_data["basic_info"]["from"] not in version_df_maps[gen])
-            or (gen != "舞" and record["level_index"] == 4)
+        if (
+            gen
+            and gen in version_df_maps
+            and (
+                (song_data["basic_info"]["from"] not in version_df_maps[gen])
+                or (gen != "舞" and record["level_index"] == 4)
+            )
         ):
             continue
-        min_score = 1 / song_data["charts"][record["level_index"]]["notes"][-1] / 2
+        min_score = song_data["charts"][record["level_index"]]["notes"][-1]
+        min_score = 1 / min_score / 2 if min_score > 0 else 0
         if is_sun:
             if record["dxScore"] == 0:
                 mask_enabled = True
@@ -507,7 +512,9 @@ async def music_to_part(
     text_content = f"{dxScore}/"
     draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs")
 
-    star_level, stars = dxscore_proc(dxScore, sum_dxscore)
+    star_level, stars = (
+        dxscore_proc(dxScore, sum_dxscore) if sum_dxscore > 0 else (0, 0)
+    )
     if star_level:
         star_width = 30
         star_path = maimai_DXScoreStar / f"{star_level}.png"

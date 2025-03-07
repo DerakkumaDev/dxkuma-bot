@@ -46,6 +46,9 @@ async def find_songid_by_alias(name, song_list):
         if name.casefold() == info["title"].casefold() or name == info["id"]:
             matched_ids.append(info["id"])
 
+    if matched_ids:
+        return matched_ids
+
     alias_list = await get_alias_list_lxns()
     for info in alias_list["aliases"]:
         if str(info["song_id"]) in matched_ids:
