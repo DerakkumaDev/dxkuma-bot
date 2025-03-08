@@ -1,6 +1,6 @@
 # 迪拉熊Bot
 
-![Static Badge](https://img.shields.io/badge/Dev-2025.02.10-blue)
+![Static Badge](https://img.shields.io/badge/Dev-2025.03.08-blue)
 ![Static Badge](https://img.shields.io/badge/license-AGPLv3-orange)
 ![Static Badge](https://img.shields.io/badge/python-3.13%2B-green)
 
@@ -10,7 +10,7 @@
 
 <img src="docs/dxkuma.png" width="20%">
 
-# 迪拉熊Bot / DXKuma Bot
+# 迪拉熊Bot / Derakkuma Bot
 
 一个更好玩更可维护的 音游/日常 Bot。
 
@@ -31,9 +31,9 @@
 ## 快速部署
 
 ```shell
-git clone xxx.git
+git clone xxx.git derakkuma-bot
 
-cd DXKuma-Bot
+cd derakkuma-bot
 
 pip install -r requirements.txt
 
