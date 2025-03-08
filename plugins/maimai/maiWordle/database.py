@@ -12,26 +12,26 @@ class OpenChars(object):
     def __init__(self):
         self.data_path = "./data/wordle.db"
 
-    async def start(self, group_id: int):
+    async def start(self, group_id: str):
         with shelve.open(self.data_path) as data:
-            if str(group_id) in data:
-                game_data = data[str(group_id)]
+            if group_id in data:
+                game_data = data[group_id]
                 return game_data
 
-            game_data = data.setdefault(str(group_id), await generate_game_data())
+            game_data = data.setdefault(group_id, await generate_game_data())
             return game_data
 
-    def game_over(self, group_id: int):
+    def game_over(self, group_id: str):
         with shelve.open(self.data_path) as data:
-            if str(group_id) not in data:
+            if group_id not in data:
                 return
 
-            data.pop(str(group_id))
+            data.pop(group_id)
 
-    def open_char(self, group_id: int, chars: str, user_id: int):
+    def open_char(self, group_id: str, chars: str, user_id: str):
         with shelve.open(self.data_path) as data:
-            if str(group_id) in data:
-                game_data = data[str(group_id)]
+            if group_id in data:
+                game_data = data[group_id]
                 if chars.casefold() in game_data["open_chars"]:
                     return False, None
 
@@ -41,25 +41,25 @@ class OpenChars(object):
                         i["opc_times"] += 1
                         i["part"].add(user_id)
 
-                data[str(group_id)] = game_data
+                data[group_id] = game_data
                 return True, game_data
 
         return None, None
 
-    def get_game_data(self, group_id: int):
+    def get_game_data(self, group_id: str):
         with shelve.open(self.data_path) as data:
-            if str(group_id) in data:
-                game_data = data[str(group_id)]
+            if group_id in data:
+                game_data = data[group_id]
                 return game_data
 
         return None
 
-    async def update_game_data(self, group_id: int, game_data):
+    async def update_game_data(self, group_id: str, game_data):
         with shelve.open(self.data_path) as data:
-            if str(group_id) in data:
-                data[str(group_id)] = game_data
+            if group_id in data:
+                data[group_id] = game_data
 
-            data.setdefault(str(group_id), await generate_game_data())
+            data.setdefault(group_id, await generate_game_data())
 
 
 openchars = OpenChars()

@@ -98,29 +98,32 @@ async def find_songid_by_alias(name, song_list):
 
     alias_list = await get_alias_list_lxns()
     for info in alias_list["aliases"]:
-        if str(info["song_id"]) in matched_ids:
+        song_id = str(info["song_id"])
+        if song_id in matched_ids:
             continue
         for alias in info["aliases"]:
             if name.casefold() == alias.casefold():
-                matched_ids.append(str(info["song_id"]))
+                matched_ids.append(song_id)
                 break
 
     alias_list = await get_alias_list_xray()
     for id, info in alias_list.items():
-        if str(id) in matched_ids:
+        song_id = str(id)
+        if song_id in matched_ids:
             continue
         for alias in info:
             if name.casefold() == alias.casefold():
-                matched_ids.append(str(id))
+                matched_ids.append(song_id)
                 break
 
     alias_list = await get_alias_list_ycn()
     for info in alias_list["content"]:
-        if str(info["SongID"]) in matched_ids:
+        song_id = str(info["SongID"])
+        if song_id in matched_ids:
             continue
         for alias in info["Alias"]:
             if name.casefold() == alias.casefold():
-                matched_ids.append(str(info["SongID"]))
+                matched_ids.append(song_id)
                 break
 
     # 芝士排序
@@ -199,12 +202,10 @@ async def records_to_bests(
             continue
         if rate_rules and record["rate"] not in rate_rules:
             continue
-        song_id = record["song_id"]
-        song_data = [d for d in songList if d["id"] == str(song_id)][0]
+        song_id = str(record["song_id"])
+        song_data = [d for d in songList if d["id"] == song_id][0]
         is_new = song_data["basic_info"]["is_new"]
-        fit_diff = get_fit_diff(
-            str(song_id), record["level_index"], record["ds"], charts
-        )
+        fit_diff = get_fit_diff(song_id, record["level_index"], record["ds"], charts)
         if is_fit or is_sd:
             if record["ra"] == 0:
                 continue
@@ -220,15 +221,17 @@ async def records_to_bests(
                 / 100
             )
             if is_sd:
-                record["diff"] = charts["charts"][str(song_id)][record["level_index"]][
-                    "std_dev"
-                ]
+                record["diff"] = (
+                    charts["charts"][song_id][record["level_index"]]["std_dev"]
+                    if song_id in charts["charts"]
+                    else 0.0
+                )
         if is_dxs:
             if record["achievements"] > 0 and record["dxScore"] == 0:
                 mask_enabled = True
                 continue
             if not dx_star_count:
-                song_data = find_song_by_id(str(record["song_id"]), songList)
+                song_data = find_song_by_id(song_id, songList)
                 record["achievements"] = (
                     record["dxScore"]
                     / (sum(song_data["charts"][record["level_index"]]["notes"]) * 3)
@@ -271,8 +274,8 @@ async def records_to_bests(
             if i["ra"]
             >= all_records[49 if len(all_records) > 50 else len(all_records) - 1]["ra"]
         ]:
-            song_id = record["song_id"]
-            song_data = [d for d in songList if d["id"] == str(song_id)][0]
+            song_id = str(record["song_id"])
+            song_data = [d for d in songList if d["id"] == song_id][0]
             is_new = song_data["basic_info"]["is_new"]
             if is_new:
                 if len(dx) < 15:
@@ -356,8 +359,8 @@ async def compare_bests(sender_records, target_records, songList):
         if other_record["achievements"] > 0 and other_record["dxScore"] == 0:
             mask_enabled = True
             continue
-        song_id = record["song_id"]
-        song_data = [d for d in songList if d["id"] == str(song_id)][0]
+        song_id = str(record["song_id"])
+        song_data = [d for d in songList if d["id"] == song_id][0]
         is_new = song_data["basic_info"]["is_new"]
         if handle_type:
             record["preferred"] = record["ra"] >= (dx_min if is_new else sd_min)

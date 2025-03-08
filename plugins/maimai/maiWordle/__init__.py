@@ -51,29 +51,32 @@ async def find_songid_by_alias(name, song_list):
 
     alias_list = await get_alias_list_lxns()
     for info in alias_list["aliases"]:
-        if str(info["song_id"]) in matched_ids:
+        song_id = str(info["song_id"])
+        if song_id in matched_ids:
             continue
         for alias in info["aliases"]:
             if name.casefold() == alias.casefold():
-                matched_ids.append(str(info["song_id"]))
+                matched_ids.append(song_id)
                 break
 
     alias_list = await get_alias_list_xray()
     for id, info in alias_list.items():
-        if str(id) in matched_ids:
+        song_id = str(id)
+        if song_id in matched_ids:
             continue
         for alias in info:
             if name.casefold() == alias.casefold():
-                matched_ids.append(str(id))
+                matched_ids.append(song_id)
                 break
 
     alias_list = await get_alias_list_ycn()
     for info in alias_list["content"]:
-        if str(info["SongID"]) in matched_ids:
+        song_id = str(info["SongID"])
+        if song_id in matched_ids:
             continue
         for alias in info["Alias"]:
             if name.casefold() == alias.casefold():
-                matched_ids.append(str(info["SongID"]))
+                matched_ids.append(song_id)
                 break
 
     # 芝士排序
@@ -85,8 +88,8 @@ async def find_songid_by_alias(name, song_list):
 
 @start_open_chars.handle()
 async def _(event: GroupMessageEvent):
-    group_id = event.group_id
-    user_id = event.user_id
+    group_id = str(event.group_id)
+    user_id = event.get_user_id()
     async with lock:
         game_data = await openchars.start(group_id)
         _, game_state, _, game_data = generate_message_state(game_data, user_id)
@@ -99,8 +102,8 @@ async def _(event: GroupMessageEvent):
 
 @open_chars.handle()
 async def _(event: GroupMessageEvent):
-    group_id = event.group_id
-    user_id = event.user_id
+    group_id = str(event.group_id)
+    user_id = event.get_user_id()
     msg = event.get_plaintext()
     match = re.fullmatch(r"开\s*(.+)", msg)
     if not match:
@@ -157,8 +160,8 @@ async def _(event: GroupMessageEvent):
 
 @all_message_handle.handle()
 async def _(event: GroupMessageEvent):
-    group_id = event.group_id
-    user_id = event.user_id
+    group_id = str(event.group_id)
+    user_id = event.get_user_id()
     async with lock:
         game_data = openchars.get_game_data(group_id)
         if not game_data:
@@ -211,7 +214,7 @@ async def _(event: GroupMessageEvent):
 
 @pass_game.handle()
 async def _(event: GroupMessageEvent):
-    group_id = event.group_id
+    group_id = str(event.group_id)
     async with lock:
         game_data = openchars.get_game_data(group_id)
         if not game_data:
@@ -226,8 +229,8 @@ async def _(event: GroupMessageEvent):
 @info_tip.handle()
 async def _(event: GroupMessageEvent):
     rng = random.default_rng()
-    group_id = event.group_id
-    user_id = event.user_id
+    group_id = str(event.group_id)
+    user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
     async with lock:
@@ -312,8 +315,8 @@ async def _(event: GroupMessageEvent):
 @pic_tip.handle()
 async def _(event: GroupMessageEvent):
     rng = random.default_rng()
-    group_id = event.group_id
-    user_id = event.user_id
+    group_id = str(event.group_id)
+    user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
     async with lock:
@@ -399,8 +402,8 @@ async def _(event: GroupMessageEvent):
 @aud_tip.handle()
 async def _(event: GroupMessageEvent):
     rng = random.default_rng()
-    group_id = event.group_id
-    user_id = event.user_id
+    group_id = str(event.group_id)
+    user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
     async with lock:
@@ -503,7 +506,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
 @rank_i.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
-    user_id = event.user_id
+    user_id = event.get_user_id()
     scores = ranking.get_avg_scores()
     leaderboard = [
         (qq, achi, _times) for qq, achi, _times in scores if times.check_available(qq)
@@ -511,7 +514,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     leaderboard_output = list()
     index = -1
     for i, (qq, achi, _times) in enumerate(leaderboard):
-        if qq == str(user_id):
+        if qq == user_id:
             index = i
             break
 

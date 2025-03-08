@@ -13,7 +13,7 @@ class Times(object):
 
     def add(
         self,
-        user_id: int,
+        user_id: str,
         year: int,
         month: int,
         day: int,
@@ -24,13 +24,13 @@ class Times(object):
             "day": day,
         }
         with shelve.open(self.data_path) as data:
-            if str(user_id) in data:
-                times_data = data[str(user_id)]
+            if user_id in data:
+                times_data = data[user_id]
                 times_data.insert(0, obj)
-                data[str(user_id)] = times_data
+                data[user_id] = times_data
                 return
 
-            data.setdefault(str(user_id), [obj])
+            data.setdefault(user_id, [obj])
 
     def check_available(self, user_id: str) -> bool:
         with shelve.open(self.data_path) as data:

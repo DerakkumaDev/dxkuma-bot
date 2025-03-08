@@ -12,7 +12,7 @@ class Ranking(object):
 
     def add_score(
         self,
-        user_id: int,
+        user_id: str,
         oc_times: int,
         it_times: int,
         pt_times: int,
@@ -27,13 +27,13 @@ class Ranking(object):
             "is_guesser": is_guesser,
         }
         with shelve.open(self.data_path) as data:
-            if str(user_id) in data:
-                rank_data = data[str(user_id)]
+            if user_id in data:
+                rank_data = data[user_id]
                 rank_data.append(obj)
-                data[str(user_id)] = rank_data
+                data[user_id] = rank_data
                 return
 
-            data.setdefault(str(user_id), [obj])
+            data.setdefault(user_id, [obj])
 
     def get_avg_scores(self) -> list[tuple[str, float, int]]:
         achis = list()
@@ -51,11 +51,11 @@ class Ranking(object):
 
         return achis
 
-    def get_score(self, user_id: int) -> tuple[float, int]:
+    def get_score(self, user_id: str) -> tuple[float, int]:
         with shelve.open(self.data_path) as data:
-            if str(user_id) in data:
-                l = len(data[str(user_id)])
-                scores = [self._compute_score(**d) for d in data[str(user_id)]]
+            if user_id in data:
+                l = len(data[user_id])
+                scores = [self._compute_score(**d) for d in data[user_id]]
                 achi = sum(scores) / l
                 return (achi, l)
 

@@ -22,7 +22,7 @@ def message_preprocess(message: Message):
             continue
 
         file = i.data["file"]
-        contained_images.append((str(i), file))
+        contained_images.append((i, file))
 
     for i, v in contained_images:
         message_str = message_str.replace(i, v)
