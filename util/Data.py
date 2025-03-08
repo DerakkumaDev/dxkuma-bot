@@ -125,7 +125,7 @@ async def get_alias_list_xray():
             async with ClientSession(conn_timeout=3) as session:
                 try:
                     async with session.get(
-                        "https://download.fanyu.site/maimai/alias.json"
+                        "https://download.xraybot.site/maimai/alias.json"
                     ) as resp:
                         with open(cache_path, "wb") as fd:
                             async for chunk in resp.content.iter_chunked(1024):
