@@ -99,7 +99,7 @@ async def _(event: GroupMessageEvent):
     msg = tuple()
 
     for pic_url in pic_urls:
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(pic_url) as resp:
                 icon = await resp.read()
 

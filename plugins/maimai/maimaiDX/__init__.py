@@ -554,7 +554,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -665,7 +665,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -775,7 +775,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -887,7 +887,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -987,7 +987,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -1099,7 +1099,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -1211,7 +1211,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -1326,7 +1326,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -1484,7 +1484,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -1596,7 +1596,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -1696,7 +1696,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
         ) as resp:
@@ -1755,7 +1755,7 @@ async def _(event: MessageEvent):
         return
 
     await rr50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             "http://q.qlogo.cn/headimg_dl?dst_uin=0&spec=640&img_type=png"
         ) as resp:
@@ -1851,7 +1851,7 @@ async def _(event: MessageEvent):
             frame = "200502"
         else:
             frame = config[qq]["frame"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
         ) as resp:
@@ -1945,7 +1945,7 @@ async def _(event: MessageEvent):
             frame = "200502"
         else:
             frame = config[qq]["frame"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
         ) as resp:
@@ -2042,7 +2042,7 @@ async def _(event: MessageEvent):
             frame = "200502"
         else:
             frame = config[qq]["frame"]
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
             f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
         ) as resp:
@@ -2511,7 +2511,7 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group()
     plate_path = f"./Cache/Plate/{id}.png"
     if not os.path.exists(plate_path):
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/plate/{int(id)}.png"
             ) as resp:

@@ -364,7 +364,7 @@ async def music_to_part(
     # 歌曲封面
     jacket_path = f"./Cache/Jacket/{song_id % 10000}.png"
     if not os.path.exists(jacket_path):
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{song_id % 10000}.png"
             ) as resp:
@@ -696,7 +696,7 @@ async def generatebests(
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
     if not os.path.exists(plate_path):
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/plate/{int(plate)}.png"
             ) as resp:
@@ -876,7 +876,7 @@ async def generate_wcb(
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
     if not os.path.exists(plate_path):
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/plate/{int(plate)}.png"
             ) as resp:

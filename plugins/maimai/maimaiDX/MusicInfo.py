@@ -56,7 +56,7 @@ async def music_info(song_data):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
             ) as resp:
@@ -253,7 +253,7 @@ async def play_info(data, song_data):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
             ) as resp:
@@ -485,7 +485,7 @@ async def utage_music_info(song_data, index=0):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
             ) as resp:
@@ -640,7 +640,7 @@ async def score_info(song_data, index):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
             ) as resp:
