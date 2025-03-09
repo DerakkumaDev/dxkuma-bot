@@ -220,8 +220,7 @@ def records_filter(
             if max_acc < record["achievements"] or record["achievements"] < min_acc:
                 continue
         filted_records.append(record)
-    filted_records = sorted(
-        filted_records,
+    filted_records.sort(
         key=lambda x: (
             0 if level or ds else float(x["level"].replace("+", ".1")),
             x["achievements"],
@@ -525,7 +524,9 @@ async def music_to_part(
         text_position = (text_position[0] - ttf.getlength(text_content), 270)
         ttf = ImageFont.truetype(ttf_bold_path, size=30)
         text_content = f"{dxScore}/"
-        draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs")
+        draw.text(
+            text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs"
+        )
 
     star_level, stars = (
         dxscore_proc(dxScore, sum_dxscore) if sum_dxscore > 0 else (0, 0)

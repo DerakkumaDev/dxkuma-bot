@@ -180,20 +180,17 @@ async def records_to_bests(
                     dx.append(record)
                 else:
                     sd.append(record)
-        sd = sorted(
-            sd, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
-        )
-        dx = sorted(
-            dx, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
-        )
+        sd.sort(key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)
+        dx.sort(key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)
         if rating:
             while (
                 sum(d["ra"] for d in sd[:35]) + sum(d["ra"] for d in dx[:15]) > rating
             ):
                 if (dx and sd and dx[0]["ra"] > sd[0]["ra"]) or (dx and not sd):
-                    dx.pop(0)
+                    b = dx
                 elif sd:
-                    sd.pop(0)
+                    b = sd
+                b.pop(0)
         return sd[:35], dx[:15], False
     for record in records:
         if record["level_label"] == "Utage":
@@ -260,9 +257,10 @@ async def records_to_bests(
         if record["ra"] == 0 or record["achievements"] > 101:
             continue
         if is_new or is_all:
-            dx.append(record)
+            b = dx
         else:
-            sd.append(record)
+            b = sd
+        b.append(record)
     if is_all:
         all_records = sorted(
             dx, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
@@ -289,11 +287,12 @@ async def records_to_bests(
         else:
             for i in all_records:
                 if len(sd) < 35:
-                    sd.append(i)
+                    b = sd
                 elif len(dx) < 15:
-                    dx.append(i)
+                    b = dx
                 else:
                     break
+                b.append(i)
         return sd, dx, mask_enabled
     if is_sd:
         k = lambda x: (x["ra"] * x["diff"], x["ra"], x["ds"], x["achievements"])
@@ -489,9 +488,10 @@ async def _(bot: Bot, event: MessageEvent):
         await best50.finish(msg)
     songList = await get_music_data()
     charts = data["charts"]
-    b35, b15 = sorted(
+    b35 = sorted(
         charts["sd"], key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
-    ), sorted(
+    )
+    b15 = sorted(
         charts["dx"], key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
     )
     if not b35 and not b15:
