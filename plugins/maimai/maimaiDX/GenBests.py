@@ -153,6 +153,18 @@ def compute_record(records: list):
     return output
 
 
+def get_min_score(notes: list[int]):
+    weight = [1, 2, 3, 1, 5]
+    base_score = 5
+    sum_score = 0
+    for i in range(0, 5):
+        if i == 3 and len(notes) < 5:
+            sum_score += notes[i] * weight[4] * base_score
+            break
+        sum_score += notes[i] * weight[i] * base_score
+    return (1 - ((sum_score - 1) / sum_score)) * 100
+
+
 def records_filter(
     records: list,
     level: str | None = None,
@@ -181,8 +193,10 @@ def records_filter(
             )
         ):
             continue
-        min_score = song_data["charts"][record["level_index"]]["notes"][-1]
-        min_score = 1 / min_score / 2 if min_score > 0 else 0
+        min_score_1 = get_min_score(song_data["charts"][record["level_index"]]["notes"])
+        min_score_2 = song_data["charts"][record["level_index"]]["notes"][-1]
+        min_score_2 = 1 / min_score_2 / 2 if min_score_2 > 0 else 0
+        min_score = min(min_score_1, min_score_2)
         if is_sun:
             if record["dxScore"] == 0:
                 mask_enabled = True
@@ -955,6 +969,7 @@ async def generate_wcb(
     shougou = Image.open(shougou_path)
     shougou = resize_image(shougou, 0.7)
     bg = paste(bg, shougou, (237, 143))
+    draw = ImageDraw.Draw(bg)
 
     if level:
         # 绘制的完成表的等级贴图
