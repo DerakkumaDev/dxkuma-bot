@@ -206,7 +206,7 @@ async def records_to_bests(
         song_data = [d for d in songList if d["id"] == song_id][0]
         is_new = song_data["basic_info"]["is_new"]
         fit_diff = get_fit_diff(song_id, record["level_index"], record["ds"], charts)
-        if is_fit or is_sd:
+        if is_fit:
             if record["ra"] == 0:
                 continue
             if record["achievements"] > 0 and record["dxScore"] == 0:
@@ -220,12 +220,12 @@ async def records_to_bests(
                 * get_ra_in(record["rate"])
                 / 100
             )
-            if is_sd:
-                record["diff"] = (
-                    charts["charts"][song_id][record["level_index"]]["std_dev"]
-                    if song_id in charts["charts"]
-                    else 0.0
-                )
+        if is_sd:
+            record["diff"] = (
+                charts["charts"][song_id][record["level_index"]]["std_dev"]
+                if song_id in charts["charts"]
+                else 0.0
+            )
         if is_dxs:
             if record["achievements"] > 0 and record["dxScore"] == 0:
                 mask_enabled = True
@@ -295,35 +295,12 @@ async def records_to_bests(
                 else:
                     break
         return sd, dx, mask_enabled
-    b35 = sorted(sd, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)[
-        : 25 if is_old else 35
-    ]
-    b15 = sorted(dx, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)[
-        :15
-    ]
     if is_sd:
-        b35 = sorted(
-            b35,
-            key=lambda x: (
-                x["ds"] >= x["s_ra"],
-                x["diff"],
-                x["ra"],
-                x["ds"],
-                x["achievements"],
-            ),
-            reverse=True,
-        )
-        b15 = sorted(
-            b15,
-            key=lambda x: (
-                x["ds"] >= x["s_ra"],
-                x["diff"],
-                x["ra"],
-                x["ds"],
-                x["achievements"],
-            ),
-            reverse=True,
-        )
+        k = lambda x: (x["ra"] * x["diff"], x["ra"], x["ds"], x["achievements"])
+    else:
+        k = lambda x: (x["ra"], x["ds"], x["achievements"])
+    b35 = sorted(sd, key=k, reverse=True)[: 25 if is_old else 35]
+    b15 = sorted(dx, key=k, reverse=True)[:15]
     return b35, b15, mask_enabled
 
 

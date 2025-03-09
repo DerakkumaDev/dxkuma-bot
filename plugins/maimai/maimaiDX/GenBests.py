@@ -468,7 +468,7 @@ async def music_to_part(
         s_ra_str = str(s_ra)
         s_ra_str2 = "定数"
     elif b_type == "sd50":
-        ds_str = f"{math.trunc(ds * 100) / 100:.2f}"
+        ds_str = str(ds)
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
         draw.text(
             (376, 172),
@@ -477,8 +477,8 @@ async def music_to_part(
             fill=color,
             anchor="lm",
         )
-        s_ra_str = str(s_ra)
-        s_ra_str2 = "定数"
+        s_ra_str = f"{math.trunc(s_ra * 10) / 10:.1f}"
+        s_ra_str2 = "拟合"
     elif b_type == "cf50":
         ds_str = str(ds)
         s_ra_str = str(s_ra)
@@ -596,7 +596,7 @@ async def draw_best(bests: list, type: str, songList, begin: int = 0):
                     song_data["diff"] = song_data["ds"] - song_data["s_ra"]
                 elif type == "cf50":
                     song_data["diff"] = song_data["ra"] - song_data["s_ra"]
-                elif "diff" not in song_data:
+                else:
                     song_data["s_ra"] = get_fit_diff(
                         str(song_data["song_id"]),
                         song_data["level_index"],
