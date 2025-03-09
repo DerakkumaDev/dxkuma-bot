@@ -521,10 +521,11 @@ async def music_to_part(
     sum_dxscore = sum(song_data["charts"][level_index]["notes"]) * 3
     text_content = str(sum_dxscore)
     draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs")
-    text_position = (text_position[0] - ttf.getlength(text_content), 270)
-    ttf = ImageFont.truetype(ttf_bold_path, size=30)
-    text_content = f"{dxScore}/"
-    draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs")
+    if dxScore > 0:
+        text_position = (text_position[0] - ttf.getlength(text_content), 270)
+        ttf = ImageFont.truetype(ttf_bold_path, size=30)
+        text_content = f"{dxScore}/"
+        draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs")
 
     star_level, stars = (
         dxscore_proc(dxScore, sum_dxscore) if sum_dxscore > 0 else (0, 0)
@@ -1011,9 +1012,10 @@ async def generate_wcb(
             fcfs_x += 102
 
     # 页码
-    page_text = f"{page} / {all_page_num}"
-    ttf = ImageFont.truetype(font=ttf_black_path, size=70)
-    draw.text((260, 850), page_text, font=ttf, fill=(255, 255, 255), anchor="mm")
+    if all_page_num > 1:
+        page_text = f"{page} / {all_page_num}"
+        ttf = ImageFont.truetype(font=ttf_black_path, size=70)
+        draw.text((260, 850), page_text, font=ttf, fill=(255, 255, 255), anchor="mm")
 
     # 绘制当前页面的成绩
     records_parts = await draw_best(
