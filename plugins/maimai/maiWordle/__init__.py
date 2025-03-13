@@ -303,7 +303,8 @@ async def _(event: GroupMessageEvent):
             )
             return
 
-        data["part"].add(user_id)
+        if user_id not in data["part"]:
+            data["part"].append(user_id)
         tip_key = rng.choice(tip_keys)
         data["tips"].append(tip_key)
         await openchars.update_game_data(group_id, game_data)
@@ -362,7 +363,8 @@ async def _(event: GroupMessageEvent):
             )
             return
 
-        data["part"].add(user_id)
+        if user_id not in data["part"]:
+            data["part"].append(user_id)
         data["pic_times"] += 1
         await openchars.update_game_data(group_id, game_data)
 
@@ -449,7 +451,8 @@ async def _(event: GroupMessageEvent):
             )
             return
 
-        data["part"].add(user_id)
+        if user_id not in data["part"]:
+            data["part"].append(user_id)
         data["aud_times"] += 1
         await openchars.update_game_data(group_id, game_data)
 

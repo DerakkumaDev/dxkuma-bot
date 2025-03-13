@@ -6,7 +6,7 @@ import aiohttp
 from PIL import Image, ImageFont, ImageDraw
 from numpy import random
 
-from plugins.maimai.maiWordle.GLOBAL_CONSTANT import version_df_maps
+from plugins.maimai.maiWordle.GLOBAL_CONSTANT import version_df_maps, exclude_list
 from util.Config import config as Config
 from util.Data import get_chart_stats
 from util.Draw import paste, text
@@ -191,6 +191,7 @@ def records_filter(
                 (song_data["basic_info"]["from"] not in version_df_maps[gen])
                 or (gen != "舞" and record["level_index"] == 4)
             )
+            or (gen in exclude_list and record["song_id"] in exclude_list[gen])
         ):
             continue
         min_score_1 = get_min_score(song_data["charts"][record["level_index"]]["notes"])

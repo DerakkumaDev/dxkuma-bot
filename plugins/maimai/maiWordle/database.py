@@ -38,8 +38,9 @@ class OpenChars(object):
                 game_data["open_chars"].append(chars.casefold())
                 for i in game_data["game_contents"]:
                     if check_char_in_text(i["title"], chars):
+                        if user_id not in i["part"]:
+                            i["part"].append(user_id)
                         i["opc_times"] += 1
-                        i["part"].add(user_id)
 
                 data[group_id] = game_data
                 return True, game_data

@@ -1,5 +1,6 @@
 import os
 import traceback
+from dbm import error
 from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
@@ -40,6 +41,7 @@ async def _(event: Event, matcher: Matcher, exception: Exception | None):
             ClientError,
             NotAllowedException,
             NeedToSwitchException,
+            error[0],
         ),
     ):
         return

@@ -47,11 +47,11 @@ async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
     user_info = await bot.get_stranger_info(user_id=qq)
     if group_id == config.special_group:
         msg = MessageSegment.text(
-            f"很遗憾，{user_info["nickname"]}（{user_info["qid"] or qq}）离开了迪拉熊的小窝QAQ"
+            f"很遗憾，{user_info["nickname"]}（{user_info["qid"] or qq}）离开了迪拉熊的小窝TAT"
         )
     else:
         msg = MessageSegment.text(
-            f"{user_info["nickname"]}（{user_info["qid"] or qq}）离开了迪拉熊QAQ"
+            f"{user_info["nickname"]}（{user_info["qid"] or qq}）离开了迪拉熊TAT"
         )
     await groupDecrease.send(
         (msg, MessageSegment.image(Path("./Static/MemberChange/1.png")))

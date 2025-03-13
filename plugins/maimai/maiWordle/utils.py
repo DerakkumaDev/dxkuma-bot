@@ -36,7 +36,7 @@ async def generate_game_data():
                 "pic_times": 0,
                 "aud_times": 0,
                 "opc_times": 0,
-                "part": set(),
+                "part": list(),
             }
         )
     game_data["game_contents"] = game_contents

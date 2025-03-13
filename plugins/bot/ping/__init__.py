@@ -13,7 +13,10 @@ async def _(event: GroupMessageEvent):
     if event.group_id != config.dev_group:
         return
 
-    await ping.send("PONG")
+    msg = event.get_plaintext()
+    msg = msg.replace("i", "o")
+    msg = msg.replace("I", "O")
+    await ping.send(msg)
     raise NotAllowedException
 
 
