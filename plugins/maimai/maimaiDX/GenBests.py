@@ -3,6 +3,7 @@ import os
 from io import BytesIO
 
 import aiohttp
+import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 from numpy import random
 
@@ -403,25 +404,23 @@ async def music_to_part(
 
     # 歌名
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
-    text_position = (302, 10)
-    text_bbox = draw.textbbox(text_position, title, font=ttf)
-    max_width = 750
+    text_position = (295, 10)
+    max_width = 450
     ellipsis = "…"
 
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(title) <= max_width:
         # 文本未超过最大宽度，直接绘制
         draw.text(text_position, title, font=ttf, fill=color)
     else:
         # 文本超过最大宽度，截断并添加省略符号
         truncated_title = title
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            truncated_title.strip()
-            text_bbox = draw.textbbox(
-                text_position, truncated_title + ellipsis, font=ttf
-            )
-        draw.text(text_position, truncated_title + ellipsis, font=ttf, fill=color)
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
+        draw.text(text_position, f"{truncated_title}{ellipsis}", font=ttf, fill=color)
 
     # 达成率
     ttf = ImageFont.truetype(ttf_bold_path, size=76)
@@ -522,8 +521,9 @@ async def music_to_part(
     # dx分数和星星
     ttf = ImageFont.truetype(ttf_bold_path, size=24)
     text_position = (730, 270)
-    song_data = [d for d in songList if d["id"] == str(song_id)][0]
-    sum_dxscore = sum(song_data["charts"][level_index]["notes"]) * 3
+    id_str = str(song_id)
+    song_data = [d for d in songList if d["id"] == id_str][0]
+    sum_dxscore = np.sum(song_data["charts"][level_index]["notes"]) * 3
     text_content = str(sum_dxscore)
     draw.text(text_position, text_content, font=ttf, fill=(28, 43, 120), anchor="rs")
     if dxScore > 0:
@@ -571,7 +571,8 @@ async def music_to_part(
 async def draw_best(bests: list, type: str, songList, begin: int = 0):
     index = 0
     # 计算列数
-    queue_nums = 1 if len(bests) < 4 else 1 + math.ceil((len(bests) - 3) / 4)
+    count = len(bests)
+    queue_nums = 1 if count < 4 else 1 + math.ceil((count - 3) / 4)
     # 初始化行列标号
     queue_index = 0
     row_index = 0
@@ -594,9 +595,8 @@ async def draw_best(bests: list, type: str, songList, begin: int = 0):
             max_row_index = 4  # 其他行4个
 
         # 循环生成行
-        bests_len = len(bests)
         while row_index < max_row_index:
-            if index < bests_len:
+            if index < count:
                 # 根据索引从列表中抽取数据
                 song_data = bests[index]
                 if type == "fit50":
@@ -700,8 +700,8 @@ async def generatebests(
     is_rating_tj: bool,
     songList,
 ):
-    b35_ra = sum(item["ra"] for item in b35)
-    b15_ra = sum(item["ra"] for item in b15)
+    b35_ra = np.sum(item["ra"] for item in b35)
+    b15_ra = np.sum(item["ra"] for item in b15)
     rating = b35_ra + b15_ra
     if type == "best40":
         rating += 2100
@@ -734,10 +734,9 @@ async def generatebests(
     iconbase = resize_image(iconbase, 0.308)
     bests = paste(bests, iconbase, (60, 46))
     # 头像
-    icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
-    overlay = Image.new("RGBA", bests.size, (0, 0, 0, 0))
-    overlay = paste(overlay, icon, (73, 75))
-    bests = Image.alpha_composite(bests, overlay)
+    icon_pic = Image.open(BytesIO(icon))
+    icon_pic = icon_pic.resize((88, 88), Image.Resampling.LANCZOS)
+    bests = paste(bests, icon_pic, (73, 75))
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
@@ -914,10 +913,9 @@ async def generate_wcb(
     iconbase = resize_image(iconbase, 0.308)
     bg = paste(bg, iconbase, (60, 46))
     # 头像
-    icon = Image.open(BytesIO(icon)).resize((88, 88), Image.Resampling.LANCZOS)
-    overlay = Image.new("RGBA", bg.size, (0, 0, 0, 0))
-    overlay = paste(overlay, icon, (73, 75))
-    bg = Image.alpha_composite(bg, overlay)
+    icon_pic = Image.open(BytesIO(icon))
+    icon_pic = icon_pic.resize((88, 88), Image.Resampling.LANCZOS)
+    bg = paste(bg, icon_pic, (73, 75))
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"

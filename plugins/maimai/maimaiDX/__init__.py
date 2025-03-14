@@ -6,6 +6,7 @@ import time
 from pathlib import Path
 
 import aiohttp
+import numpy as np
 from dill import Pickler, Unpickler
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
@@ -158,7 +159,7 @@ async def records_to_bests(
                 record = {
                     "achievements": 101,
                     "ds": j,
-                    "dxScore": sum(song["charts"][i]["notes"]) * 3,
+                    "dxScore": np.sum(song["charts"][i]["notes"]) * 3,
                     "fc": "fsdp",
                     "fs": "app",
                     "level": "",
@@ -184,7 +185,8 @@ async def records_to_bests(
         dx.sort(key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)
         if rating:
             while (
-                sum(d["ra"] for d in sd[:35]) + sum(d["ra"] for d in dx[:15]) > rating
+                np.sum(d["ra"] for d in sd[:35]) + np.sum(d["ra"] for d in dx[:15])
+                > rating
             ):
                 if (dx and sd and dx[0]["ra"] > sd[0]["ra"]) or (dx and not sd):
                     b = dx
@@ -231,7 +233,7 @@ async def records_to_bests(
                 song_data = find_song_by_id(song_id, songList)
                 record["achievements"] = (
                     record["dxScore"]
-                    / (sum(song_data["charts"][record["level_index"]]["notes"]) * 3)
+                    / (np.sum(song_data["charts"][record["level_index"]]["notes"]) * 3)
                     * 101
                 )
                 record["ra"] = math.trunc(
@@ -242,7 +244,7 @@ async def records_to_bests(
                 )
             else:
                 sum_dxscore = (
-                    sum(song_data["charts"][record["level_index"]]["notes"]) * 3
+                    np.sum(song_data["charts"][record["level_index"]]["notes"]) * 3
                 )
                 _, stars = dxscore_proc(record["dxScore"], sum_dxscore)
                 if str(stars) not in dx_star_count:

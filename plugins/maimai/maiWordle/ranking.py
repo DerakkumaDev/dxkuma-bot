@@ -1,5 +1,6 @@
 import shelve
 
+import numpy as np
 from dill import Pickler, Unpickler
 
 shelve.Pickler = Pickler
@@ -44,7 +45,7 @@ class Ranking(object):
                     continue
 
                 scores = [self._compute_score(**d) for d in scores]
-                achi = sum(scores) / l
+                achi = np.sum(scores) / l
                 achis.append((user_id, achi, l))
 
         achis.sort(key=lambda x: x[1], reverse=True)
@@ -56,7 +57,7 @@ class Ranking(object):
             if user_id in data:
                 l = len(data[user_id])
                 scores = [self._compute_score(**d) for d in data[user_id]]
-                achi = sum(scores) / l
+                achi = np.sum(scores) / l
                 return (achi, l)
 
         return (0.0, 0)

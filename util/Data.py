@@ -1,4 +1,4 @@
-import json
+import orjson as json
 import os
 from asyncio import Lock
 from datetime import date

@@ -6,6 +6,7 @@ from io import BytesIO
 from pathlib import Path
 
 import aiohttp
+import numpy as np
 import soundfile
 from PIL import Image
 from nonebot import on_message, on_regex
@@ -501,7 +502,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if len(leaderboard_output) > 9:
             break
 
-    avg = sum(d[1] for d in scores) / len(scores) if len(scores) > 0 else 0
+    avg = np.sum(d[1] for d in scores) / len(scores) if len(scores) > 0 else 0
     msg = "\r\n".join(leaderboard_output)
     msg = f"猜歌准确率排行榜Top10：\r\n{msg}\r\n\r\n上榜人数：{len(leaderboard)}/{len(scores)}\r\n平均达成率：{math.trunc(avg * 1000000) / 1000000:.4%}\r\n\r\n注：若长时间不参与猜歌游戏，将不计入排行榜，重新参与十首歌即可重新上榜。"
     await rank.send(msg)

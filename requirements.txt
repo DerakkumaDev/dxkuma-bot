@@ -30,6 +30,7 @@ multidict==6.1.0
 nonebot-adapter-onebot==2.4.6
 nonebot2==2.4.2
 numpy==2.2.3
+orjson==3.10.15
 pillow==11.1.0
 pip==25.0.1
 priority==2.0.0

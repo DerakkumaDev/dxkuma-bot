@@ -3,6 +3,7 @@ import os
 from io import BytesIO
 
 import aiohttp
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from util.Config import config
@@ -71,46 +72,44 @@ async def music_info(song_data):
     song_title = song_data["title"]
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
     title_position = (545, 626)
-    text_bbox = drawtext.textbbox(title_position, song_title, font=ttf)
-    max_width = 1110
+    max_width = 565
     ellipsis = "…"
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(song_title) <= max_width:
         # 文本未超过最大宽度,直接绘制
         drawtext.text(title_position, song_title, font=ttf, fill=(0, 0, 0))
     else:
         # 文本超过最大宽度,截断并添加省略符号
         truncated_title = song_title
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            text_bbox = drawtext.textbbox(
-                title_position, truncated_title + ellipsis, font=ttf
-            )
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
         drawtext.text(
-            title_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
+            title_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
         )
 
     # 绘制曲师
     song_artist = song_data["basic_info"]["artist"]
     ttf = ImageFont.truetype(ttf_regular_path, size=30)
     artist_position = (545, 694)
-    text_bbox = drawtext.textbbox(artist_position, song_artist, font=ttf)
-    max_width = 1110
+    max_width = 565
     ellipsis = "…"
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(song_artist) <= max_width:
         # 文本未超过最大宽度,直接绘制
         drawtext.text(artist_position, song_artist, font=ttf, fill=(0, 0, 0))
     else:
         # 文本超过最大宽度,截断并添加省略符号
         truncated_title = song_artist
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            text_bbox = drawtext.textbbox(
-                artist_position, truncated_title + ellipsis, font=ttf
-            )
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
         drawtext.text(
-            artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
+            artist_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
         )
 
     # id
@@ -194,7 +193,7 @@ async def music_info(song_data):
         notes = chart["notes"]
         if song_type == "SD":
             notes.insert(3, 0)
-        total_num = sum(notes)
+        total_num = np.sum(notes)
         dx_num = total_num * 3
         notes.insert(0, total_num)
         notes.append(dx_num)
@@ -268,21 +267,20 @@ async def play_info(data, song_data):
     song_title = song_data["title"]
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
     title_position = (545, 626)
-    text_bbox = drawtext.textbbox(title_position, song_title, font=ttf)
-    max_width = 1110
+    max_width = 565
     ellipsis = "…"
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(song_title) <= max_width:
         # 文本未超过最大宽度,直接绘制
         drawtext.text(title_position, song_title, font=ttf, fill=(0, 0, 0))
     else:
         # 文本超过最大宽度,截断并添加省略符号
         truncated_title = song_title
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            text_bbox = drawtext.textbbox(
-                title_position, truncated_title + ellipsis, font=ttf
-            )
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
         drawtext.text(
             title_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
         )
@@ -291,21 +289,20 @@ async def play_info(data, song_data):
     song_artist = song_data["basic_info"]["artist"]
     ttf = ImageFont.truetype(ttf_regular_path, size=30)
     artist_position = (545, 694)
-    text_bbox = drawtext.textbbox(artist_position, song_artist, font=ttf)
-    max_width = 1110
+    max_width = 565
     ellipsis = "…"
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(song_artist) <= max_width:
         # 文本未超过最大宽度,直接绘制
         drawtext.text(artist_position, song_artist, font=ttf, fill=(0, 0, 0))
     else:
         # 文本超过最大宽度,截断并添加省略符号
         truncated_title = song_artist
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            text_bbox = drawtext.textbbox(
-                artist_position, truncated_title + ellipsis, font=ttf
-            )
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
         drawtext.text(
             artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
         )
@@ -502,21 +499,20 @@ async def utage_music_info(song_data, index=0):
         song_title += f" [{index}]"
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
     title_position = (545, 626)
-    text_bbox = drawtext.textbbox(title_position, song_title, font=ttf)
-    max_width = 1110
+    max_width = 565
     ellipsis = "…"
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(song_title) <= max_width:
         # 文本未超过最大宽度,直接绘制
         drawtext.text(title_position, song_title, font=ttf, fill=(0, 0, 0))
     else:
         # 文本超过最大宽度,截断并添加省略符号
         truncated_title = song_title
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            text_bbox = drawtext.textbbox(
-                title_position, truncated_title + ellipsis, font=ttf
-            )
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
         drawtext.text(
             title_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
         )
@@ -525,21 +521,20 @@ async def utage_music_info(song_data, index=0):
     song_artist = song_data["basic_info"]["artist"]
     ttf = ImageFont.truetype(ttf_regular_path, size=30)
     artist_position = (545, 694)
-    text_bbox = drawtext.textbbox(artist_position, song_artist, font=ttf)
-    max_width = 1110
+    max_width = 565
     ellipsis = "…"
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(song_artist) <= max_width:
         # 文本未超过最大宽度,直接绘制
         drawtext.text(artist_position, song_artist, font=ttf, fill=(0, 0, 0))
     else:
         # 文本超过最大宽度,截断并添加省略符号
         truncated_title = song_artist
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            text_bbox = drawtext.textbbox(
-                artist_position, truncated_title + ellipsis, font=ttf
-            )
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
         drawtext.text(
             artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
         )
@@ -593,7 +588,7 @@ async def utage_music_info(song_data, index=0):
                 notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
             )
         notes_x += 170
-    total_num = sum(notes)
+    total_num = np.sum(notes)
     drawtext.text(
         (438, 1415), str(total_num), anchor="mm", font=ttf, fill=(28, 43, 110)
     )
@@ -655,21 +650,20 @@ async def score_info(song_data, index):
     song_title = song_data["title"]
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
     title_position = (545, 626)
-    text_bbox = drawtext.textbbox(title_position, song_title, font=ttf)
-    max_width = 1110
+    max_width = 565
     ellipsis = "…"
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(song_title) <= max_width:
         # 文本未超过最大宽度,直接绘制
         drawtext.text(title_position, song_title, font=ttf, fill=(0, 0, 0))
     else:
         # 文本超过最大宽度,截断并添加省略符号
         truncated_title = song_title
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            text_bbox = drawtext.textbbox(
-                title_position, truncated_title + ellipsis, font=ttf
-            )
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
         drawtext.text(
             title_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
         )
@@ -678,21 +672,20 @@ async def score_info(song_data, index):
     song_artist = f"曲：{song_data["basic_info"]["artist"]}"
     ttf = ImageFont.truetype(ttf2_regular_path, size=30)
     artist_position = (545, 694)
-    text_bbox = drawtext.textbbox(artist_position, song_artist, font=ttf)
-    max_width = 1110
+    max_width = 565
     ellipsis = "…"
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(song_artist) <= max_width:
         # 文本未超过最大宽度,直接绘制
         drawtext.text(artist_position, song_artist, font=ttf, fill=(0, 0, 0))
     else:
         # 文本超过最大宽度,截断并添加省略符号
         truncated_title = song_artist
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            text_bbox = drawtext.textbbox(
-                artist_position, truncated_title + ellipsis, font=ttf
-            )
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
         drawtext.text(
             artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
         )
@@ -810,21 +803,20 @@ async def score_info(song_data, index):
     song_charters = f"谱：{chart["charter"]}"
     ttf = ImageFont.truetype(ttf2_regular_path, size=30)
     artist_position = (545, 729)
-    text_bbox = drawtext.textbbox(artist_position, song_charters, font=ttf)
-    max_width = 1110
+    max_width = 565
     ellipsis = "…"
     # 检查文本的宽度是否超过最大宽度
-    if text_bbox[2] <= max_width:
+    if ttf.getlength(song_charters) <= max_width:
         # 文本未超过最大宽度,直接绘制
         drawtext.text(artist_position, song_charters, font=ttf, fill=(0, 0, 0))
     else:
         # 文本超过最大宽度,截断并添加省略符号
         truncated_title = song_charters
-        while text_bbox[2] > max_width and len(truncated_title) > 0:
-            truncated_title = truncated_title[:-1]
-            text_bbox = drawtext.textbbox(
-                artist_position, truncated_title + ellipsis, font=ttf
-            )
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
         drawtext.text(
             artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
         )
