@@ -1,13 +1,13 @@
 import os
 import shutil
 
-import toml
+from pyhocon import ConfigFactory
 
 
 class Config:
     def __init__(self):
-        if not os.path.exists("./config.toml"):
-            shutil.copyfile("./config_example.toml", "./config.toml")
+        if not os.path.exists("./kuma.conf"):
+            shutil.copyfile("./example.conf", "./kuma.conf")
         # info
         self.version = None
         # log
@@ -30,7 +30,7 @@ class Config:
         self.read_config()
 
     def read_config(self):
-        data = toml.load("./config.toml")
+        data = ConfigFactory.parse_file("./kuma.conf")
         self.version = data["info"]["version"]
         self.log_level = data["log"]["log_level"]
         self.listen_host = data["nonebot"]["listen_host"]
