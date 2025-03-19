@@ -244,13 +244,12 @@ def song_list_filter(
             count += song["level"].count(level)
         if ds and ds in song["ds"]:
             count += song["level"].count(level)
-        if gen and song["basic_info"]["from"] in version_df_maps[gen]:
-            count += (
-                len(song["level"])
-                if gen == "舞"
-                or (gen in exclude_list and int(song["id"]) not in exclude_list[gen])
-                else 4
-            )
+        if (
+            gen
+            and song["basic_info"]["from"] in version_df_maps[gen]
+            and (gen not in exclude_list or int(song["id"]) not in exclude_list[gen])
+        ):
+            count += len(song["level"]) if gen == "舞" else 4
     return count
 
 
