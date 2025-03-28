@@ -33,7 +33,7 @@ def resize_image(image, scale):
     height = math.ceil(image.height * scale)
 
     # 缩放图像
-    resized_image = image.resize((width, height), Image.Resampling.LANCZOS)
+    resized_image = image.resize((width, height))
 
     return resized_image
 
@@ -64,7 +64,7 @@ async def music_info(song_data):
                 with open(cover_path, "wb") as fd:
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
-    cover = Image.open(cover_path).resize((295, 295), Image.Resampling.LANCZOS)
+    cover = Image.open(cover_path).resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
 
@@ -237,7 +237,8 @@ async def music_info(song_data):
     )
 
     img_byte_arr = BytesIO()
-    bg.save(img_byte_arr, format="PNG", optimize=True)
+    bg = bg.convert('RGB')
+    bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
 
@@ -259,7 +260,7 @@ async def play_info(data, song_data):
                 with open(cover_path, "wb") as fd:
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
-    cover = Image.open(cover_path).resize((295, 295), Image.Resampling.LANCZOS)
+    cover = Image.open(cover_path).resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
 
@@ -468,7 +469,8 @@ async def play_info(data, song_data):
     )
 
     img_byte_arr = BytesIO()
-    bg.save(img_byte_arr, format="PNG", optimize=True)
+    bg = bg.convert('RGB')
+    bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
 
@@ -489,7 +491,7 @@ async def utage_music_info(song_data, index=0):
                 with open(cover_path, "wb") as fd:
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
-    cover = Image.open(cover_path).resize((295, 295), Image.Resampling.LANCZOS)
+    cover = Image.open(cover_path).resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
 
@@ -619,7 +621,8 @@ async def utage_music_info(song_data, index=0):
     )
 
     img_byte_arr = BytesIO()
-    bg.save(img_byte_arr, format="PNG", optimize=True)
+    bg = bg.convert('RGB')
+    bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
 
@@ -642,7 +645,7 @@ async def score_info(song_data, index):
                 with open(cover_path, "wb") as fd:
                     async for chunk in resp.content.iter_chunked(1024):
                         fd.write(chunk)
-    cover = Image.open(cover_path).resize((295, 295), Image.Resampling.LANCZOS)
+    cover = Image.open(cover_path).resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
 
@@ -839,7 +842,8 @@ async def score_info(song_data, index):
     )
 
     img_byte_arr = BytesIO()
-    bg.save(img_byte_arr, format="PNG", optimize=True)
+    bg = bg.convert('RGB')
+    bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
 

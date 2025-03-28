@@ -68,7 +68,7 @@ def resize_image(image, scale):
     height = math.ceil(image.height * scale)
 
     # 缩放图像
-    resized_image = image.resize((width, height), Image.Resampling.LANCZOS)
+    resized_image = image.resize((width, height))
 
     return resized_image
 
@@ -563,7 +563,7 @@ async def music_to_part(
         fs = resize_image(fs, 76 / 61)
         partbase = paste(partbase, fs, (875, 191))
 
-    partbase = partbase.resize((340, 110), Image.Resampling.LANCZOS)
+    partbase = partbase.resize((340, 110))
     return partbase
 
 
@@ -734,7 +734,7 @@ async def generatebests(
     bests = paste(bests, iconbase, (60, 46))
     # 头像
     icon_pic = Image.open(BytesIO(icon))
-    icon_pic = icon_pic.resize((88, 88), Image.Resampling.LANCZOS)
+    icon_pic = icon_pic.resize((88, 88))
     bests = paste(bests, icon_pic, (73, 75))
 
     # 姓名框
@@ -772,21 +772,11 @@ async def generatebests(
 
     # rating数字
     rating_str = str(rating).rjust(5)
-    num1 = Image.open(f"./Static/maimai/number/{rating_str[0]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
-    num2 = Image.open(f"./Static/maimai/number/{rating_str[1]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
-    num3 = Image.open(f"./Static/maimai/number/{rating_str[2]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
-    num4 = Image.open(f"./Static/maimai/number/{rating_str[3]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
-    num5 = Image.open(f"./Static/maimai/number/{rating_str[4]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
+    num1 = Image.open(f"./Static/maimai/number/{rating_str[0]}.png").resize((18, 20))
+    num2 = Image.open(f"./Static/maimai/number/{rating_str[1]}.png").resize((18, 20))
+    num3 = Image.open(f"./Static/maimai/number/{rating_str[2]}.png").resize((18, 20))
+    num4 = Image.open(f"./Static/maimai/number/{rating_str[3]}.png").resize((18, 20))
+    num5 = Image.open(f"./Static/maimai/number/{rating_str[4]}.png").resize((18, 20))
 
     bests = paste(bests, num1, (253, 78))
     bests = paste(bests, num2, (267, 78))
@@ -859,7 +849,8 @@ async def generatebests(
     )
 
     img_byte_arr = BytesIO()
-    bests.save(img_byte_arr, format="PNG", optimize=True)
+    bests = bests.convert('RGB')
+    bests.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
 
@@ -913,7 +904,7 @@ async def generate_wcb(
     bg = paste(bg, iconbase, (60, 46))
     # 头像
     icon_pic = Image.open(BytesIO(icon))
-    icon_pic = icon_pic.resize((88, 88), Image.Resampling.LANCZOS)
+    icon_pic = icon_pic.resize((88, 88))
     bg = paste(bg, icon_pic, (73, 75))
 
     # 姓名框
@@ -942,21 +933,11 @@ async def generate_wcb(
 
     # rating数字
     rating_str = str(rating).rjust(5)
-    num1 = Image.open(f"./Static/maimai/number/{rating_str[0]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
-    num2 = Image.open(f"./Static/maimai/number/{rating_str[1]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
-    num3 = Image.open(f"./Static/maimai/number/{rating_str[2]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
-    num4 = Image.open(f"./Static/maimai/number/{rating_str[3]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
-    num5 = Image.open(f"./Static/maimai/number/{rating_str[4]}.png").resize(
-        (18, 20), Image.Resampling.LANCZOS
-    )
+    num1 = Image.open(f"./Static/maimai/number/{rating_str[0]}.png").resize((18, 20))
+    num2 = Image.open(f"./Static/maimai/number/{rating_str[1]}.png").resize((18, 20))
+    num3 = Image.open(f"./Static/maimai/number/{rating_str[2]}.png").resize((18, 20))
+    num4 = Image.open(f"./Static/maimai/number/{rating_str[3]}.png").resize((18, 20))
+    num5 = Image.open(f"./Static/maimai/number/{rating_str[4]}.png").resize((18, 20))
 
     bg = paste(bg, num1, (253, 78))
     bg = paste(bg, num2, (267, 78))
@@ -1045,7 +1026,8 @@ async def generate_wcb(
     )
 
     img_byte_arr = BytesIO()
-    bg.save(img_byte_arr, format="PNG", optimize=True)
+    bg = bg.convert('RGB')
+    bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
 
