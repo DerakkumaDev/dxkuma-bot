@@ -297,7 +297,7 @@ async def records_to_bests(
                 b.append(i)
         return sd, dx, mask_enabled
     if is_sd:
-        k = lambda x: (x["ra"] * x["diff"], x["ra"], x["ds"], x["achievements"])
+        k = lambda x: (x["ra"] * (1 + x["diff"] / 10), x["ds"], x["achievements"])
     else:
         k = lambda x: (x["ra"], x["ds"], x["achievements"])
     b35 = sorted(sd, key=k, reverse=True)[: 25 if is_old else 35]

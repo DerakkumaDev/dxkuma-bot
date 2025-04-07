@@ -311,7 +311,7 @@ async def _(event: GroupMessageEvent):
         await openchars.update_game_data(group_id, game_data)
 
     tip_info = tips[tip_key](song[0])
-    await info_tip.send(f"第{data["index"]}行的歌曲{tip_key}是{tip_info}mai~")
+    await info_tip.send(f"第{data["index"]}行的歌曲{tip_key}是 {tip_info} mai~")
 
 
 @pic_tip.handle()
