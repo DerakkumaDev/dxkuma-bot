@@ -151,6 +151,7 @@ async def records_to_bests(
     dx = list()
     charts = await get_chart_stats()
     mask_enabled = False
+    default_k = lambda x: (x["ra"], x["ds"], x["achievements"])
     if not records:
         for song in songList:
             if len(song["id"]) > 5:
@@ -181,8 +182,8 @@ async def records_to_bests(
                     dx.append(record)
                 else:
                     sd.append(record)
-        sd.sort(key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)
-        dx.sort(key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True)
+        sd.sort(key=default_k, reverse=True)
+        dx.sort(key=default_k, reverse=True)
         if rating:
             while (
                 np.sum(d["ra"] for d in sd[:35]) + np.sum(d["ra"] for d in dx[:15])
@@ -264,9 +265,7 @@ async def records_to_bests(
             b = sd
         b.append(record)
     if is_all:
-        all_records = sorted(
-            dx, key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
-        )
+        all_records = sorted(dx, key=default_k, reverse=True)
         dx.clear()
         for record in [
             i
@@ -299,7 +298,7 @@ async def records_to_bests(
     if is_sd:
         k = lambda x: (x["ra"] * (1 + x["diff"] / 10), x["ds"], x["achievements"])
     else:
-        k = lambda x: (x["ra"], x["ds"], x["achievements"])
+        k = default_k
     b35 = sorted(sd, key=k, reverse=True)[: 25 if is_old else 35]
     b15 = sorted(dx, key=k, reverse=True)[:15]
     return b35, b15, mask_enabled
@@ -356,16 +355,9 @@ async def compare_bests(sender_records, target_records, songList):
                 dx.append(other_record)
             else:
                 sd.append(other_record)
-    b35 = sorted(
-        sd,
-        key=lambda x: (x["preferred"], x["ra"] - x["s_ra"], x["ds"], x["achievements"]),
-        reverse=True,
-    )[:35]
-    b15 = sorted(
-        dx,
-        key=lambda x: (x["preferred"], x["ra"] - x["s_ra"], x["ds"], x["achievements"]),
-        reverse=True,
-    )[:15]
+    k = lambda x: (x["preferred"], x["ra"] - x["s_ra"], x["ds"], x["achievements"])
+    b35 = sorted(sd, key=k, reverse=True)[:35]
+    b15 = sorted(dx, key=k, reverse=True)[:15]
     return b35, b15, mask_enabled
 
 
@@ -490,12 +482,9 @@ async def _(bot: Bot, event: MessageEvent):
         await best50.finish(msg)
     songList = await get_music_data()
     charts = data["charts"]
-    b35 = sorted(
-        charts["sd"], key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
-    )
-    b15 = sorted(
-        charts["dx"], key=lambda x: (x["ra"], x["ds"], x["achievements"]), reverse=True
-    )
+    k = lambda x: (x["ra"], x["ds"], x["achievements"])
+    b35 = sorted(charts["sd"], key=k, reverse=True)
+    b15 = sorted(charts["dx"], key=k, reverse=True)
     if not b35 and not b15:
         msg = (
             MessageSegment.at(sender_qq),
@@ -535,7 +524,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -646,7 +635,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -756,7 +745,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -868,7 +857,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -968,7 +957,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -1080,7 +1069,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -1192,7 +1181,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -1307,7 +1296,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -1465,7 +1454,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -1577,7 +1566,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -1677,7 +1666,7 @@ async def _(bot: Bot, event: MessageEvent):
                 is_rating_tj = config[target_qq]["rating_tj"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={target_qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -1734,11 +1723,8 @@ async def _(event: MessageEvent):
         return
 
     await rr50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            "http://q.qlogo.cn/headimg_dl?dst_uin=0&spec=640&img_type=png"
-        ) as resp:
-            icon = await resp.read()
+    with open("./Static/maimai/Icon/1.png", "rb") as f:
+        icon = f.read()
     nickname = "ｍａｉｍａｉ"
     dani = 22
     start_time = time.perf_counter()
@@ -1749,8 +1735,8 @@ async def _(event: MessageEvent):
         dani=dani,
         type="rr50",
         icon=icon,
-        frame="200502",
-        plate="000101",
+        frame=None,
+        plate="000001",
         is_rating_tj=False,
         songList=songList,
     )
@@ -1832,7 +1818,7 @@ async def _(event: MessageEvent):
             frame = config[qq]["frame"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -1926,7 +1912,7 @@ async def _(event: MessageEvent):
             frame = config[qq]["frame"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -2023,7 +2009,7 @@ async def _(event: MessageEvent):
             frame = config[qq]["frame"]
     async with aiohttp.ClientSession(conn_timeout=3) as session:
         async with session.get(
-            f"http://q.qlogo.cn/headimg_dl?dst_uin={qq}&spec=640&img_type=png"
+            f"http://q.qlogo.cn/g?b=qq&nk={qq}&s=640"
         ) as resp:
             icon = await resp.read()
     start_time = time.perf_counter()
@@ -2096,6 +2082,7 @@ async def _(event: MessageEvent):
         img = await music_info(song_data=song_info)
     end_time = time.perf_counter()
     msg = (
+        MessageSegment.text(f"{song_info["id"]}：{song_info["title"]}"),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
@@ -2313,6 +2300,7 @@ async def _(event: MessageEvent):
     img = await music_info(song_data=song)
     end_time = time.perf_counter()
     msg = (
+        MessageSegment.text(f"{song["id"]}：{song["title"]}"),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
@@ -2335,6 +2323,7 @@ async def _(event: MessageEvent):
         img = await music_info(song_data=song)
     end_time = time.perf_counter()
     msg = (
+        MessageSegment.text(f"{song["id"]}：{song["title"]}"),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
@@ -2396,6 +2385,7 @@ async def _(event: MessageEvent):
         img = await music_info(song_data=song_info)
     end_time = time.perf_counter()
     msg = (
+        MessageSegment.text(f"{song_info["id"]}：{song_info["title"]}"),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )

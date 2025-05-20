@@ -709,10 +709,11 @@ async def generatebests(
     bests = Image.open(maimai_Static / "b50_bg.png")
 
     # 底板
-    frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
-    frame = Image.open(frame_path)
-    frame = resize_image(frame, 0.95)
-    bests = paste(bests, frame, (48, 45))
+    if frame:
+        frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
+        frame = Image.open(frame_path)
+        frame = resize_image(frame, 0.95)
+        bests = paste(bests, frame, (48, 45))
 
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"

@@ -171,7 +171,7 @@ cython_debug/
 .pypirc
 
 # Runtime Files & Dirs
-Static/
+Static
 kuma.conf
-data/
-Cache/
+data
+Cache
