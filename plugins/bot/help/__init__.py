@@ -29,6 +29,6 @@ async def _(bot: Bot, event):
     )
     msg = (
         MessageSegment.image(Path(path)),
-        MessageSegment.text("迪拉熊测试群：959231211"),
+        MessageSegment.text("公开测试群：959231211"),
     )
     await all_help.send(msg)

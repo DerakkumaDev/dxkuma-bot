@@ -367,6 +367,7 @@ async def music_to_part(
     type: str,
     index: int,
     b_type: str,
+    cid,
     s_ra,
     songList,
     diff=-1,
@@ -422,7 +423,7 @@ async def music_to_part(
         draw.text(text_position, f"{truncated_title}{ellipsis}", font=ttf, fill=color)
 
     # 达成率
-    ttf = ImageFont.truetype(ttf_bold_path, size=76)
+    ttf = ImageFont.truetype(ttf_black_path, size=76)
     if "." not in str(achievements):
         achievements = f"{achievements}.0"
     achievements = str(achievements).split(".")
@@ -432,11 +433,11 @@ async def music_to_part(
     text_content = str(achievements1)
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
     text_position = (text_position[0] + ttf.getlength(text_content), 155)
-    ttf = ImageFont.truetype(ttf_bold_path, size=54)
+    ttf = ImageFont.truetype(ttf_black_path, size=54)
     text_content = str(achievements2)
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
     text_position = (text_position[0] + ttf.getlength(text_content), 155)
-    ttf = ImageFont.truetype(ttf_bold_path, size=65)
+    ttf = ImageFont.truetype(ttf_black_path, size=65)
     text_content = "%"
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
 
@@ -468,8 +469,6 @@ async def music_to_part(
             fill=color,
             anchor="lm",
         )
-        s_ra_str = str(s_ra)
-        s_ra_str2 = "定数"
     elif b_type == "sd50":
         ds_str = str(ds)
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
@@ -480,16 +479,12 @@ async def music_to_part(
             fill=color,
             anchor="lm",
         )
-        s_ra_str = f"{math.trunc(s_ra * 10) / 10:.1f}"
-        s_ra_str2 = "拟合"
     elif b_type == "cf50":
         ds_str = str(ds)
-        s_ra_str = str(s_ra)
-        s_ra_str2 = "Rating"
     else:
         ds_str = str(ds)
-        s_ra_str = f"{math.trunc(s_ra * 10) / 10:.1f}"
-        s_ra_str2 = "拟合"
+    s_ra_str = str(song_id)
+    s_ra_str2 = "ID"
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
     ds_str = str(ds_str).split(".")
     text_position = (376, 215)
