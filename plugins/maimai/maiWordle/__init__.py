@@ -394,7 +394,7 @@ async def _(event: GroupMessageEvent):
     pice = cover.crop((pos_x, pos_y, pos_x + size_x, pos_y + size_y))
     pice = pice.resize((480, 480))
     img_byte_arr = BytesIO()
-    pice = pice.convert('RGB')
+    pice = pice.convert("RGB")
     pice.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()

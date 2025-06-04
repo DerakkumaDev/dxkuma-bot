@@ -22,13 +22,8 @@ async def _(bot: Bot, event):
         ):
             raise NeedToSwitchException
 
-    path = (
-        "./Static/Help/1.png"
-        if bot.self_id in config.allowed_accounts
-        else "./Static/Help/0.png"
-    )
     msg = (
-        MessageSegment.image(Path(path)),
+        MessageSegment.image(Path("./Static/Help/0.png")),
         MessageSegment.text("公开测试群：959231211"),
     )
     await all_help.send(msg)
