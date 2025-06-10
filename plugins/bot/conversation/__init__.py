@@ -25,7 +25,7 @@ conversations = {
     6: "小心迪拉熊吃你星星！",
     7: "你不可以这样对迪拉熊！",
     8: "迪拉熊不想理你了，哼！",
-    9: "不把白潘AP了就别想！",
+    9: "不把白系AP了就别想！",
     10: "……你会对迪拉熊负责的，对吧？",
 }
 
@@ -59,11 +59,7 @@ async def _(event: GroupMessageEvent):
     text = event.get_plaintext()
     roll_list = re.findall(r"(?<=是)(.+?)(?=还|$)", text)
     if not roll_list:
-        msg = (
-            MessageSegment.text("没有选项要让迪拉熊怎么选嘛~"),
-            MessageSegment.image(Path("./Static/Roll/1.png")),
-        )
-        await roll.finish(msg, at_sender=True)
+        return
     if len(set(roll_list)) == 1:
         msg = (
             MessageSegment.text("就一个选项要让迪拉熊怎么选嘛~"),
@@ -89,14 +85,11 @@ async def _(bot: Bot, event: GroupMessageEvent):
     ):
         raise NeedToSwitchException
 
-    sato = False
+    i = 0
     if bot.self_id in config.allowed_accounts:
-        sato = rng.choice([True, False], p=[0.1, 0.9])
+        i = rng.choice([0, 1], p=[0.1, 0.9])
 
-    imgpath = "./Static/Cum/0.png"
-    if sato:
-        imgpath = "./Static/Cum/1.png"
-    msg = MessageSegment.image(Path(imgpath))
+    msg = MessageSegment.image(Path(f"./Static/Cum/{i}.png"))
     await cum.send(msg)
 
 

@@ -24,6 +24,11 @@ PICPATH = "./Static/Gallery/SFW/"
 PICPATH_NSFW = "./Static/Gallery/NSFW/"
 DATA_PATH = "./data/pic_times/"
 
+LIMIT_MINUTES = 1
+LIMIT_TIMES = 10
+
+groups: dict[int, list[datetime.datetime]] = {}
+
 
 def get_time():
     today = datetime.date.today()
@@ -86,30 +91,11 @@ async def _(bot: Bot, event: GroupMessageEvent):
     msg = event.get_plaintext()
     type = "sfw"
     path = PICPATH
+    if group_id not in groups:
+        groups[group_id] = []
     if re.search(r"(涩|色|瑟)图|st", msg, re.I):
         type = "nsfw"
         path = PICPATH_NSFW
-    if type == "nsfw":
-        if os.path.exists("./data/nsfw_lock"):
-            await rand_pic.send("由于该账号被警告，该功能暂时关闭，请稍后再试mai~")
-            return
-        if bot.self_id not in config.allowed_accounts:  # type 为 'nsfw' 且非指定机器人
-            raise NotAllowedException
-    elif group_id == config.special_group:  # 不被限制的 group_id
-        pass
-    else:
-        sato = rng.choice([True, False], p=[0.1, 0.9])
-        if sato:
-            if type == "sfw":
-                msg = MessageSegment.text(
-                    "迪拉熊提醒你：注意不要过度刷屏，给其他人带来麻烦哦，再试一下吧~"
-                )
-            elif type == "nsfw":
-                msg = MessageSegment.text(
-                    "哼哼，迪拉熊的魅力这么大嘛，但是也要注意节制哦~"
-                )
-            await rand_pic.finish(msg)
-
     files = os.listdir(path)
     if not files:
         msg = (
@@ -128,8 +114,32 @@ async def _(bot: Bot, event: GroupMessageEvent):
             MessageSegment.image(Path("./Static/Gallery/0.png")),
         )
         await rand_pic.finish(msg)
+    if type == "nsfw":
+        if os.path.exists("./data/nsfw_lock"):
+            await rand_pic.send("由于该账号被警告，该功能暂时关闭，请稍后再试mai~")
+            return
+        if bot.self_id not in config.allowed_accounts:  # type 为 'nsfw' 且非指定机器人
+            raise NotAllowedException
+    elif group_id != config.special_group:  # 不被限制的 group_id
+        now = datetime.datetime.now()
+        while len(groups[group_id]) > 0:
+            t = groups[group_id][0]
+            if now - t < datetime.timedelta(minutes=LIMIT_MINUTES):
+                break
+            groups[group_id].pop(0)
+        if len(groups[group_id]) >= LIMIT_TIMES:
+            if type == "sfw":
+                msg = MessageSegment.text(
+                    "迪拉熊提醒你：注意不要过度刷屏，给其他人带来困扰哦，再试一下吧~"
+                )
+            elif type == "nsfw":
+                msg = MessageSegment.text(
+                    "哼哼，迪拉熊的魅力这么大嘛，但是也要注意节制哦~"
+                )
+            await rand_pic.finish(msg)
     with open(pic_path, "rb") as fd:
         send_msg = await rand_pic.send(MessageSegment.image(fd.read()))
+    groups[group_id].append(datetime.datetime.now())
     update_count(qq=qq, type=type)
     if type == "nsfw":
         msg_id = send_msg["message_id"]

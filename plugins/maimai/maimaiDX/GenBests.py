@@ -9,7 +9,6 @@ from numpy import random
 
 from plugins.maimai.maiWordle.GLOBAL_CONSTANT import version_df_maps, exclude_list
 from util.Config import config as Config
-from util.Data import get_chart_stats
 from util.Draw import paste, text
 from .Config import (
     font_path,
@@ -367,12 +366,13 @@ async def music_to_part(
     type: str,
     index: int,
     b_type: str,
-    cid,
-    s_ra,
     songList,
+    cid=0,
+    s_ra=0,
     diff=-1,
     preferred=None,
 ):
+    level_label = level_label.replace(":", "")
     color = (255, 255, 255)
     if level_index == 4:
         color = (88, 140, 204)
@@ -459,6 +459,7 @@ async def music_to_part(
         text_position, text_content2, font=ttf2, fill=(255, 255, 255), anchor="ls"
     )
     # 定数和ra
+    ds_str = str(ds)
     if b_type == "fit50":
         ds_str = f"{math.trunc(ds * 100) / 100:.2f}"
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
@@ -470,7 +471,6 @@ async def music_to_part(
             anchor="lm",
         )
     elif b_type == "sd50":
-        ds_str = str(ds)
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
         draw.text(
             (376, 172),
@@ -479,10 +479,6 @@ async def music_to_part(
             fill=color,
             anchor="lm",
         )
-    elif b_type == "cf50":
-        ds_str = str(ds)
-    else:
-        ds_str = str(ds)
     s_ra_str = str(song_id)
     s_ra_str2 = "ID"
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
@@ -498,7 +494,7 @@ async def music_to_part(
     text_position = (388, 270)
     draw.text(text_position, s_ra_str, font=ttf, fill=(28, 43, 120), anchor="ls")
     text_position = (text_position[0] + ttf.getlength(s_ra_str), 272)
-    ttf = ImageFont.truetype(ttf2_bold_path, size=24)
+    ttf = ImageFont.truetype(ttf_bold_path, size=24)
     draw.text(text_position, s_ra_str2, font=ttf, fill=(28, 43, 120), anchor="ls")
 
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
@@ -577,7 +573,7 @@ async def draw_best(bests: list, type: str, songList, begin: int = 0):
     base = Image.new(
         "RGBA", (1440, queue_nums * 110 + (queue_nums - 1) * 10), (0, 0, 0, 0)
     )
-    charts = await get_chart_stats()
+
     # 通过循环构建列表并传入数据
     # 遍历列表中的选项
     # 循环生成列
@@ -597,25 +593,19 @@ async def draw_best(bests: list, type: str, songList, begin: int = 0):
                     song_data["diff"] = song_data["ds"] - song_data["s_ra"]
                 elif type == "cf50":
                     song_data["diff"] = song_data["ra"] - song_data["s_ra"]
-                else:
-                    song_data["s_ra"] = get_fit_diff(
-                        str(song_data["song_id"]),
-                        song_data["level_index"],
-                        song_data["ds"],
-                        charts,
-                    )
                 # 传入数据生成图片
                 part = await music_to_part(
                     **song_data, index=index + 1 + begin, b_type=type, songList=songList
                 )
                 # 将图片粘贴到底图上
                 base = paste(base, part, (x, y))
-                # 增加x坐标，序列自增
-                x += 350
-                row_index += 1
-                index += 1
             else:
                 break
+
+            # 增加x坐标，序列自增
+            x += 350
+            row_index += 1
+            index += 1
 
         # 重置x坐标，增加y坐标
         x = 0
@@ -845,7 +835,7 @@ async def generatebests(
     )
 
     img_byte_arr = BytesIO()
-    bests = bests.convert('RGB')
+    bests = bests.convert("RGB")
     bests.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
@@ -957,7 +947,7 @@ async def generate_wcb(
         # 绘制的完成表的等级贴图
         level_icon_path = maimai_Level / f"{level}.png"
         level_icon = Image.open(level_icon_path)
-        level_icon = resize_image(level_icon, 0.70)
+        level_icon = resize_image(level_icon, 0.7)
         bg = paste(bg, level_icon, (755 - (len(level) * 8), 45))
         draw = ImageDraw.Draw(bg)
 
@@ -1022,7 +1012,7 @@ async def generate_wcb(
     )
 
     img_byte_arr = BytesIO()
-    bg = bg.convert('RGB')
+    bg = bg.convert("RGB")
     bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()

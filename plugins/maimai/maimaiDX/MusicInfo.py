@@ -156,7 +156,7 @@ async def music_info(song_data):
     for i, song_level in enumerate(songs_level):
         if "+" in song_level:
             song_level = song_level.replace("+", "")
-            level_label = ["Basic", "Advanced", "Expert", "Master", "Re:MASTER"][i]
+            level_label = ["Basic", "Advanced", "Expert", "Master", "ReMASTER"][i]
             plus_path = maimai_Plus / f"{level_label}.png"
             plus_icon = Image.open(plus_path)
             bg = paste(bg, plus_icon, (level_x + 33, level_y - 70))
@@ -180,7 +180,7 @@ async def music_info(song_data):
             f"{song_ds} ({math.trunc(get_fit_diff(song_data["id"], i, song_ds, charts) * 100) / 100:.2f})",
             anchor="mm",
             font=ttf,
-            fill=(28, 43, 110),
+            fill=level_color[i],
         )
         ds_x += 170
 
@@ -188,7 +188,7 @@ async def music_info(song_data):
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
     song_charts = song_data["charts"]
     notes_x = 395
-    for chart in song_charts:
+    for i, chart in enumerate(song_charts):
         notes_y = 1200
         notes = chart["notes"]
         if song_type == "SD":
@@ -197,7 +197,7 @@ async def music_info(song_data):
         dx_num = total_num * 3
         notes.insert(0, total_num)
         notes.append(dx_num)
-        for i, note in enumerate(notes):
+        for note in notes:
             if note > 0:
                 notes_position = (notes_x, notes_y)
                 drawtext.text(
@@ -237,7 +237,7 @@ async def music_info(song_data):
     )
 
     img_byte_arr = BytesIO()
-    bg = bg.convert('RGB')
+    bg = bg.convert("RGB")
     bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
@@ -369,7 +369,7 @@ async def play_info(data, song_data):
         dsra_y += i * 150
         plus_y += i * 150
 
-        level_label = ["Basic", "Advanced", "Expert", "Master", "Re:MASTER"][i]
+        level_label = ["Basic", "Advanced", "Expert", "Master", "ReMASTER"][i]
         color = score_color[i]
 
         # 等级
@@ -469,7 +469,7 @@ async def play_info(data, song_data):
     )
 
     img_byte_arr = BytesIO()
-    bg = bg.convert('RGB')
+    bg = bg.convert("RGB")
     bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
@@ -621,7 +621,7 @@ async def utage_music_info(song_data, index=0):
     )
 
     img_byte_arr = BytesIO()
-    bg = bg.convert('RGB')
+    bg = bg.convert("RGB")
     bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
@@ -734,7 +734,7 @@ async def score_info(song_data, index):
     ]
     if "+" in song_level:
         song_level = song_level.replace("+", "")
-        level_label = ["Basic", "Advanced", "Expert", "Master", "Re:MASTER"][index]
+        level_label = ["Basic", "Advanced", "Expert", "Master", "ReMASTER"][index]
         plus_path = maimai_Plus / f"{level_label}.png"
         plus_icon = Image.open(plus_path)
         bg = paste(bg, plus_icon, (302, 953))
@@ -744,6 +744,7 @@ async def score_info(song_data, index):
     )
 
     # 分数
+    score_color = [(231, 144, 21), (227, 60, 117), (38, 143, 17), (130, 144, 203)]
     ttf = ImageFont.truetype(ttf_bold_path, size=36)
     chart = song_data["charts"][index]
     notes = chart["notes"]
@@ -842,7 +843,7 @@ async def score_info(song_data, index):
     )
 
     img_byte_arr = BytesIO()
-    bg = bg.convert('RGB')
+    bg = bg.convert("RGB")
     bg.save(img_byte_arr, format="JPEG")
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
