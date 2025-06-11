@@ -213,8 +213,6 @@ async def records_to_bests(
         is_new = song_data["basic_info"]["is_new"]
         fit_diff = get_fit_diff(song_id, record["level_index"], record["ds"], charts)
         if is_fit:
-            if record["ra"] == 0:
-                continue
             if record["achievements"] > 0 and record["dxScore"] == 0:
                 mask_enabled = True
                 continue
@@ -257,6 +255,9 @@ async def records_to_bests(
                 if str(stars) not in dx_star_count:
                     continue
         if is_old:
+            if record["achievements"] > 0 and record["dxScore"] == 0:
+                mask_enabled = True
+                continue
             record["ra"] = math.trunc(
                 record["ds"]
                 * (record["achievements"] if record["achievements"] < 100.5 else 100.5)
@@ -1606,15 +1607,13 @@ async def _(bot: Bot, event: MessageEvent):
             at_sender=True,
         )
     songList = await get_music_data()
-    b35, b15, mask_enabled = await records_to_bests(records, songList, is_sd=True)
+    b35, b15, _ = await records_to_bests(records, songList, is_sd=True)
     if not b35 and not b15:
-        if mask_enabled:
-            msg = f"迪拉熊无法获取{"你" if target_qq == event.get_user_id() else "他"}的真实成绩哦~"
-        else:
-            msg = f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩哦~"
         await sd50.finish(
             (
-                MessageSegment.text(msg),
+                MessageSegment.text(
+                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩哦~"
+                ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
             at_sender=True,
