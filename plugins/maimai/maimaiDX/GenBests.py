@@ -378,7 +378,7 @@ async def music_to_part(
         color = (88, 140, 204)
 
     # 根据难度 底图
-    partbase_path = maimai_Static / f"PartBase_{level_label}.png"
+    partbase_path = f"Static/Maimai/Bests/Part/{level_label}.png"
     partbase = Image.open(partbase_path)
 
     # 歌曲封面
@@ -537,7 +537,7 @@ async def music_to_part(
             partbase = paste(partbase, star, (x_offset + 570, 178))
 
     # 评价
-    rate_path = maimai_Rank / f"{rate}.png"
+    rate_path = f"./Static/Maimai/Rate/{rate}.png"
     rate = Image.open(rate_path)
     rate = resize_image(rate, 0.87)
     partbase = paste(partbase, rate, (770, 72))
@@ -595,7 +595,10 @@ async def draw_best(bests: list, type: str, songList, begin: int = 0):
                     song_data["diff"] = song_data["ra"] - song_data["s_ra"]
                 # 传入数据生成图片
                 part = await music_to_part(
-                    **song_data, index=index + 1 + begin, b_type=type, songList=songList
+                    **song_data,
+                    index=index + 1 + begin,
+                    b_type=type,
+                    songList=songList,
                 )
                 # 将图片粘贴到底图上
                 base = paste(base, part, (x, y))
@@ -691,7 +694,7 @@ async def generatebests(
         rating += 2100
 
     # BG
-    bests = Image.open(maimai_Static / "b50_bg.png")
+    bests = Image.open("./Static/Maimai/Bests/background.png")
 
     # 底板
     if frame:
@@ -731,14 +734,14 @@ async def generatebests(
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
     dani = Image.open(dani_path)
-    dani = resize_image(dani, 0.2)
+    dani = resize_image(dani, 0.213)
     bests = paste(bests, dani, (400, 110))
 
     # 阶级
     class_path = maimai_Class / "0.png"
     cla = Image.open(class_path)
-    cla = resize_image(cla, 0.2)
-    bests = paste(bests, cla, (400, 60))
+    cla = resize_image(cla, 0.78)
+    bests = paste(bests, cla, (400, 50))
 
     # rating推荐
     if type == "b50" and is_rating_tj:
@@ -793,6 +796,12 @@ async def generatebests(
         anchor="mm",
     )
 
+    frame_path = "./Static/Maimai/Bests/frame.png"
+    frame = Image.open(frame_path)
+    frame = resize_image(frame, 0.745)
+    bests = paste(bests, frame, (40, 36))
+    draw = ImageDraw.Draw(bests)
+
     # 类型
     type_names = {
         "fit50": "Best 拟合难度 50",
@@ -809,7 +818,7 @@ async def generatebests(
     }
     type_name = type_names[type] if type in type_names else "Best 50"
     ttf = ImageFont.truetype(ttf2_bold_path, size=32)
-    draw.text((720, 740), type_name, font=ttf, fill=(138, 49, 6), anchor="mm")
+    draw.text((720, 740), type_name, font=ttf, fill=(0, 109, 103), anchor="mm")
 
     # bests
     b35 = await draw_best(b35, type, songList)
@@ -824,13 +833,13 @@ async def generatebests(
             xy=(bests.width - 16, bests.height - 32),
             font=ttf,
             text=f"感谢水鱼查分器提供数据支持",
-            fill=(255, 255, 255, 205),
+            fill=(0, 0, 0, 50),
             anchor="rb",
         ),
         xy=(bests.width - 16, bests.height - 16),
         font=ttf,
         text=f"Ver.{Config.version[0]}.{Config.version[1]}-{Config.version[2]}",
-        fill=(255, 255, 255, 205),
+        fill=(0, 0, 0, 50),
         anchor="rb",
     )
 
@@ -859,11 +868,11 @@ async def generate_wcb(
     gen: str | None = None,
     rate_count=None,
 ):
-    bg = Image.open("./Static/maimai/wcb_bg.png")
+    bg = Image.open("./Static/Maimai/List/background.png")
 
     # 底板
     if level or ds or gen:
-        frame_path = "./Static/maimai/wcb_frame.png"
+        frame_path = "./Static/Maimai/List/frame.png"
     else:
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
     frame = Image.open(frame_path)
@@ -901,14 +910,14 @@ async def generate_wcb(
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
     dani = Image.open(dani_path)
-    dani = resize_image(dani, 0.2)
+    dani = resize_image(dani, 0.213)
     bg = paste(bg, dani, (400, 110))
 
     # 阶级
     class_path = maimai_Class / "0.png"
     cla = Image.open(class_path)
-    cla = resize_image(cla, 0.2)
-    bg = paste(bg, cla, (400, 60))
+    cla = resize_image(cla, 0.78)
+    bg = paste(bg, cla, (400, 50))
 
     # rating框
     ratingbar = compute_ra(rating)
@@ -967,7 +976,7 @@ async def generate_wcb(
                 (rate_x, rate_y),
                 f"{rate_num}/{all_count}",
                 font=ttf,
-                fill=(255, 255, 100) if rate_num == all_count else (255, 255, 255),
+                fill=(200, 200, 0) if rate_num == all_count else (53, 74, 164),
                 anchor="mm",
             )
             rate_x += 118
@@ -977,20 +986,28 @@ async def generate_wcb(
                 (fcfs_x, fcfs_y),
                 f"{fcfs_num}/{all_count}",
                 font=ttf,
-                fill=(255, 255, 100) if fcfs_num == all_count else (255, 255, 255),
+                fill=(200, 200, 0) if fcfs_num == all_count else (53, 74, 164),
                 anchor="mm",
             )
             fcfs_x += 102
 
+    frame_path = "./Static/Maimai/Bests/frame.png"
+    frame = Image.open(frame_path)
+    frame = resize_image(frame, 0.745)
+    bg = paste(bg, frame, (40, 36))
+    draw = ImageDraw.Draw(bg)
+
     # 页码
-    if all_page_num > 1:
-        page_text = f"{page} / {all_page_num}"
-        ttf = ImageFont.truetype(font=ttf_black_path, size=70)
-        draw.text((260, 850), page_text, font=ttf, fill=(255, 255, 255), anchor="mm")
+    page_text = f"{page} / {all_page_num}"
+    ttf = ImageFont.truetype(font=ttf_black_path, size=70)
+    draw.text((260, 850), page_text, font=ttf, fill=(53, 74, 164), anchor="mm")
 
     # 绘制当前页面的成绩
     records_parts = await draw_best(
-        input_records, type="wcb", begin=(page - 1) * 55, songList=songList
+        input_records,
+        type="wcb",
+        begin=(page - 1) * 55,
+        songList=songList,
     )
     bg = paste(bg, records_parts, (25, 795))
 

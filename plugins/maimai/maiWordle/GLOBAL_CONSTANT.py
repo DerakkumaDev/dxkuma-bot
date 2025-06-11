@@ -21,6 +21,7 @@ version_df_maps = {
     "祝": ["maimai でらっくす FESTiVAL"],
     "双": ["maimai でらっくす BUDDiES"],
     "宴": ["maimai でらっくす BUDDiES"],
+    "镜": ["maimai でらっくす PRiSM"],
     "舞": [
         "maimai PLUS",
         "maimai",
@@ -70,6 +71,4 @@ exclude_list = {
     "华": [10146],
     "爽": [11213],
     "煌": [11213],
-    "宙": [],
-    "星": [],
 }

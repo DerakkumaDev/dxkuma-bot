@@ -78,9 +78,9 @@ def generate_message_state(game_data, user_id):
                     or "HIRAGANA LETTER" in unicode_name
                     or "KATAKANA LETTER" in unicode_name
                 ):
-                    display_title += "○"
+                    display_title += "◎"
                 else:
-                    display_title += "☆"
+                    display_title += "◇"
                 is_all_open = False
         if is_all_open:
             game_content["is_correct"] = True

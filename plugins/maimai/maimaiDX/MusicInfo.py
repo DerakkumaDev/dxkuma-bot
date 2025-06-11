@@ -52,7 +52,7 @@ def format_songid(id):
 
 async def music_info(song_data):
     # 底图
-    bg = Image.open("./Static/maimai/musicinfo_bg.png")
+    bg = Image.open("./Static/Maimai/Chart/background.png")
 
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
@@ -116,17 +116,33 @@ async def music_info(song_data):
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
     id_position = (239, 872)
     drawtext.text(
-        id_position, song_data["id"], anchor="mm", font=ttf, fill=(28, 43, 110)
+        id_position,
+        song_data["id"],
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
     )
     # bpm
     song_bpm = str(song_data["basic_info"]["bpm"])
     bpm_position = (341, 872)
-    drawtext.text(bpm_position, song_bpm, anchor="mm", font=ttf, fill=(28, 43, 110))
+    drawtext.text(
+        bpm_position,
+        song_bpm,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
     # 分类
     ttf = ImageFont.truetype(ttf2_bold_path, size=28)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
-    drawtext.text(genre_position, song_genre, anchor="mm", font=ttf, fill=(28, 43, 110))
+    drawtext.text(
+        genre_position,
+        song_genre,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
     song_type = song_data["type"]
@@ -201,7 +217,11 @@ async def music_info(song_data):
             if note > 0:
                 notes_position = (notes_x, notes_y)
                 drawtext.text(
-                    notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
+                    notes_position,
+                    str(note),
+                    anchor="mm",
+                    font=ttf,
+                    fill=level_color[i],
                 )
             notes_y += 80
         notes_x += 170
@@ -248,7 +268,7 @@ async def music_info(song_data):
 async def play_info(data, song_data):
     records = data[song_data["id"]]
     # 底图
-    bg = Image.open("./Static/maimai/playinfo_bg.png")
+    bg = Image.open("./Static/Maimai/Score/background.png")
 
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
@@ -312,17 +332,33 @@ async def play_info(data, song_data):
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
     id_position = (239, 872)
     drawtext.text(
-        id_position, song_data["id"], anchor="mm", font=ttf, fill=(28, 43, 110)
+        id_position,
+        song_data["id"],
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
     )
     # bpm
     song_bpm = str(song_data["basic_info"]["bpm"])
     bpm_position = (341, 872)
-    drawtext.text(bpm_position, song_bpm, anchor="mm", font=ttf, fill=(28, 43, 110))
+    drawtext.text(
+        bpm_position,
+        song_bpm,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
     # 分类
     ttf = ImageFont.truetype(ttf2_bold_path, size=28)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
-    drawtext.text(genre_position, song_genre, anchor="mm", font=ttf, fill=(28, 43, 110))
+    drawtext.text(
+        genre_position,
+        song_genre,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
     song_type = song_data["type"]
@@ -424,7 +460,7 @@ async def play_info(data, song_data):
         )
 
         # 评价
-        rate_path = maimai_Rank / f"{rate}.png"
+        rate_path = f"./Static/Maimai/Rate/{rate}.png"
         rate = Image.open(rate_path)
         rate = resize_image(rate, 0.5)
         bg = paste(bg, rate, (rate_x, rate_y))
@@ -479,7 +515,7 @@ async def play_info(data, song_data):
 
 async def utage_music_info(song_data, index=0):
     # 底图
-    bg = Image.open("./Static/maimai/utage_musicinfo_bg.png")
+    bg = Image.open("./Static/Maimai/Chart/background_utage.png")
 
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
@@ -545,17 +581,33 @@ async def utage_music_info(song_data, index=0):
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
     id_position = (239, 872)
     drawtext.text(
-        id_position, song_data["id"], anchor="mm", font=ttf, fill=(28, 43, 110)
+        id_position,
+        song_data["id"],
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
     )
     # bpm
     song_bpm = str(song_data["basic_info"]["bpm"])
     bpm_position = (341, 872)
-    drawtext.text(bpm_position, song_bpm, anchor="mm", font=ttf, fill=(28, 43, 110))
+    drawtext.text(
+        bpm_position,
+        song_bpm,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
     # 分类
     ttf = ImageFont.truetype(ttf2_bold_path, size=28)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
-    drawtext.text(genre_position, song_genre, anchor="mm", font=ttf, fill=(28, 43, 110))
+    drawtext.text(
+        genre_position,
+        song_genre,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
     song_type = song_data["type"]
@@ -587,15 +639,29 @@ async def utage_music_info(song_data, index=0):
         if note > 0:
             notes_position = (notes_x, notes_y)
             drawtext.text(
-                notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
+                notes_position,
+                str(note),
+                anchor="mm",
+                font=ttf,
+                fill=(131, 19, 158),
             )
         notes_x += 170
     total_num = np.sum(notes)
     drawtext.text(
-        (438, 1415), str(total_num), anchor="mm", font=ttf, fill=(28, 43, 110)
+        (438, 1415),
+        str(total_num),
+        anchor="mm",
+        font=ttf,
+        fill=(131, 19, 158),
     )
     dx_num = total_num * 3
-    drawtext.text((863, 1415), str(dx_num), anchor="mm", font=ttf, fill=(28, 43, 110))
+    drawtext.text(
+        (863, 1415),
+        str(dx_num),
+        anchor="mm",
+        font=ttf,
+        fill=(131, 19, 158),
+    )
 
     # 谱师
     ttf = ImageFont.truetype(ttf_regular_path, size=20)
@@ -631,9 +697,7 @@ async def utage_music_info(song_data, index=0):
 
 async def score_info(song_data, index):
     # 底图
-    bg = Image.open(
-        f"./Static/maimai/Static/scoreinfo_bg_{["Basic", "Advanced", "Expert", "Master", "Re:MASTER"][index]}.png"
-    )
+    bg = Image.open("./Static/Maimai/Achievements/background.png")
 
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
@@ -697,17 +761,33 @@ async def score_info(song_data, index):
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
     id_position = (239, 872)
     drawtext.text(
-        id_position, song_data["id"], anchor="mm", font=ttf, fill=(28, 43, 110)
+        id_position,
+        song_data["id"],
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
     )
     # bpm
     song_bpm = str(song_data["basic_info"]["bpm"])
     bpm_position = (341, 872)
-    drawtext.text(bpm_position, song_bpm, anchor="mm", font=ttf, fill=(28, 43, 110))
+    drawtext.text(
+        bpm_position,
+        song_bpm,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
     # 分类
     ttf = ImageFont.truetype(ttf2_bold_path, size=28)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
-    drawtext.text(genre_position, song_genre, anchor="mm", font=ttf, fill=(28, 43, 110))
+    drawtext.text(
+        genre_position,
+        song_genre,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
     song_type = song_data["type"]
@@ -786,7 +866,7 @@ async def score_info(song_data, index):
                         score_text,
                         anchor="mm",
                         font=ttf,
-                        fill=(255, 255, 255),
+                        fill=score_color[j],
                     )
             score_x += 200
         score_y += 80
@@ -799,7 +879,11 @@ async def score_info(song_data, index):
         if note > 0:
             notes_position = (notes_x, notes_y)
             drawtext.text(
-                notes_position, str(note), anchor="mm", font=ttf, fill=(28, 43, 110)
+                notes_position,
+                str(note),
+                anchor="mm",
+                font=ttf,
+                fill=(53, 74, 164),
             )
         notes_x += 200
 

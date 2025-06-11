@@ -11,6 +11,7 @@ from dill import Pickler, Unpickler
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 from numpy import random
+import urllib
 
 from util.Config import config
 from util.Data import (
@@ -39,6 +40,7 @@ shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler
 
 best50 = on_message(regex(r"^dlxb?50$", re.I))
+ani50 = on_message(regex(r"^dlxani(50)?$", re.I))
 best40 = on_message(regex(r"^dlxb?40$", re.I))
 fit50 = on_fullmatch("dlxf50", ignorecase=True)
 dxs50 = on_fullmatch("dlxs50", ignorecase=True)
@@ -66,7 +68,7 @@ randomsong = on_regex(r"^(rand|随(歌|个|首|张))\s*(绿|黄|红|紫|白)?\s*
 maiwhat = on_fullmatch("mai什么", ignorecase=True)
 
 wcb = on_regex(
-    r"^(list|完成表)\s*(\d+(\.\d|\+)?|真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双)(\s*\d+)?$",
+    r"^(list|完成表)\s*(\d+\+?|真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|宴|镜)(\s*\d+)?$",
     re.I,
 )
 
@@ -85,6 +87,7 @@ allow_other_on = on_regex(r"^(开启?|启用|允许)代查$")
 allow_other_off = on_regex(r"^(关闭?|禁用|禁止)代查$")
 
 set_source = on_regex(r"^((切|更)?换|设置)(数据)?源\s*(落雪|水鱼)$")
+set_token = on_regex(r"^绑定\s*(落雪|水鱼)\s*.+$")
 
 
 # 根据乐曲别名查询乐曲id列表
@@ -438,11 +441,11 @@ async def _(bot: Bot, event: MessageEvent):
             sender_qq = target_qq
             break
         else:
-            with shelve.open("./data/user_config.db") as config:
+            with shelve.open("./data/user_config.db") as cfg:
                 if (
-                    target_qq not in config
-                    or "allow_other" not in config[target_qq]
-                    or config[target_qq]["allow_other"]
+                    target_qq not in cfg
+                    or "allow_other" not in cfg[target_qq]
+                    or cfg[target_qq]["allow_other"]
                 ):
                     break
     else:
@@ -454,50 +457,40 @@ async def _(bot: Bot, event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
             await best50.finish(msg)
-    data, status = await get_player_data(target_qq)
-    if status == 400:
-        msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
-            MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息"
-            ),
-            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-        )
-        await best50.finish(msg)
-    elif status == 403:
-        msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
-            MessageSegment.text(
-                f"{"你" if target_qq == event.get_user_id() else "他"}在查分器启用了隐私或者没有同意查分器的用户协议"
-            ),
-            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-        )
-        await best50.finish(msg)
-    elif not data:
-        msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
-            MessageSegment.text("（查分器出了点问题）"),
-            MessageSegment.image(Path("./Static/maimai/-1.png")),
-        )
-        await best50.finish(msg)
-    songList = await get_music_data()
-    charts = data["charts"]
-    k = lambda x: (x["ra"], x["ds"], x["achievements"])
-    b35 = sorted(charts["sd"], key=k, reverse=True)
-    b15 = sorted(charts["dx"], key=k, reverse=True)
-    if not b35 and not b15:
-        msg = (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
-            MessageSegment.text(
-                f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩"
-            ),
-            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-        )
-        await best50.finish(msg)
+    with shelve.open("./data/user_config.db") as cfg:
+        if target_qq not in cfg:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+            source = "lxns"
+            lx_personal_token = None
+        else:
+            if "frame" not in cfg[target_qq]:
+                frame = "200502"
+            else:
+                frame = cfg[target_qq]["frame"]
+            if "plate" not in cfg[target_qq]:
+                plate = "000101"
+            else:
+                plate = cfg[target_qq]["plate"]
+            if "rating_tj" not in cfg[target_qq]:
+                is_rating_tj = True
+            else:
+                is_rating_tj = cfg[target_qq]["rating_tj"]
+            if "source" not in cfg[target_qq]:
+                source = "lxns"
+            else:
+                source = cfg[target_qq]["source"]
+            if "lx_personal_token" not in cfg[target_qq]:
+                lx_personal_token = None
+            else:
+                lx_personal_token = cfg[target_qq]["lx_personal_token"]
+        if source == "lxns":
+            source_name = "落雪"
+            another_source_name = "水鱼"
+        elif source == "diving-fish":
+            source_name = "水鱼"
+            another_source_name = "落雪"
     await best50.send(
         (
             MessageSegment.at(sender_qq),
@@ -505,51 +498,131 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
-    nickname = data["nickname"]
-    dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "000101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
+    async with aiohttp.ClientSession() as session:
+        if source == "lxns":
+            params = {"dev-token": config.lx_token}
+            if lx_personal_token:
+                params["personal-token"] = lx_personal_token
             else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "000101"
-            else:
-                plate = config[target_qq]["plate"]
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
+                params["qq"] = target_qq
+        elif source == "diving-fish":
+            params = {"qq": target_qq, "frame": frame, "plate": plate}
+        start_time = time.perf_counter()
         async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
+            f"{config.backend_url}/bests/{source}?%s" % urllib.parse.urlencode(params)
         ) as resp:
-            icon = await resp.read()
-    start_time = time.perf_counter()
-    img = await generatebests(
-        b35=b35,
-        b15=b15,
-        nickname=nickname,
-        dani=dani,
-        type="b50",
-        icon=icon,
-        frame=frame,
-        plate=plate,
-        is_rating_tj=is_rating_tj,
-        songList=songList,
-    )
-    end_time = time.perf_counter()
+            end_time = time.perf_counter()
+            if resp.status != 200:
+                msg = (
+                    MessageSegment.at(sender_qq),
+                    MessageSegment.text(" "),
+                    MessageSegment.text(
+                        f"迪拉熊没有在{source_name}查分器上找到{"你" if target_qq == event.get_user_id() else "他"}的信息，可以发送“换源+{another_source_name}”更换数据源哦~"
+                    ),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                )
+                await best50.finish(msg)
+            img = await resp.read()
     msg = (
         MessageSegment.at(sender_qq),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
     await best50.send(msg)
+
+
+@ani50.handle()
+async def _(bot: Bot, event: MessageEvent):
+    target_qq = event.get_user_id()
+    for message in event.get_message():
+        if message.type != "at":
+            continue
+        target_qq = message.data["qq"]
+        if target_qq == event.get_user_id():
+            continue
+        if target_qq == bot.self_id:
+            return
+        with shelve.open("./data/user_config.db") as cfg:
+            if (
+                target_qq not in cfg
+                or "allow_other" not in cfg[target_qq]
+                or cfg[target_qq]["allow_other"]
+            ):
+                break
+    else:
+        if target_qq != event.get_user_id():
+            msg = (
+                MessageSegment.text("他不允许其他人查询他的成绩哦~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
+            )
+            await ani50.finish(msg, at_sender=True)
+    with shelve.open("./data/user_config.db") as cfg:
+        if target_qq not in cfg:
+            frame = "200502"
+            plate = "000101"
+            is_rating_tj = True
+            source = "lxns"
+            lx_personal_token = None
+        else:
+            if "frame" not in cfg[target_qq]:
+                frame = "200502"
+            else:
+                frame = cfg[target_qq]["frame"]
+            if "plate" not in cfg[target_qq]:
+                plate = "000101"
+            else:
+                plate = cfg[target_qq]["plate"]
+            if "source" not in cfg[target_qq]:
+                source = "lxns"
+            else:
+                source = cfg[target_qq]["source"]
+            if "lx_personal_token" not in cfg[target_qq]:
+                lx_personal_token = None
+            else:
+                lx_personal_token = cfg[target_qq]["lx_personal_token"]
+        if source == "lxns":
+            source_name = "落雪"
+            another_source_name = "水鱼"
+        elif source == "diving-fish":
+            source_name = "水鱼"
+            another_source_name = "落雪"
+    await ani50.send(
+        (
+            MessageSegment.at(target_qq),
+            MessageSegment.text(" "),
+            MessageSegment.text("迪拉熊绘制中，时间较长请耐心等待mai~"),
+        )
+    )
+    async with aiohttp.ClientSession() as session:
+        if source == "lxns":
+            params = {"dev-token": config.lx_token}
+            if lx_personal_token:
+                params["personal-token"] = lx_personal_token
+            else:
+                params["qq"] = target_qq
+        elif source == "diving-fish":
+            params = {"qq": target_qq, "frame": frame, "plate": plate}
+        start_time = time.perf_counter()
+        async with session.get(
+            f"{config.backend_url}/bests/anime/{source}?%s"
+            % urllib.parse.urlencode(params)
+        ) as resp:
+            end_time = time.perf_counter()
+            if resp.status != 200:
+                msg = (
+                    MessageSegment.text(
+                        f"迪拉熊没有在{source_name}查分器上找到{"你" if target_qq == event.get_user_id() else "他"}的信息，可以发送“换源+{another_source_name}”更换数据源哦~"
+                    ),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                )
+                await ani50.finish(msg, at_sender=True)
+            img = await resp.read()
+    msg = (
+        MessageSegment.at(target_qq),
+        MessageSegment.image(img),
+        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
+    )
+    await ani50.send(msg)
 
 
 @ap50.handle()
@@ -1939,94 +2012,140 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    pattern = r"(?:((?:\d+)(?:\.\d|\+)?)|(真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双))(?:\s*(\d+))?"
+    pattern = r"(?:(\d+\+?)|(真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|镜))(?:\s*(\d+))?"
     match = re.search(pattern, msg)
-    data, status = await get_player_records(qq)
-    if status == 400:
-        msg = (
-            MessageSegment.text("迪拉熊没有找到你的信息哦~"),
-            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-        )
-        await wcb.finish(msg, at_sender=True)
-    elif not data:
-        msg = (
-            MessageSegment.text("（查分器出了点问题）"),
-            MessageSegment.image(Path("./Static/maimai/-1.png")),
-        )
-        await wcb.finish(msg, at_sender=True)
-    records = data["records"]
-    if not records:
-        await wcb.finish(
-            (
-                MessageSegment.text("你没有上传任何成绩哦~"),
-                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            ),
-            at_sender=True,
-        )
-    songList = await get_music_data()
     level = match.group(1)
-    if level and "." in level:
-        ds = float(level)
-        level = None
-    else:
-        ds = None
+    ds = None
     gen = match.group(2)
-    filted_records, _ = records_filter(
-        records=records, level=level, ds=ds, gen=gen, songList=songList
-    )
-    if len(filted_records) == 0:
-        await wcb.finish(
-            (
-                MessageSegment.text("你没有上传任何匹配的成绩哦~"),
-                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-            ),
-            at_sender=True,
-        )
-
     if match.group(3):
         page = int(match.group(3))
         if page <= 0:
             page = 1
     else:
         page = 1
-    all_page_num = math.ceil(len(filted_records) / 55)
-    page = min(page, all_page_num)
-    await wcb.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
-    input_records = get_page_records(filted_records, page=page)
-    rate_count = compute_record(records=filted_records)
-    nickname = data["nickname"]
-    rating = data["rating"]
-    dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config or "plate" not in config[qq]:
+    with shelve.open("./data/user_config.db") as cfg:
+        if qq not in cfg or "plate" not in cfg[qq]:
             plate = "000101"
         else:
-            plate = config[qq]["plate"]
-        if qq not in config or "frame" not in config[qq]:
+            plate = cfg[qq]["plate"]
+        if qq not in cfg or "frame" not in cfg[qq]:
             frame = "200502"
         else:
-            frame = config[qq]["frame"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(f"http://q.qlogo.cn/g?b=qq&nk={qq}&s=640") as resp:
-            icon = await resp.read()
-    start_time = time.perf_counter()
-    img = await generate_wcb(
-        level=level,
-        ds=ds,
-        gen=gen,
-        page=page,
-        nickname=nickname,
-        dani=dani,
-        rating=rating,
-        icon=icon,
-        frame=frame,
-        plate=plate,
-        input_records=input_records,
-        rate_count=rate_count,
-        all_page_num=all_page_num,
-        songList=songList,
-    )
-    end_time = time.perf_counter()
+            frame = cfg[qq]["frame"]
+        if qq not in cfg or "source" not in cfg[qq]:
+            source = "lxns"
+        else:
+            source = cfg[qq]["source"]
+        if qq not in cfg or "lx_personal_token" not in cfg[qq]:
+            lx_personal_token = None
+        else:
+            lx_personal_token = cfg[qq]["lx_personal_token"]
+    if source == "lxns":
+        source_name = "落雪"
+        another_source_name = "水鱼"
+    elif source == "diving-fish":
+        source_name = "水鱼"
+        another_source_name = "落雪"
+    if level:
+        if source == "lxns" and not lx_personal_token:
+            msg = (
+                MessageSegment.text(f"你还没有绑定落雪查分器哦~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            )
+            await wcb.finish(msg, at_sender=True)
+        await wcb.send(
+            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
+        )
+        async with aiohttp.ClientSession() as session:
+            params = {"level": level, "page": page}
+            if source == "lxns":
+                params["personal-token"] = lx_personal_token
+            elif source == "diving-fish":
+                params["dev-token"] = config.df_token
+                params["qq"] = qq
+                params["plate"] = plate
+            start_time = time.perf_counter()
+            async with session.get(
+                f"{config.backend_url}/list/{source}?%s"
+                % urllib.parse.urlencode(params)
+            ) as resp:
+                end_time = time.perf_counter()
+                if resp.status != 200:
+                    msg = (
+                        MessageSegment.text(
+                            f"迪拉熊没有在{source_name}查分器上找到{"你" if qq == event.get_user_id() else "他"}的信息，可以发送“换源+{another_source_name}”更换数据源哦~"
+                        ),
+                        MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                    )
+                    await wcb.finish(msg, at_sender=True)
+                img = await resp.read()
+    else:
+        data, status = await get_player_records(qq)
+        if status == 400:
+            msg = (
+                MessageSegment.text("迪拉熊没有找到你的信息哦~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            )
+            await wcb.finish(msg, at_sender=True)
+        elif not data:
+            msg = (
+                MessageSegment.text("（查分器出了点问题）"),
+                MessageSegment.image(Path("./Static/maimai/-1.png")),
+            )
+            await wcb.finish(msg, at_sender=True)
+        records = data["records"]
+        if not records:
+            await wcb.finish(
+                (
+                    MessageSegment.text("你没有上传任何成绩哦~"),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                ),
+                at_sender=True,
+            )
+        songList = await get_music_data()
+        filted_records, _ = records_filter(
+            records=records, level=level, ds=ds, gen=gen, songList=songList
+        )
+        if len(filted_records) == 0:
+            await wcb.finish(
+                (
+                    MessageSegment.text("你没有上传任何匹配的成绩哦~"),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                ),
+                at_sender=True,
+            )
+
+        all_page_num = math.ceil(len(filted_records) / 55)
+        page = min(page, all_page_num)
+        await wcb.send(
+            MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
+        )
+        input_records = get_page_records(filted_records, page=page)
+        rate_count = compute_record(records=filted_records)
+        nickname = data["nickname"]
+        rating = data["rating"]
+        dani = data["additional_rating"]
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
+            async with session.get(f"http://q.qlogo.cn/g?b=qq&nk={qq}&s=640") as resp:
+                icon = await resp.read()
+        start_time = time.perf_counter()
+        img = await generate_wcb(
+            level=level,
+            ds=ds,
+            gen=gen,
+            page=page,
+            nickname=nickname,
+            dani=dani,
+            rating=rating,
+            icon=icon,
+            frame=frame,
+            plate=plate,
+            input_records=input_records,
+            rate_count=rate_count,
+            all_page_num=all_page_num,
+            songList=songList,
+        )
+        end_time = time.perf_counter()
     msg = (
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
@@ -2077,10 +2196,14 @@ async def _(event: MessageEvent):
     )
     if song_info["basic_info"]["genre"] == "宴会場":
         start_time = time.perf_counter()
-        img = await utage_music_info(song_data=song_info)
+        img = await utage_music_info(
+            song_data=song_info,
+        )
     else:
         start_time = time.perf_counter()
-        img = await music_info(song_data=song_info)
+        img = await music_info(
+            song_data=song_info,
+        )
     end_time = time.perf_counter()
     msg = (
         MessageSegment.text(f"{song_info["id"]}：{song_info["title"]}"),
@@ -2156,7 +2279,10 @@ async def _(event: MessageEvent):
         MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     start_time = time.perf_counter()
-    img = await play_info(data, song_info)
+    img = await play_info(
+        data,
+        song_info,
+    )
     end_time = time.perf_counter()
     msg = (
         MessageSegment.image(img),
@@ -2206,7 +2332,10 @@ async def _(event: MessageEvent):
         MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     start_time = time.perf_counter()
-    img = await score_info(song_data=song_info, index=type_index)
+    img = await score_info(
+        song_data=song_info,
+        index=type_index,
+    )
     end_time = time.perf_counter()
     msg = (
         MessageSegment.image(img),
@@ -2298,7 +2427,9 @@ async def _(event: MessageEvent):
         MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     start_time = time.perf_counter()
-    img = await music_info(song_data=song)
+    img = await music_info(
+        song_data=song,
+    )
     end_time = time.perf_counter()
     msg = (
         MessageSegment.text(f"{song["id"]}：{song["title"]}"),
@@ -2318,10 +2449,14 @@ async def _(event: MessageEvent):
     )
     if song["basic_info"]["genre"] == "宴会場":
         start_time = time.perf_counter()
-        img = await utage_music_info(song_data=song)
+        img = await utage_music_info(
+            song_data=song,
+        )
     else:
         start_time = time.perf_counter()
-        img = await music_info(song_data=song)
+        img = await music_info(
+            song_data=song,
+        )
     end_time = time.perf_counter()
     msg = (
         MessageSegment.text(f"{song["id"]}：{song["title"]}"),
@@ -2556,11 +2691,14 @@ async def _(event: MessageEvent):
     msg = event.get_plaintext()
     if "落雪" in msg:
         source = "lxns"
+        source_name = "落雪"
     elif "水鱼" in msg:
         source = "diving-fish"
+        source_name = "水鱼"
     with shelve.open("./data/user_config.db") as config:
         if qq not in config:
             config.setdefault(qq, {"source": source})
+            msg = "迪拉熊帮你改好啦~"
         else:
             cfg = config[qq]
             if "source" not in config[qq]:
@@ -2572,5 +2710,33 @@ async def _(event: MessageEvent):
                 config[qq] = cfg
                 msg = "迪拉熊帮你换好啦~"
             else:
-                msg = f"你已经在使用{source}作为数据源了哦~"
+                msg = f"你已经在使用{source_name}作为数据源了哦~"
     await set_source.send(MessageSegment.text(msg), at_sender=True)
+
+
+@set_token.handle()
+async def _(event: MessageEvent):
+    qq = event.get_user_id()
+    match = re.fullmatch(r"绑定\s*(落雪|水鱼)\s*(.+)", event.get_plaintext(), re.I)
+    prober = match.group(1)
+    token = match.group(2)
+    if prober == "落雪":
+        if len(token) != 44:
+            msg = "你的密钥好像不太对哦，再试一下吧~"
+            await set_token.finish(MessageSegment.text(msg), at_sender=True)
+        with shelve.open("./data/user_config.db") as config:
+            if qq not in config:
+                config.setdefault(qq, {"lx_personal_token": token})
+            else:
+                cfg = config[qq]
+                if "lx_personal_token" not in config[qq]:
+                    cfg.setdefault("lx_personal_token", token)
+                else:
+                    cfg["lx_personal_token"] = token
+                config[qq] = cfg
+
+        msg = "迪拉熊帮你换好啦~"
+    else:
+        return
+
+    await set_token.send(MessageSegment.text(msg), at_sender=True)
