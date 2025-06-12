@@ -27,6 +27,7 @@ async def get_music_data():
                             async for chunk in resp.content.iter_chunked(1024):
                                 fd.write(chunk)
                 except ClientError:
+                    os.remove(cache_path)
                     if files:
                         with open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(fd.read())
@@ -53,6 +54,7 @@ async def get_chart_stats():
                             async for chunk in resp.content.iter_chunked(1024):
                                 fd.write(chunk)
                 except ClientError:
+                    os.remove(cache_path)
                     if files:
                         with open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(fd.read())
@@ -79,6 +81,7 @@ async def get_alias_list_lxns():
                             async for chunk in resp.content.iter_chunked(1024):
                                 fd.write(chunk)
                 except ClientError:
+                    os.remove(cache_path)
                     if files:
                         with open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(fd.read())
@@ -99,12 +102,13 @@ async def get_alias_list_ycn():
             async with ClientSession(conn_timeout=3) as session:
                 try:
                     async with session.get(
-                        "https://api.yuzuchan.moe/maimaidx/maimaidxalias"
+                        "https://www.yuzuchan.moe/api/maimaidx/maimaidxalias"
                     ) as resp:
                         with open(cache_path, "wb") as fd:
                             async for chunk in resp.content.iter_chunked(1024):
                                 fd.write(chunk)
                 except ClientError:
+                    os.remove(cache_path)
                     if files:
                         with open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(fd.read())
@@ -131,6 +135,7 @@ async def get_alias_list_xray():
                             async for chunk in resp.content.iter_chunked(1024):
                                 fd.write(chunk)
                 except ClientError:
+                    os.remove(cache_path)
                     if files:
                         with open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(fd.read())
