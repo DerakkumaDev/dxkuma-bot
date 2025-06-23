@@ -7,11 +7,13 @@ from pathlib import Path
 
 import aiohttp
 import numpy as np
+import urllib
 from dill import Pickler, Unpickler
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 from numpy import random
-import urllib
+from rapidfuzz import fuzz_py as fuzz
+from rapidfuzz import process_py as process
 
 from util.Config import config
 from util.Data import (
@@ -21,7 +23,7 @@ from util.Data import (
     get_alias_list_ycn,
     get_alias_list_xray,
 )
-from util.DivingFish import get_player_data, get_player_records, get_player_record
+from util.DivingFish import get_player_records, get_player_record
 from util.Rule import regex
 from .GenBests import (
     compute_record,
@@ -105,35 +107,45 @@ async def find_songid_by_alias(name, song_list):
     if matched_ids:
         return matched_ids
 
+    alias_map = {}
+
     alias_list = await get_alias_list_lxns()
     for info in alias_list["aliases"]:
         song_id = str(info["song_id"])
-        if song_id in matched_ids:
-            continue
         for alias in info["aliases"]:
-            if name.casefold() == alias.casefold():
-                matched_ids.append(song_id)
-                break
+            alias_map[alias] = song_id
 
     alias_list = await get_alias_list_xray()
     for id, info in alias_list.items():
         song_id = str(id)
-        if song_id in matched_ids:
-            continue
         for alias in info:
-            if name.casefold() == alias.casefold():
-                matched_ids.append(song_id)
-                break
+            alias_map[alias] = song_id
 
     alias_list = await get_alias_list_ycn()
     for info in alias_list["content"]:
         song_id = str(info["SongID"])
-        if song_id in matched_ids:
-            continue
         for alias in info["Alias"]:
-            if name.casefold() == alias.casefold():
-                matched_ids.append(song_id)
-                break
+            alias_map[alias] = song_id
+
+    results = process.extract(
+        name,
+        alias_map.keys(),
+        scorer=fuzz.WRatio,
+        score_cutoff=100
+    )
+    filtered = [alias_map[alias] for alias, _, _ in results]
+    matched_ids = list(dict.fromkeys(filtered))
+    if len(matched_ids) > 0:
+        return matched_ids
+
+    results = process.extract(
+        name,
+        alias_map.keys(),
+        scorer=fuzz.QRatio,
+        score_cutoff=80
+    )
+    filtered = [alias_map[alias] for alias, _, _ in results]
+    matched_ids = list(dict.fromkeys(filtered))
 
     # 芝士排序
     # sorted_matched_ids = sorted(matched_ids, key=int)
@@ -525,7 +537,7 @@ async def _(bot: Bot, event: MessageEvent):
                     MessageSegment.at(sender_qq),
                     MessageSegment.text(" "),
                     MessageSegment.text(
-                        f"迪拉熊没有在{source_name}查分器上找到{"你" if target_qq == event.get_user_id() else "他"}的信息，可以发送“换源+{another_source_name}”更换数据源哦~"
+                        f"迪拉熊没有在{source_name}查分器上找到{"你" if target_qq == event.get_user_id() else "他"}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
                     ),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 )
@@ -624,7 +636,7 @@ async def _(bot: Bot, event: MessageEvent):
             if resp.status != 200:
                 msg = (
                     MessageSegment.text(
-                        f"迪拉熊没有在{source_name}查分器上找到{"你" if target_qq == event.get_user_id() else "他"}的信息，可以发送“换源+{another_source_name}”更换数据源哦~"
+                        f"迪拉熊没有在{source_name}查分器上找到{"你" if target_qq == event.get_user_id() else "他"}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
                     ),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 )
@@ -2088,7 +2100,7 @@ async def _(event: MessageEvent):
                 if resp.status != 200:
                     msg = (
                         MessageSegment.text(
-                            f"迪拉熊没有在{source_name}查分器上找到{"你" if qq == event.get_user_id() else "他"}的信息，可以发送“换源+{another_source_name}”更换数据源哦~"
+                            f"迪拉熊没有在{source_name}查分器上找到{"你" if qq == event.get_user_id() else "他"}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
                         ),
                         MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                     )

@@ -12,6 +12,8 @@ from PIL import Image
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 from numpy import random
+from rapidfuzz import fuzz_py as fuzz
+from rapidfuzz import process_py as process
 
 from util.Data import (
     get_alias_list_lxns,
@@ -50,35 +52,45 @@ async def find_songid_by_alias(name, song_list):
     if matched_ids:
         return matched_ids
 
+    alias_map = {}
+
     alias_list = await get_alias_list_lxns()
     for info in alias_list["aliases"]:
         song_id = str(info["song_id"])
-        if song_id in matched_ids:
-            continue
         for alias in info["aliases"]:
-            if name.casefold() == alias.casefold():
-                matched_ids.append(song_id)
-                break
+            alias_map[alias] = song_id
 
     alias_list = await get_alias_list_xray()
     for id, info in alias_list.items():
         song_id = str(id)
-        if song_id in matched_ids:
-            continue
         for alias in info:
-            if name.casefold() == alias.casefold():
-                matched_ids.append(song_id)
-                break
+            alias_map[alias] = song_id
 
     alias_list = await get_alias_list_ycn()
     for info in alias_list["content"]:
         song_id = str(info["SongID"])
-        if song_id in matched_ids:
-            continue
         for alias in info["Alias"]:
-            if name.casefold() == alias.casefold():
-                matched_ids.append(song_id)
-                break
+            alias_map[alias] = song_id
+
+    results = process.extract(
+        name,
+        alias_map.keys(),
+        scorer=fuzz.WRatio,
+        score_cutoff=100
+    )
+    filtered = [alias_map[alias] for alias, _, _ in results]
+    matched_ids = list(dict.fromkeys(filtered))
+    if len(matched_ids) > 0:
+        return matched_ids
+
+    results = process.extract(
+        name,
+        alias_map.keys(),
+        scorer=fuzz.QRatio,
+        score_cutoff=80
+    )
+    filtered = [alias_map[alias] for alias, _, _ in results]
+    matched_ids = list(dict.fromkeys(filtered))
 
     # 芝士排序
     # sorted_matched_ids = sorted(matched_ids, key=int)
