@@ -27,7 +27,7 @@ from .utils import generate_message_state, check_music_id, generate_success_stat
 lock = Lock()
 
 start_open_chars = on_regex(r"^dlx猜歌$", re.I)
-open_chars = on_regex(r"^开\s*.+$")
+open_chars = on_regex(r"^开\s*(.|[a-zA-Z]+)$")
 all_message_handle = on_message(priority=999)
 pass_game = on_regex(r"^(结束猜歌|将大局逆转吧)$")
 info_tip = on_regex(r"^(提示|提醒|信息)\s*[1-5]?$")
