@@ -76,9 +76,11 @@ aliasSearch = on_regex(r"^((alias|查看?别名)\s*.+|.+有(什么|哪些)别名
 
 all_plate = on_regex(r"^(plates?|看姓名框)$", re.I)
 all_frame = on_regex(r"^(frames?|看背景)$", re.I)
+all_icon = on_regex(r"^(icons?|看头像)$", re.I)
 
 set_plate = on_regex(r"^(setplate|设置?姓名框)\s*\d{6}$", re.I)
 set_frame = on_regex(r"^(setframe|设置?背景)\s*\d{6}$", re.I)
+set_icon = on_regex(r"^(seticon|设置?头像)\s*\d{6}$", re.I)
 
 ratj_on = on_regex(r"^(开启?|启用)分数推荐$")
 ratj_off = on_regex(r"^(关闭?|禁用)分数推荐$")
@@ -461,7 +463,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as cfg:
         if target_qq not in cfg:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
             source = "lxns"
             lx_personal_token = None
@@ -471,9 +474,13 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = cfg[target_qq]["frame"]
             if "plate" not in cfg[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = cfg[target_qq]["plate"]
+                plate = cfg[target_qq]["plate"].lstrip("0")
+            if "icon" not in cfg[target_qq]:
+                icon = "101"
+            else:
+                icon = cfg[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in cfg[target_qq]:
                 is_rating_tj = True
             else:
@@ -507,7 +514,7 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 params["qq"] = target_qq
         elif source == "diving-fish":
-            params = {"qq": target_qq, "frame": frame, "plate": plate}
+            params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
         start_time = time.perf_counter()
         async with session.get(
             f"{config.backend_url}/bests/{source}?%s" % urllib.parse.urlencode(params)
@@ -560,7 +567,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as cfg:
         if target_qq not in cfg:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
             source = "lxns"
             lx_personal_token = None
@@ -570,9 +578,13 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = cfg[target_qq]["frame"]
             if "plate" not in cfg[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = cfg[target_qq]["plate"]
+                plate = cfg[target_qq]["plate"].lstrip("0")
+            if "icon" not in cfg[target_qq]:
+                icon = "101"
+            else:
+                icon = cfg[target_qq]["icon"].lstrip("0")
             if "source" not in cfg[target_qq]:
                 source = "lxns"
             else:
@@ -602,7 +614,7 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 params["qq"] = target_qq
         elif source == "diving-fish":
-            params = {"qq": target_qq, "frame": frame, "plate": plate}
+            params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
         start_time = time.perf_counter()
         async with session.get(
             f"{config.backend_url}/bests/anime/{source}?%s"
@@ -695,7 +707,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -703,18 +716,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=ap35,
@@ -805,7 +817,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -813,18 +826,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=fc35,
@@ -917,7 +929,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -925,18 +938,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
@@ -1017,7 +1029,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -1025,18 +1038,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=b25,
@@ -1129,7 +1141,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -1137,18 +1150,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=rate35,
@@ -1241,7 +1253,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -1249,18 +1262,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=dxs35,
@@ -1356,7 +1368,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -1364,18 +1377,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=star35,
@@ -1514,7 +1526,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -1522,18 +1535,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
@@ -1624,7 +1636,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -1632,18 +1645,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
@@ -1724,7 +1736,8 @@ async def _(bot: Bot, event: MessageEvent):
     with shelve.open("./data/user_config.db") as config:
         if target_qq not in config:
             frame = "200502"
-            plate = "000101"
+            plate = "101"
+            icon = "101"
             is_rating_tj = True
         else:
             if "frame" not in config[target_qq]:
@@ -1732,18 +1745,17 @@ async def _(bot: Bot, event: MessageEvent):
             else:
                 frame = config[target_qq]["frame"]
             if "plate" not in config[target_qq]:
-                plate = "000101"
+                plate = "101"
             else:
-                plate = config[target_qq]["plate"]
+                plate = config[target_qq]["plate"].lstrip("0")
+            if "icon" not in config[target_qq]:
+                icon = "101"
+            else:
+                icon = config[target_qq]["icon"].lstrip("0")
             if "rating_tj" not in config[target_qq]:
                 is_rating_tj = True
             else:
                 is_rating_tj = config[target_qq]["rating_tj"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(
-            f"http://q.qlogo.cn/g?b=qq&nk={target_qq}&s=640"
-        ) as resp:
-            icon = await resp.read()
     start_time = time.perf_counter()
     img = await generatebests(
         b35=all35,
@@ -1798,8 +1810,6 @@ async def _(event: MessageEvent):
         return
 
     await rr50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
-    with open("./Static/maimai/Icon/1.png", "rb") as f:
-        icon = f.read()
     nickname = "ｍａｉｍａｉ"
     dani = 22
     start_time = time.perf_counter()
@@ -1809,9 +1819,9 @@ async def _(event: MessageEvent):
         nickname=nickname,
         dani=dani,
         type="rr50",
-        icon=icon,
+        icon="1",
         frame=None,
-        plate="000001",
+        plate="1",
         is_rating_tj=False,
         songList=songList,
     )
@@ -1884,16 +1894,17 @@ async def _(event: MessageEvent):
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
         if qq not in config or "plate" not in config[qq]:
-            plate = "000101"
+            plate = "101"
         else:
-            plate = config[qq]["plate"]
+            plate = config[qq]["plate"].lstrip("0")
         if qq not in config or "frame" not in config[qq]:
             frame = "200502"
         else:
             frame = config[qq]["frame"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(f"http://q.qlogo.cn/g?b=qq&nk={qq}&s=640") as resp:
-            icon = await resp.read()
+        if qq not in config or "icon" not in config[qq]:
+            icon = "101"
+        else:
+            icon = config[qq]["icon"].lstrip("0")
     start_time = time.perf_counter()
     img = await generate_wcb(
         page=page,
@@ -1976,16 +1987,17 @@ async def _(event: MessageEvent):
     dani = data["additional_rating"]
     with shelve.open("./data/user_config.db") as config:
         if qq not in config or "plate" not in config[qq]:
-            plate = "000101"
+            plate = "101"
         else:
-            plate = config[qq]["plate"]
+            plate = config[qq]["plate"].lstrip("0")
         if qq not in config or "frame" not in config[qq]:
             frame = "200502"
         else:
             frame = config[qq]["frame"]
-    async with aiohttp.ClientSession(conn_timeout=3) as session:
-        async with session.get(f"http://q.qlogo.cn/g?b=qq&nk={qq}&s=640") as resp:
-            icon = await resp.read()
+        if qq not in config or "icon" not in config[qq]:
+            icon = "101"
+        else:
+            icon = config[qq]["icon"].lstrip("0")
     start_time = time.perf_counter()
     img = await generate_wcb(
         page=page,
@@ -2024,13 +2036,17 @@ async def _(event: MessageEvent):
         page = 1
     with shelve.open("./data/user_config.db") as cfg:
         if qq not in cfg or "plate" not in cfg[qq]:
-            plate = "000101"
+            plate = "101"
         else:
-            plate = cfg[qq]["plate"]
+            plate = cfg[qq]["plate"].lstrip("0")
         if qq not in cfg or "frame" not in cfg[qq]:
             frame = "200502"
         else:
             frame = cfg[qq]["frame"]
+        if qq not in cfg or "icon" not in cfg[qq]:
+            icon = "101"
+        else:
+            icon = cfg[qq]["icon"].lstrip("0")
         if qq not in cfg or "source" not in cfg[qq]:
             source = "lxns"
         else:
@@ -2124,9 +2140,6 @@ async def _(event: MessageEvent):
         nickname = data["nickname"]
         rating = data["rating"]
         dani = data["additional_rating"]
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
-            async with session.get(f"http://q.qlogo.cn/g?b=qq&nk={qq}&s=640") as resp:
-                icon = await resp.read()
         start_time = time.perf_counter()
         img = await generate_wcb(
             level=level,
@@ -2546,16 +2559,22 @@ async def _():
     await all_plate.send(MessageSegment.image(Path(path)))
 
 
+@all_icon.handle()
+async def _():
+    path = "./Static/maimai/allIcon.png"
+    await all_icon.send(MessageSegment.image(Path(path)))
+
+
 @set_plate.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    id = re.search(r"\d+", msg).group()
+    id = re.search(r"\d+", msg).group().lstrip("0")
     plate_path = f"./Cache/Plate/{id}.png"
     if not os.path.exists(plate_path):
         async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/plate/{int(id)}.png"
+                f"https://assets2.lxns.net/maimai/plate/{id}.png"
             ) as resp:
                 if resp.status != 200:
                     msg = (
@@ -2587,7 +2606,7 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    id = re.search(r"\d+", msg).group()
+    id = re.search(r"\d+", msg).group().lstrip("0")
     dir_path = "./Static/maimai/Frame/"
     file_name = f"UI_Frame_{id}.png"
     file_path = Path(dir_path) / file_name
@@ -2610,6 +2629,35 @@ async def _(event: MessageEvent):
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
     await set_frame.send(msg, at_sender=True)
+
+
+@set_icon.handle()
+async def _(event: MessageEvent):
+    qq = event.get_user_id()
+    msg = event.get_plaintext()
+    id = re.search(r"\d+", msg).group().lstrip("0")
+    dir_path = "./Static/maimai/Icon/"
+    file_name = f"{id}.png"
+    file_path = Path(dir_path) / file_name
+    if os.path.exists(file_path):
+        with shelve.open("./data/user_config.db") as config:
+            if qq not in config:
+                config.setdefault(qq, {"icon": id})
+            else:
+                cfg = config[qq]
+                if "icon" not in config[qq]:
+                    cfg.setdefault("icon", id)
+                else:
+                    cfg["icon"] = id
+                config[qq] = cfg
+
+        msg = MessageSegment.text("迪拉熊帮你换好啦~")
+    else:
+        msg = (
+            MessageSegment.text("迪拉熊没有找到合适的头像哦~"),
+            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+        )
+    await set_icon.send(msg, at_sender=True)
 
 
 @ratj_on.handle()

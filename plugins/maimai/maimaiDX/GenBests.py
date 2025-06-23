@@ -20,7 +20,7 @@ from .Config import (
     maimai_DXScoreStar,
     maimai_MusicType,
     maimai_MusicIcon,
-    maimai_Rank,
+    maimai_Icon,
     maimai_Class,
     maimai_Shougou,
 )
@@ -681,7 +681,7 @@ async def generatebests(
     nickname: str,
     dani: int,
     type: str,
-    icon: bytes,
+    icon: str,
     frame: str,
     plate: str,
     is_rating_tj: bool,
@@ -708,7 +708,7 @@ async def generatebests(
     if not os.path.exists(plate_path):
         async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/plate/{int(plate)}.png"
+                f"https://assets2.lxns.net/maimai/plate/{plate}.png"
             ) as resp:
                 with open(plate_path, "wb") as fd:
                     async for chunk in resp.content.iter_chunked(1024):
@@ -722,7 +722,16 @@ async def generatebests(
     iconbase = resize_image(iconbase, 0.308)
     bests = paste(bests, iconbase, (60, 46))
     # 头像
-    icon_pic = Image.open(BytesIO(icon))
+    icon_pic_path = maimai_Icon / f"{icon}.png"
+    if not os.path.exists(icon_pic_path):
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
+            async with session.get(
+                f"https://assets2.lxns.net/maimai/icon/{icon}.png"
+            ) as resp:
+                with open(icon_pic_path, "wb") as fd:
+                    async for chunk in resp.content.iter_chunked(1024):
+                        fd.write(chunk)
+    icon_pic = Image.open(icon_pic_path)
     icon_pic = icon_pic.resize((88, 88))
     bests = paste(bests, icon_pic, (73, 75))
 
@@ -859,7 +868,7 @@ async def generate_wcb(
     rating: int,
     input_records,
     all_page_num,
-    icon: bytes,
+    icon: str,
     frame: str,
     plate: str,
     songList,
@@ -884,7 +893,7 @@ async def generate_wcb(
     if not os.path.exists(plate_path):
         async with aiohttp.ClientSession(conn_timeout=3) as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/plate/{int(plate)}.png"
+                f"https://assets2.lxns.net/maimai/plate/{plate}.png"
             ) as resp:
                 with open(plate_path, "wb") as fd:
                     async for chunk in resp.content.iter_chunked(1024):
@@ -898,7 +907,16 @@ async def generate_wcb(
     iconbase = resize_image(iconbase, 0.308)
     bg = paste(bg, iconbase, (60, 46))
     # 头像
-    icon_pic = Image.open(BytesIO(icon))
+    icon_pic_path = maimai_Icon / f"{icon}.png"
+    if not os.path.exists(icon_pic_path):
+        async with aiohttp.ClientSession(conn_timeout=3) as session:
+            async with session.get(
+                f"https://assets2.lxns.net/maimai/icon/{icon}.png"
+            ) as resp:
+                with open(icon_pic_path, "wb") as fd:
+                    async for chunk in resp.content.iter_chunked(1024):
+                        fd.write(chunk)
+    icon_pic = Image.open(icon_pic_path)
     icon_pic = icon_pic.resize((88, 88))
     bg = paste(bg, icon_pic, (73, 75))
 
