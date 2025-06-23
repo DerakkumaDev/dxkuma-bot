@@ -27,7 +27,7 @@ DATA_PATH = "./data/pic_times/"
 LIMIT_MINUTES = 1
 LIMIT_TIMES = 10
 
-groups: dict[int, list[datetime.datetime]] = {}
+groups: dict[int, list[datetime.datetime]] = dict()
 
 
 def get_time():
@@ -92,7 +92,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     type = "sfw"
     path = PICPATH
     if group_id not in groups:
-        groups[group_id] = []
+        groups[group_id] = list()
     if re.search(r"(涩|色|瑟)图|st", msg, re.I):
         type = "nsfw"
         path = PICPATH_NSFW

@@ -52,7 +52,7 @@ async def find_songid_by_alias(name, song_list):
     if matched_ids:
         return matched_ids
 
-    alias_map = {}
+    alias_map = dict()
 
     alias_list = await get_alias_list_lxns()
     for info in alias_list["aliases"]:
@@ -73,10 +73,7 @@ async def find_songid_by_alias(name, song_list):
             alias_map[alias] = song_id
 
     results = process.extract(
-        name,
-        alias_map.keys(),
-        scorer=fuzz.WRatio,
-        score_cutoff=100
+        name, alias_map.keys(), scorer=fuzz.QRatio, score_cutoff=100
     )
     filtered = [alias_map[alias] for alias, _, _ in results]
     matched_ids = list(dict.fromkeys(filtered))
@@ -84,10 +81,7 @@ async def find_songid_by_alias(name, song_list):
         return matched_ids
 
     results = process.extract(
-        name,
-        alias_map.keys(),
-        scorer=fuzz.QRatio,
-        score_cutoff=80
+        name, alias_map.keys(), scorer=fuzz.WRatio, score_cutoff=80
     )
     filtered = [alias_map[alias] for alias, _, _ in results]
     matched_ids = list(dict.fromkeys(filtered))
