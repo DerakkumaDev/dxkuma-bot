@@ -149,7 +149,9 @@ async def _(event: GroupMessageEvent):
 async def _(bot: Bot, event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"(?:机厅|jt|(.+)\s*)有?(?:几(?:人|卡)?|多少(?:人|卡)|jr?)", msg)
+    match = re.fullmatch(
+        r"(?:机厅|jt|(.+)\s*)有?(?:几(?:人|卡)?|多少(?:人|卡)|jr?)", msg
+    )
     arcade_ids = None
     if match:
         word = match.group(1)
@@ -164,6 +166,9 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
     if arcade_ids is None:
         arcade_ids = arcadeManager.get_bounden_arcade_ids(group_id)
+
+    if len(arcade_ids) < 1:
+        await list_count.finish("找不到机厅", at_sender=True)
 
     await list_count.send(
         f"\r\n{"\r\n\r\n".join([await gen_message(bot, arcade_id) for arcade_id in arcade_ids])}",
@@ -216,5 +221,5 @@ async def _(event: GroupMessageEvent):
         arcade_id, action, group_id, user_id, event.time, int(num)
     )
     await change_count.send(
-        f"{arcade["name"]}已变更为{arcade["count"]}人", at_sender=True
+        f"{arcade["name"]}已变更为{arcade["count"]}卡", at_sender=True
     )
