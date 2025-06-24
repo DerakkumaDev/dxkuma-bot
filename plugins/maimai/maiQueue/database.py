@@ -116,6 +116,18 @@ class ArcadeManager(object):
 
             arcades[arcade_id]["bindings"].remove(group_id)
             bindings[group_id].remove(arcade_id)
+            if len(arcades[arcade_id]["bindings"]) < 1:
+                names = data["names"]
+                del names[arcades[arcade_id]["name"]]
+                data["names"] = names
+                if len(arcades[arcade_id]["aliases"]) > 0:
+                    aliases = data["aliases"]
+                    for alias in arcades[arcade_id]["aliases"]:
+                        aliases[alias].remove(arcade_id)
+
+                    data["aliases"] = aliases
+
+                del arcades[arcade_id]
 
             data["arcades"] = arcades
             data["bindings"] = bindings
