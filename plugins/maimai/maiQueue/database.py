@@ -245,13 +245,28 @@ class ArcadeManager(object):
             before = arcade["count"]
             match type:
                 case "add":
-                    arcade["count"] += num
+                    new_count = arcade["count"] + num
+                    if new_count > 50:
+                        return None
+
+                    arcade["count"] = new_count
                 case "remove":
-                    arcade["count"] -= num
+                    new_count = arcade["count"] - num
+                    if new_count < 0:
+                        return None
+
+                    arcade["count"] = new_count
                 case "set":
+                    if num < 0 or num > 50 or arcade["count"] == num:
+                        return None
+
                     arcade["count"] = num
 
-            arcade["action_times"] += 1
+            if group_id == 0 and operator == 0:
+                arcade["action_times"] = 0
+            else:
+                arcade["action_times"] += 1
+
             arcade["last_action"] = {
                 "group": group_id,
                 "operator": operator,

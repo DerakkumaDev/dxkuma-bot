@@ -17,7 +17,7 @@ search = on_regex(r"^搜索机厅\s*.+$", re.I)
 add_alias = on_regex(r"^添加别名\s*.+?\s+.+$", re.I)
 remove_alias = on_regex(r"^删除别名\s*.+?\s+.+$", re.I)
 list_count = on_regex(r"^(机厅|jt|.+\s*)有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
-change_count = on_regex(r"^.+\s*([加减为＋－＝\+-=])\s*\d+(人|卡)?$", re.I)
+change_count = on_regex(r"^.+?\s*([加减为＋－＝\+-=])\s*\d+(人|卡)?$", re.I)
 
 
 @all_help.handle()
@@ -199,7 +199,7 @@ async def _(event: GroupMessageEvent):
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"(.+)\s*([加减为＋－＝\+-=])\s*(\d+)(?:人|卡)?", msg)
+    match = re.fullmatch(r"(.+?)\s*([加减为＋－＝\+-=])\s*(\d+)(?:人|卡)?", msg)
     if not match:
         return
 
@@ -239,6 +239,9 @@ async def _(event: GroupMessageEvent):
         arcade = arcadeManager.do_action(
             arcade_id, action, group_id, user_id, event.time, int(num)
         )
+        if arcade is None:
+            await change_count.finish("？你确定", at_sender=True)
+
     await change_count.send(
         f"{arcade["name"]}已变更为{arcade["count"]}卡", at_sender=True
     )

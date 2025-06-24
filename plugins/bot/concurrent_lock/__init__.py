@@ -1,19 +1,26 @@
 from nonebot.adapters.onebot.v11 import (
+    Bot,
     GroupMessageEvent,
     GroupIncreaseNoticeEvent,
     GroupDecreaseNoticeEvent,
 )
 from nonebot.exception import IgnoredException
+from nonebot.internal.driver import Driver
 from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
 
 from util.exceptions import NotAllowedException, NeedToSwitchException, SkipException
 from .util import locks, Lock, States
+
+bots = list()
 
 
 @event_preprocessor
 async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
+    if event.get_user_id() in bots:
+        raise IgnoredException(SkipException)
+
     if event.is_tome():
         return
 
@@ -70,3 +77,13 @@ async def _(
             return
 
     locks[key].semaphore.release()
+
+
+@Driver.on_bot_connect
+async def _(bot: Bot):
+    bots.append(bot.self_id)
+
+
+@Driver.on_bot_disconnect
+async def _(bot: Bot):
+    bots.remove(bot.self_id)
