@@ -9,6 +9,7 @@ from .utils import gen_message
 
 lock = Lock()
 
+all_help = on_regex(r"^(迪拉熊|dlx)([cp]k|[查排]卡)$", re.I)
 registering = on_regex(r"^注册机厅\s*.+$", re.I)
 binding = on_regex(r"^绑定机厅\s*.+$", re.I)
 unbinding = on_regex(r"^解绑机厅\s*.+$", re.I)
@@ -17,6 +18,13 @@ add_alias = on_regex(r"^添加别名\s*.+?\s+.+$", re.I)
 remove_alias = on_regex(r"^删除别名\s*.+?\s+.+$", re.I)
 list_count = on_regex(r"^(机厅|jt|.+\s*)有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
 change_count = on_regex(r"^.+\s*([加减为＋－＝\+-=])\s*\d+(人|卡)?$", re.I)
+
+
+@all_help.handle()
+async def _(event: GroupMessageEvent):
+    await all_help.send(
+        "注册机厅+机厅全称\r\n绑定机厅+机厅全称\r\n解绑机厅+别名\r\n搜索机厅+关键词\r\n添加别名+机厅全称+机厅别名\r\n删除别名+机厅全称+机厅别名\r\n机厅几卡\r\n别名+几卡\r\n别名+(+/-/=)+整数"
+    )
 
 
 @registering.handle()

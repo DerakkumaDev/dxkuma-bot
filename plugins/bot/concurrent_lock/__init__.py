@@ -28,7 +28,7 @@ async def _(
             locks[key].count -= 1
             locks[key].semaphore.release()
         else:
-            locks.pop(key)
+            del locks[key]
 
         raise IgnoredException(SkipException)
 
@@ -66,7 +66,7 @@ async def _(
     locks[key].count -= 1
     if locks[key].state == States.PROCESSED:
         if locks[key].count <= 0:
-            locks.pop(key)
+            del locks[key]
             return
 
     locks[key].semaphore.release()

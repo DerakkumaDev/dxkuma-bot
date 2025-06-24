@@ -26,7 +26,7 @@ class OpenChars(object):
             if group_id not in data:
                 return
 
-            data.pop(group_id)
+            del data[group_id]
 
     def open_char(self, group_id: str, chars: str, user_id: str):
         with shelve.open(self.data_path) as data:
