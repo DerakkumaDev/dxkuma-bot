@@ -1,6 +1,6 @@
+import orjson as json
 from aiohttp import ClientSession
 
-import orjson as json
 from util.Config import config
 
 base_url = "https://www.diving-fish.com/api/maimaidxprober/"

@@ -48,6 +48,7 @@ python start.py
 | PIL              | /    | 图像处理库     |
 | python-soundfile | /    | 音频处理库     |
 | Pykakasi         | /    | 假名及罗马转换支持 |
+| RapidFuzz        | /    | 模糊匹配库     |
 
 ## 制作&鸣谢
 

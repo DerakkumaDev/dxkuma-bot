@@ -22,9 +22,9 @@ groupRequest = on_type(GroupRequestEvent)
 
 @groupIncrease.handle()
 async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
-    qq = event.user_id
-    if event.get_user_id() == bot.self_id:
+    if event.is_tome():
         return
+    qq = event.user_id
     group_id = event.group_id
     user_info = await bot.get_stranger_info(user_id=qq)
     if group_id == config.special_group:
@@ -42,6 +42,8 @@ async def _(bot: Bot, event: GroupIncreaseNoticeEvent):
 
 @groupDecrease.handle()
 async def _(bot: Bot, event: GroupDecreaseNoticeEvent):
+    if event.is_tome():
+        return
     qq = event.user_id
     group_id = event.group_id
     user_info = await bot.get_stranger_info(user_id=qq)

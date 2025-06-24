@@ -3,6 +3,7 @@ from nonebot.adapters.onebot.v11 import (
     GroupIncreaseNoticeEvent,
     GroupDecreaseNoticeEvent,
 )
+from nonebot.exception import IgnoredException
 from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
 
 from util.exceptions import NotAllowedException, NeedToSwitchException, SkipException
@@ -29,7 +30,7 @@ async def _(
         else:
             locks.pop(key)
 
-        raise SkipException
+        raise IgnoredException(SkipException)
 
     return
 

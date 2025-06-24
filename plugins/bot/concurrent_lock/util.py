@@ -1,5 +1,6 @@
-from asyncio import Semaphore
 from enum import Enum, unique
+
+from anyio import Semaphore
 
 
 @unique
@@ -13,7 +14,7 @@ class States(Enum):
 class Lock(object):
     def __init__(self):
         self.state = States.PROCESSING
-        self.semaphore = Semaphore()
+        self.semaphore = Semaphore(1)
         self.count = 0
 
 
