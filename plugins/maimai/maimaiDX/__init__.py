@@ -444,8 +444,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         if "isBlock" not in user_info and "isBlocked" not in user_info:
             sender_qq = target_qq
             break
@@ -554,8 +552,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as cfg:
             if (
                 target_qq not in cfg
@@ -653,8 +649,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -763,8 +757,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -873,8 +865,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -985,8 +975,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1085,8 +1073,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1197,8 +1183,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1309,8 +1293,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1425,8 +1407,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == sender_qq:
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1582,8 +1562,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config
@@ -1692,8 +1670,6 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        if target_qq == bot.self_id:
-            return
         with shelve.open("./data/user_config.db") as config:
             if (
                 target_qq not in config

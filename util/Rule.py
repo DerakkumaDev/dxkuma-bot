@@ -37,7 +37,7 @@ class RegexRule:
 
     async def __call__(self, event: Event, state: T_State) -> bool:
         try:
-            text = event.get_plaintext()
+            text = event.get_message().extract_plain_text().strip()
         except Exception:
             return False
         if matched := re.search(self.regex, text, self.flags):

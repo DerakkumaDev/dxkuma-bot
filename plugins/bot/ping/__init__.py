@@ -22,7 +22,10 @@ async def _(event: GroupMessageEvent):
 
 @Driver.on_bot_disconnect
 async def _(bot: Bot):
-    sender = get_bot()
+    try:
+        sender = get_bot()
+    except:
+        return
     await sender.send_group_msg(
         group_id=config.dev_group, message=f"{bot.self_id} is DOWN"
     )

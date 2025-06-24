@@ -12,8 +12,8 @@ unbinding = on_regex(r"^解绑机厅\s*.+$", re.I)
 search = on_regex(r"^搜索机厅\s*.+$", re.I)
 add_alias = on_regex(r"^添加别名\s*.+?\s+.+$", re.I)
 remove_alias = on_regex(r"^删除别名\s*.+?\s+.+$", re.I)
-list_count = on_regex(r"^(机厅|jt|.+)(几(人|卡)?|多少(人|卡)|j)$", re.I)
-change_count = on_regex(r"^.+([=加减为]|\+=?|-=?)\d+$", re.I)
+list_count = on_regex(r"^(机厅|jt|.+\s*)有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
+change_count = on_regex(r"^.+\s*([加减为＋－＝\+-=])\s*\d+(人|卡)?$", re.I)
 
 
 @registering.handle()
@@ -149,7 +149,7 @@ async def _(event: GroupMessageEvent):
 async def _(bot: Bot, event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"(?:机厅|jt|(.+))(?:几(?:人|卡)?|多少(?:人|卡)|j)", msg)
+    match = re.fullmatch(r"(?:机厅|jt|(.+)\s*)有?(?:几(?:人|卡)?|多少(?:人|卡)|jr?)", msg)
     arcade_ids = None
     if match:
         word = match.group(1)
@@ -176,7 +176,7 @@ async def _(event: GroupMessageEvent):
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"(.+)([=加减为]|\+=?|-=?)(\d+)", msg)
+    match = re.fullmatch(r"(.+)\s*([加减为＋－＝\+-=])\s*(\d+)(?:人|卡)?", msg)
     if not match:
         return
 
@@ -186,17 +186,19 @@ async def _(event: GroupMessageEvent):
     match action_str:
         case "加":
             action = "add"
-        case "+":
+        case "＋":
             action = "add"
-        case "+=":
+        case "+":
             action = "add"
         case "减":
             action = "remove"
+        case "－":
+            action = "remove"
         case "-":
             action = "remove"
-        case "-=":
-            action = "remove"
         case "为":
+            action = "set"
+        case "＝":
             action = "set"
         case "=":
             action = "set"
