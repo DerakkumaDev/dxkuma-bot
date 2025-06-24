@@ -5,6 +5,8 @@ import re
 import shelve
 from pathlib import Path
 
+import aiofiles
+import anyio
 from PIL import Image, UnidentifiedImageError
 from dill import Pickler, Unpickler
 from nonebot import on_regex
@@ -137,18 +139,18 @@ async def _(bot: Bot, event: GroupMessageEvent):
                     "哼哼，迪拉熊的魅力这么大嘛，但是也要注意节制哦~"
                 )
             await rand_pic.finish(msg)
-    with open(pic_path, "rb") as fd:
-        send_msg = await rand_pic.send(MessageSegment.image(fd.read()))
+    async with aiofiles.open(pic_path, "rb") as fd:
+        send_msg = await rand_pic.send(MessageSegment.image(await fd.read()))
     groups[group_id].append(datetime.datetime.now())
     update_count(qq=qq, type=type)
     if type == "nsfw":
         msg_id = send_msg["message_id"]
-        asyncio.create_task(delete_msg(bot, 10, msg_id))
 
+        async def delete_msg_after_delay():
+            await anyio.sleep(10)
+            await bot.delete_msg(message_id=msg_id)
 
-async def delete_msg(bot, sec, message_id):
-    await asyncio.sleep(sec)
-    await bot.delete_msg(message_id=message_id)
+        asyncio.create_task(delete_msg_after_delay())
 
 
 @rank.handle()

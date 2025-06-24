@@ -2,10 +2,10 @@ import math
 import os
 from io import BytesIO
 
-import aiohttp
+import aiofiles
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
-from numpy import random
+from aiohttp import ClientSession
 
 from plugins.maimai.maiWordle.GLOBAL_CONSTANT import version_df_maps, exclude_list
 from util.Config import config as Config
@@ -384,13 +384,12 @@ async def music_to_part(
     # 歌曲封面
     jacket_path = f"./Cache/Jacket/{song_id % 10000}.png"
     if not os.path.exists(jacket_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{song_id % 10000}.png"
             ) as resp:
-                with open(jacket_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(jacket_path, "wb") as fd:
+                    await fd.write(await resp.read())
     jacket = Image.open(jacket_path)
     jacket = resize_image(jacket, 0.56)
     partbase = paste(partbase, jacket, (36, 41))
@@ -620,7 +619,7 @@ async def draw_best(bests: list, type: str, songList, begin: int = 0):
 
 
 def rating_tj(b35max, b35min, b15max, b15min):
-    rng = random.default_rng()
+    rng = np.random.default_rng()
     ratingbase_path = maimai_Static / "rating_base.png"
     ratingbase = Image.open(ratingbase_path)
     draw = ImageDraw.Draw(ratingbase)
@@ -706,13 +705,12 @@ async def generatebests(
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
     if not os.path.exists(plate_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/plate/{plate}.png"
             ) as resp:
-                with open(plate_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(plate_path, "wb") as fd:
+                    await fd.write(await resp.read())
     plate = Image.open(plate_path)
     bests = paste(bests, plate, (60, 60))
 
@@ -724,13 +722,12 @@ async def generatebests(
     # 头像
     icon_pic_path = maimai_Icon / f"{icon}.png"
     if not os.path.exists(icon_pic_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/icon/{icon}.png"
             ) as resp:
-                with open(icon_pic_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(icon_pic_path, "wb") as fd:
+                    await fd.write(await resp.read())
     icon_pic = Image.open(icon_pic_path)
     icon_pic = icon_pic.resize((88, 88))
     bests = paste(bests, icon_pic, (73, 75))
@@ -891,13 +888,12 @@ async def generate_wcb(
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
     if not os.path.exists(plate_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/plate/{plate}.png"
             ) as resp:
-                with open(plate_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(plate_path, "wb") as fd:
+                    await fd.write(await resp.read())
     plate = Image.open(plate_path)
     bg = paste(bg, plate, (60, 60))
 
@@ -909,13 +905,12 @@ async def generate_wcb(
     # 头像
     icon_pic_path = maimai_Icon / f"{icon}.png"
     if not os.path.exists(icon_pic_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/icon/{icon}.png"
             ) as resp:
-                with open(icon_pic_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(icon_pic_path, "wb") as fd:
+                    await fd.write(await resp.read())
     icon_pic = Image.open(icon_pic_path)
     icon_pic = icon_pic.resize((88, 88))
     bg = paste(bg, icon_pic, (73, 75))

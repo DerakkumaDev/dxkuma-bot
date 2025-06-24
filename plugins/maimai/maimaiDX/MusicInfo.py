@@ -2,8 +2,9 @@ import math
 import os
 from io import BytesIO
 
-import aiohttp
+import aiofiles
 import numpy as np
+from aiohttp import ClientSession
 from PIL import Image, ImageDraw, ImageFont
 
 from util.Config import config
@@ -15,7 +16,6 @@ from .Config import (
     maimai_Version,
     maimai_Plus,
     maimai_MusicType,
-    maimai_Rank,
 )
 from .GenBests import get_fit_diff
 
@@ -57,13 +57,12 @@ async def music_info(song_data):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
             ) as resp:
-                with open(cover_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(cover_path, "wb") as fd:
+                    await fd.write(await resp.read())
     cover = Image.open(cover_path).resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
@@ -273,13 +272,12 @@ async def play_info(data, song_data):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
             ) as resp:
-                with open(cover_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(cover_path, "wb") as fd:
+                    await fd.write(await resp.read())
     cover = Image.open(cover_path).resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
@@ -520,13 +518,12 @@ async def utage_music_info(song_data, index=0):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
             ) as resp:
-                with open(cover_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(cover_path, "wb") as fd:
+                    await fd.write(await resp.read())
     cover = Image.open(cover_path).resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
@@ -702,13 +699,12 @@ async def score_info(song_data, index):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
             ) as resp:
-                with open(cover_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(cover_path, "wb") as fd:
+                    await fd.write(await resp.read())
     cover = Image.open(cover_path).resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)

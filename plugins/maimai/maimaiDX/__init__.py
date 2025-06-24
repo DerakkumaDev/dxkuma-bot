@@ -3,11 +3,12 @@ import os
 import re
 import shelve
 import time
+import urllib
 from pathlib import Path
 
-import aiohttp
+import aiofiles
 import numpy as np
-import urllib
+from aiohttp import ClientSession
 from dill import Pickler, Unpickler
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
@@ -510,7 +511,7 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         if source == "lxns":
             params = {"dev-token": config.lx_token}
             if lx_personal_token:
@@ -608,7 +609,7 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，时间较长请耐心等待mai~"),
         )
     )
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession() as session:
         if source == "lxns":
             params = {"dev-token": config.lx_token}
             if lx_personal_token:
@@ -2053,7 +2054,7 @@ async def _(event: MessageEvent):
         await wcb.send(
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
         )
-        async with aiohttp.ClientSession() as session:
+        async with ClientSession() as session:
             params = {"level": level, "page": page}
             if source == "lxns":
                 params["personal-token"] = lx_personal_token
@@ -2554,7 +2555,7 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     plate_path = f"./Cache/Plate/{id}.png"
     if not os.path.exists(plate_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/plate/{id}.png"
             ) as resp:
@@ -2565,9 +2566,8 @@ async def _(event: MessageEvent):
                     )
                     await set_plate.finish(msg, at_sender=True)
 
-                with open(plate_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(plate_path, "wb") as fd:
+                    await fd.write(await resp.read())
 
     with shelve.open("./data/user_config.db") as config:
         if qq not in config:

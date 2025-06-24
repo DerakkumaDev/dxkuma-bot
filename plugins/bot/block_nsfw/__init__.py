@@ -1,5 +1,6 @@
 import os
 
+import aiofiles
 from nonebot import on_fullmatch
 from nonebot.adapters.onebot.v11 import MessageEvent
 
@@ -14,7 +15,7 @@ async def _(event: MessageEvent):
     if event.user_id not in config.admin_accounts:
         return
 
-    with open("./data/nsfw_lock", "w"):
+    async with aiofiles.open("./data/nsfw_lock", "w"):
         pass
 
     await block.send("st功能已禁用")

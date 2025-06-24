@@ -1,17 +1,17 @@
 import math
 import os
 import re
-from asyncio import Lock
 from io import BytesIO
 from pathlib import Path
 
-import aiohttp
+import aiofiles
 import numpy as np
 import soundfile
 from PIL import Image
+from aiohttp import ClientSession
+from anyio import Lock
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
-from numpy import random
 from rapidfuzz import fuzz_py as fuzz
 from rapidfuzz import process_py as process
 
@@ -140,13 +140,12 @@ async def _(event: GroupMessageEvent):
             for i, title, id in char_all_open:
                 cover_path = f"./Cache/Jacket/{id % 10000}.png"
                 if not os.path.exists(cover_path):
-                    async with aiohttp.ClientSession(conn_timeout=3) as session:
+                    async with ClientSession(conn_timeout=3) as session:
                         async with session.get(
                             f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
                         ) as resp:
-                            with open(cover_path, "wb") as fd:
-                                async for chunk in resp.content.iter_chunked(1024):
-                                    fd.write(chunk)
+                            async with aiofiles.open(cover_path, "wb") as fd:
+                                await fd.write(await resp.read())
 
                 await open_chars.send(
                     (
@@ -193,13 +192,12 @@ async def _(event: GroupMessageEvent):
         for i, title, id in guess_success:
             cover_path = f"./Cache/Jacket/{id % 10000}.png"
             if not os.path.exists(cover_path):
-                async with aiohttp.ClientSession(conn_timeout=3) as session:
+                async with ClientSession(conn_timeout=3) as session:
                     async with session.get(
                         f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
                     ) as resp:
-                        with open(cover_path, "wb") as fd:
-                            async for chunk in resp.content.iter_chunked(1024):
-                                fd.write(chunk)
+                        async with aiofiles.open(cover_path, "wb") as fd:
+                            await fd.write(await resp.read())
 
             await all_message_handle.send(
                 (
@@ -238,7 +236,7 @@ async def _(event: GroupMessageEvent):
 
 @info_tip.handle()
 async def _(event: GroupMessageEvent):
-    rng = random.default_rng()
+    rng = np.random.default_rng()
     group_id = str(event.group_id)
     user_id = event.get_user_id()
     msg = event.get_plaintext()
@@ -325,7 +323,7 @@ async def _(event: GroupMessageEvent):
 
 @pic_tip.handle()
 async def _(event: GroupMessageEvent):
-    rng = random.default_rng()
+    rng = np.random.default_rng()
     group_id = str(event.group_id)
     user_id = event.get_user_id()
     msg = event.get_plaintext()
@@ -383,13 +381,12 @@ async def _(event: GroupMessageEvent):
     )
     cover_path = f"./Cache/Jacket/{data["music_id"] % 10000}.png"
     if not os.path.exists(cover_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{data["music_id"] % 10000}.png"
             ) as resp:
-                with open(cover_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(cover_path, "wb") as fd:
+                    await fd.write(await resp.read())
 
     cover = Image.open(cover_path)
     pers = 1 / math.sqrt(rng.integers(16, 26))
@@ -414,7 +411,7 @@ async def _(event: GroupMessageEvent):
 
 @aud_tip.handle()
 async def _(event: GroupMessageEvent):
-    rng = random.default_rng()
+    rng = np.random.default_rng()
     group_id = str(event.group_id)
     user_id = event.get_user_id()
     msg = event.get_plaintext()
@@ -475,13 +472,12 @@ async def _(event: GroupMessageEvent):
     )
     music_path = f"./Cache/Music/{data["music_id"] % 10000}.mp3"
     if not os.path.exists(music_path):
-        async with aiohttp.ClientSession(conn_timeout=3) as session:
+        async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/music/{data["music_id"] % 10000}.mp3"
             ) as resp:
-                with open(music_path, "wb") as fd:
-                    async for chunk in resp.content.iter_chunked(1024):
-                        fd.write(chunk)
+                async with aiofiles.open(music_path, "wb") as fd:
+                    await fd.write(await resp.read())
 
     audio_data, samplerate = soundfile.read(music_path)
     pos = rng.integers(0, len(audio_data) - samplerate, endpoint=True)

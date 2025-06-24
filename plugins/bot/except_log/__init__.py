@@ -3,6 +3,7 @@ import traceback
 from dbm import error
 from pathlib import Path
 
+import aiofiles
 from PIL import Image, UnidentifiedImageError
 from aiohttp import ClientError
 from nonebot import get_bot
@@ -70,9 +71,9 @@ async def _(event: Event, matcher: Matcher, exception: Exception | None):
             MessageSegment.image(Path("./Static/Help/pleasewait.png")),
         )
         await matcher.finish(feedback)
-    with open(pic_path, "rb") as fd:
+    async with aiofiles.open(pic_path, "rb") as fd:
         feedback = (
             MessageSegment.text("迪拉熊遇到了一点小问题，先来看点迪拉熊吧"),
-            MessageSegment.image(fd.read()),
+            MessageSegment.image(await fd.read()),
         )
         await matcher.send(feedback)
