@@ -135,29 +135,14 @@ class ArcadeManager(object):
 
     def search(self, group_id: int, word: str):
         bounden_arcade_ids = self.get_bounden_arcade_ids(group_id)
-        names = list()
+        matched_ids = list()
         for arcade_id in bounden_arcade_ids:
             arcade = self.get_arcade(arcade_id)
             if word in arcade["aliases"]:
-                return [arcade_id]
+                matched_ids.append(arcade_id)
 
-            names.append(arcade["name"])
-
-        results = process.extract(word, names, scorer=fuzz.QRatio, score_cutoff=100)
-        filtered = [
-            arcade_id
-            for arcade_id in [self.get_arcade_id(name) for name, _, _ in results]
-        ]
-        matched_ids = list(dict.fromkeys(filtered))
-        if len(matched_ids) > 0:
-            return matched_ids
-
-        results = process.extract(word, names, scorer=fuzz.WRatio, score_cutoff=80)
-        filtered = [
-            arcade_id
-            for arcade_id in [self.get_arcade_id(name) for name, _, _ in results]
-        ]
-        matched_ids = list(dict.fromkeys(filtered))
+            if word == arcade["name"]:
+                matched_ids.append(arcade_id)
 
         return matched_ids
 

@@ -23,7 +23,7 @@ async def _():
 @report.handle()
 async def _():
     msg = (
-        MessageSegment.text("http://sl.srcz.one/kumabugs"),
+        MessageSegment.text("迪拉熊Bug反馈&建议收集站：https://l.srcz.one/kumabugs"),
         MessageSegment.image(Path("./Static/Help/1.jpg")),
     )
     await report.send(msg)
@@ -32,7 +32,7 @@ async def _():
 @report_tome.handle()
 async def _():
     msg = (
-        MessageSegment.text("http://sl.srcz.one/kumabugs"),
+        MessageSegment.text("迪拉熊Bug反馈&建议收集站：https://l.srcz.one/kumabugs"),
         MessageSegment.image(Path("./Static/Help/1.jpg")),
     )
     await report_tome.send(msg)

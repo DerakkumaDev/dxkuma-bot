@@ -17,7 +17,7 @@ search = on_regex(r"^搜索机厅\s*.+$", re.I)
 add_alias = on_regex(r"^添加别名\s*.+?\s+.+$", re.I)
 remove_alias = on_regex(r"^删除别名\s*.+?\s+.+$", re.I)
 list_count = on_regex(r"^(机厅|jt|.+\s*)有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
-change_count = on_regex(r"^.+?\s*([加减为＋－＝\+-=])\s*\d+(人|卡)?$", re.I)
+change_count = on_regex(r"^.+?\s*([加减为＋－＝\+-=])?\s*\d+(人|卡)?$", re.I)
 
 
 @all_help.handle()
@@ -207,7 +207,7 @@ async def _(event: GroupMessageEvent):
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"(.+?)\s*([加减为＋－＝\+-=])\s*(\d+)(?:人|卡)?", msg)
+    match = re.fullmatch(r"(.+?)\s*([加减为＋－＝\+-=])?\s*(\d+)(?:人|卡)?", msg)
     if not match:
         return
 
@@ -232,6 +232,8 @@ async def _(event: GroupMessageEvent):
         case "＝":
             action = "set"
         case "=":
+            action = "set"
+        case None:
             action = "set"
 
     async with lock:
