@@ -23,7 +23,7 @@ change_count = on_regex(r"^.+?\s*([加减为＋－＝\+-=])\s*\d+(人|卡)?$", r
 @all_help.handle()
 async def _(event: GroupMessageEvent):
     await all_help.send(
-        "注册机厅+机厅全称\r\n绑定机厅+机厅全称\r\n解绑机厅+别名\r\n搜索机厅+关键词\r\n添加别名+机厅全称+机厅别名\r\n删除别名+机厅全称+机厅别名\r\n机厅几卡\r\n别名+几卡\r\n别名+(+/-/=)+整数"
+        "排卡指令\r\n\r\n注册机厅+机厅全称\r\n绑定机厅+机厅全称\r\n解绑机厅+别名\r\n搜索机厅+关键词\r\n添加别名+机厅全称+机厅别名\r\n删除别名+机厅全称+机厅别名\r\n机厅几卡\r\n别名+几卡\r\n别名+(+/-/=)+整数"
     )
 
 
@@ -106,8 +106,16 @@ async def _(event: GroupMessageEvent):
         if matching_arcade_count < 1:
             await search.finish("找不到机厅", at_sender=True)
 
+        if matching_arcade_count > 10:
+            await search.finish("关键词过于模糊", at_sender=True)
+
+        arcades = []
+        for arcade_id in matching_arcade_ids:
+            arcade = arcadeManager.get_arcade(arcade_id)
+            arcades.append(arcade)
+
         await search.send(
-            f"找到以下机厅：\r\n{"\r\n".join([arcadeManager.get_arcade(arcade_id)["name"] for arcade_id in matching_arcade_ids])}",
+            f"找到以下机厅：\r\n{"\r\n\r\n".join([f"{arcade["name"]}\r\n{f"别名：{'、'.join(arcade['aliases'])}" if len(arcade["aliases"]) > 0 else ""}" for arcade in arcades])}",
             at_sender=True,
         )
 
@@ -239,9 +247,7 @@ async def _(event: GroupMessageEvent):
         arcade = arcadeManager.do_action(
             arcade_id, action, group_id, user_id, event.time, int(num)
         )
-        if arcade is None:
-            await change_count.finish("？你确定", at_sender=True)
 
     await change_count.send(
-        f"{arcade["name"]}已变更为{arcade["count"]}卡", at_sender=True
+        f"{arcade["name"]}已更新为{arcade["count"]}卡", at_sender=True
     )

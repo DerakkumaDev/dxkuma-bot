@@ -40,7 +40,7 @@ class ArcadeManager(object):
             if last_action_time >= today or now.tm_hour < 4:
                 return arcade
 
-            arcade = self.do_action(arcade_id, "set", -1, -1, int(today), 0)
+            arcade = self.reset(arcade_id, int(today))
             return arcade
 
     def get_arcade_id(self, arcade_name: str):
@@ -247,25 +247,22 @@ class ArcadeManager(object):
                 case "add":
                     new_count = arcade["count"] + num
                     if new_count > 50:
-                        return None
+                        return arcade
 
                     arcade["count"] = new_count
                 case "remove":
                     new_count = arcade["count"] - num
                     if new_count < 0:
-                        return None
+                        return arcade
 
                     arcade["count"] = new_count
                 case "set":
                     if num < 0 or num > 50 or arcade["count"] == num:
-                        return None
+                        return arcade
 
                     arcade["count"] = num
 
-            if group_id == 0 and operator == 0:
-                arcade["action_times"] = 0
-            else:
-                arcade["action_times"] += 1
+            arcade["action_times"] += 1
 
             arcade["last_action"] = {
                 "group": group_id,
@@ -273,6 +270,25 @@ class ArcadeManager(object):
                 "time": time,
                 "action": {"type": type, "before": before, "num": num},
             }
+            arcades[arcade_id] = arcade
+
+            data["arcades"] = arcades
+            return arcade
+
+    def reset(self, arcade_id: str, time: int):
+        with shelve.open(self.data_path) as data:
+            arcades = data["arcades"]
+
+            arcade = arcades[arcade_id]
+            arcade["action_times"] = 0
+            before = arcade["count"]
+            if before > 0:
+                arcade["last_action"] = {
+                    "group": -1,
+                    "operator": -1,
+                    "time": time,
+                    "action": {"type": "set", "before": before, "num": 0},
+                }
             arcades[arcade_id] = arcade
 
             data["arcades"] = arcades
