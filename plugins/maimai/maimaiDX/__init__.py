@@ -1114,7 +1114,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    msg_text = event.get_plaintext().replace("+", "p").casefold()
+    msg_text = event.get_message().extract_plain_text().replace("+", "p").casefold()
     rate_rules = re.findall(r"s{1,3}p?|a{1,3}|b{1,3}|[cd]", msg_text, re.I)
     songList = await get_music_data()
     rate35, rate15, _ = await records_to_bests(records, songList, rate_rules=rate_rules)
@@ -1335,7 +1335,9 @@ async def _(bot: Bot, event: MessageEvent):
             at_sender=True,
         )
     songList = await get_music_data()
-    find = re.fullmatch(r"dlxx50((?:\s*[1-5])+)", event.get_plaintext(), re.I)
+    find = re.fullmatch(
+        r"dlxx50((?:\s*[1-5])+)", event.get_message().extract_plain_text(), re.I
+    )
     star35, star15, mask_enabled = await records_to_bests(
         records, songList, is_dxs=True, dx_star_count=find.group(1)
     )
@@ -1762,7 +1764,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 @rr50.handle()
 async def _(event: MessageEvent):
-    match = re.fullmatch(r"dlxrr(?:50)?\s*(\d+)", event.get_plaintext(), re.I)
+    match = re.fullmatch(
+        r"dlxrr(?:50)?\s*(\d+)", event.get_message().extract_plain_text(), re.I
+    )
     rating = 0
     if match:
         rating = int(match.group(1))
@@ -1857,7 +1861,7 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     pattern = r"\d+"
     match = re.search(pattern, msg)
     if match:
@@ -1950,7 +1954,7 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     pattern = r"\d+"
     match = re.search(pattern, msg)
     if match:
@@ -2005,7 +2009,7 @@ async def _(event: MessageEvent):
 @wcb.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     pattern = r"(?:(\d+\+?)|(真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|镜))(?:\s*(\d+))?"
     match = re.search(pattern, msg)
     level = match.group(1)
@@ -2150,7 +2154,7 @@ async def _(event: MessageEvent):
 
 @songinfo.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(
         r"(?:chart|id|search|查歌)\s*(?:(dx|sd|标准?)\s*)?(.+)|(?:(dx|sd|标准?)\s*)?(.+)是什么歌？?",
         msg,
@@ -2211,7 +2215,7 @@ async def _(event: MessageEvent):
 @playinfo.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"(?:score|info)\s*(?:(dx|sd|标准?)\s*)?(.+)", msg, re.I)
     if not match:
         return
@@ -2288,7 +2292,7 @@ async def _(event: MessageEvent):
 
 @scoreinfo.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     pattern = r"(绿|黄|红|紫|白)\s*(?:(dx|sd|标准?)\s*)?(.+)"
     match = re.search(pattern, msg, re.I)
     type_index = ["绿", "黄", "红", "紫", "白"].index(match.group(1))
@@ -2341,7 +2345,7 @@ async def _(event: MessageEvent):
 
 @playaudio.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"dlx点歌\s*(.+)", msg, re.I)
     if not match:
         return
@@ -2388,7 +2392,7 @@ async def _(event: MessageEvent):
 @randomsong.handle()
 async def _(event: MessageEvent):
     rng = random.default_rng()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     pattern = r"(绿|黄|红|紫|白)?\s*((?:\d+)(?:\.\d|\+)?)"
     match = re.search(pattern, msg)
     level_label = match.group(1)
@@ -2464,7 +2468,7 @@ async def _(event: MessageEvent):
 # 查看别名
 @aliasSearch.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(
         r"(?:alias|查看?别名)\s*(.+)|(.+)有(什么|哪些)别名？?", msg, re.I
     )
@@ -2551,7 +2555,7 @@ async def _():
 @set_plate.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     id = re.search(r"\d+", msg).group().lstrip("0")
     plate_path = f"./Cache/Plate/{id}.png"
     if not os.path.exists(plate_path):
@@ -2587,7 +2591,7 @@ async def _(event: MessageEvent):
 @set_frame.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     id = re.search(r"\d+", msg).group().lstrip("0")
     dir_path = "./Static/maimai/Frame/"
     file_name = f"UI_Frame_{id}.png"
@@ -2616,7 +2620,7 @@ async def _(event: MessageEvent):
 @set_icon.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     id = re.search(r"\d+", msg).group().lstrip("0")
     dir_path = "./Static/maimai/Icon/"
     file_name = f"{id}.png"
@@ -2717,7 +2721,7 @@ async def _(event: MessageEvent):
 @set_source.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     if "落雪" in msg:
         source = "lxns"
         source_name = "落雪"
@@ -2746,7 +2750,9 @@ async def _(event: MessageEvent):
 @set_token.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    match = re.fullmatch(r"绑定\s*(落雪|水鱼)\s*(.+)", event.get_plaintext(), re.I)
+    match = re.fullmatch(
+        r"绑定\s*(落雪|水鱼)\s*(.+)", event.get_message().extract_plain_text(), re.I
+    )
     prober = match.group(1)
     token = match.group(2)
     if prober == "落雪":

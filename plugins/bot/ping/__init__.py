@@ -13,7 +13,7 @@ async def _(event: GroupMessageEvent):
     if event.group_id != config.dev_group:
         return
 
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     msg = msg.replace("i", "o")
     msg = msg.replace("I", "O")
     await ping.send(msg)

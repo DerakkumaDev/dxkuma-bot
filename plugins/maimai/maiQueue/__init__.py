@@ -30,7 +30,7 @@ async def _(event: GroupMessageEvent):
 @registering.handle()
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"注册机厅\s*(.+)", msg)
     if not match:
         return
@@ -50,7 +50,7 @@ async def _(event: GroupMessageEvent):
 @binding.handle()
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"绑定机厅\s*(.+)", msg)
     if not match:
         return
@@ -70,7 +70,7 @@ async def _(event: GroupMessageEvent):
 @unbinding.handle()
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"解绑机厅\s*(.+)", msg)
     if not match:
         return
@@ -94,7 +94,7 @@ async def _(event: GroupMessageEvent):
 
 @search.handle()
 async def _(event: GroupMessageEvent):
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"搜索机厅\s*(.+)", msg)
     if not match:
         return
@@ -123,7 +123,7 @@ async def _(event: GroupMessageEvent):
 @add_alias.handle()
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"添加别名\s*(.+?)\s+(.+)", msg)
     if not match:
         return
@@ -148,7 +148,7 @@ async def _(event: GroupMessageEvent):
 @remove_alias.handle()
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"删除别名\s*(.+?)\s+(.+)", msg)
     if not match:
         return
@@ -173,7 +173,7 @@ async def _(event: GroupMessageEvent):
 @list_count.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
     group_id = event.group_id
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(
         r"(?:机厅|jt|(.+)\s*)有?(?:几(?:人|卡)?|多少(?:人|卡)|jr?)", msg
     )
@@ -206,7 +206,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
     user_id = event.user_id
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"(.+?)\s*([加减为＋－＝\+-=])?\s*(\d+)(?:人|卡)?", msg)
     if not match:
         return

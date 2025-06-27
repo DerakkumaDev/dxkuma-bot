@@ -111,7 +111,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
     user_id = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     match = re.fullmatch(r"开\s*(.+)", msg)
     if not match:
         return
@@ -173,7 +173,7 @@ async def _(event: GroupMessageEvent):
         if not game_data:
             return
 
-        msg_content = event.get_plaintext()
+        msg_content = event.get_message().extract_plain_text()
         if not msg_content:
             return
 
@@ -239,7 +239,7 @@ async def _(event: GroupMessageEvent):
     rng = np.random.default_rng()
     group_id = str(event.group_id)
     user_id = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     index = re.search(r"\d+", msg)
     async with lock:
         game_data = openchars.get_game_data(group_id)
@@ -326,7 +326,7 @@ async def _(event: GroupMessageEvent):
     rng = np.random.default_rng()
     group_id = str(event.group_id)
     user_id = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     index = re.search(r"\d+", msg)
     async with lock:
         game_data = openchars.get_game_data(group_id)
@@ -414,7 +414,7 @@ async def _(event: GroupMessageEvent):
     rng = np.random.default_rng()
     group_id = str(event.group_id)
     user_id = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_message().extract_plain_text()
     index = re.search(r"\d+", msg)
     async with lock:
         game_data = openchars.get_game_data(group_id)
