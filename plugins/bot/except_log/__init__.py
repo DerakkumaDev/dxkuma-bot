@@ -12,6 +12,7 @@ from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
 from nonebot.internal.matcher import Matcher
 from nonebot.message import run_postprocessor
 from numpy import random
+from starlette.websockets import WebSocketDisconnect
 
 from util.Config import config
 from util.exceptions import NotAllowedException, NeedToSwitchException
@@ -39,6 +40,7 @@ async def _(event: Event, matcher: Matcher, exception: Exception | None):
         exception,
         (
             OneBotV11AdapterException,
+            WebSocketDisconnect,
             ClientError,
             NotAllowedException,
             NeedToSwitchException,

@@ -6,7 +6,7 @@ from util.Config import config
 if __name__ == "__main__":
     with open(".env", "w", encoding="utf-8") as v:
         file = (
-            f"DRIVER=~quart+~websockets\n"
+            f"DRIVER=~fastapi\n"
             f"HOST={config.listen_host}\n"
             f"PORT={config.listen_port}\n"
             f"ONEBOT_ACCESS_TOKEN={config.token}\n"
