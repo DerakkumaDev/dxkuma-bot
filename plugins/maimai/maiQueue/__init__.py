@@ -17,7 +17,7 @@ search = on_regex(r"^搜索机厅\s*.+$", re.I)
 add_alias = on_regex(r"^添加别名\s*.+?\s+.+$", re.I)
 remove_alias = on_regex(r"^删除别名\s*.+?\s+.+$", re.I)
 list_count = on_regex(r"^(机厅|jt|.+\s*)有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
-change_count = on_regex(r"^.+?\s*([加减为＋－＝\+-=])?\s*\d+(人|卡)?$", re.I)
+change_count = on_regex(r"^.+?\s*(加|减|为|＋|－|＝|\+|-|=)?\s*\d+(人|卡)?$", re.I)
 
 
 @all_help.handle()
@@ -109,13 +109,22 @@ async def _(event: GroupMessageEvent):
         if matching_arcade_count > 10:
             await search.finish("关键词过于模糊", at_sender=True)
 
-        arcades = []
-        for arcade_id in matching_arcade_ids:
-            arcade = arcadeManager.get_arcade(arcade_id)
-            arcades.append(arcade)
+        arcades = [
+            arcadeManager.get_arcade(arcade_id) for arcade_id in matching_arcade_ids
+        ]
+        if len(arcades) < 1:
+            await search.finish("找不到机厅", at_sender=True)
+
+        arcade_names = [
+            f"{arcade["name"]}\r\n{f"别名：{"、".join(arcade["aliases"])}" if len(arcade["aliases"]) > 0 else ""}"
+            for arcade in arcades
+            if arcade is not None
+        ]
+        if len(arcade_names) < 1:
+            await search.finish("找不到机厅", at_sender=True)
 
         await search.send(
-            f"找到以下机厅：\r\n{"\r\n\r\n".join([f"{arcade["name"]}\r\n{f"别名：{'、'.join(arcade['aliases'])}" if len(arcade["aliases"]) > 0 else ""}" for arcade in arcades])}",
+            f"找到以下机厅：\r\n{"\r\n\r\n".join(arcade_names)}",
             at_sender=True,
         )
 
@@ -139,7 +148,7 @@ async def _(event: GroupMessageEvent):
         if arcade_id not in bounden_arcade_ids:
             await add_alias.finish("找不到机厅", at_sender=True)
 
-        if not arcadeManager.add_ailas(arcade_id, alias):
+        if not arcadeManager.add_alias(arcade_id, alias):
             await add_alias.finish("已存在该别名", at_sender=True)
 
     await add_alias.send("成功添加别名", at_sender=True)
@@ -164,7 +173,7 @@ async def _(event: GroupMessageEvent):
         if arcade_id not in bounden_arcade_ids:
             await remove_alias.finish("找不到机厅", at_sender=True)
 
-        if not arcadeManager.remove_ailas(arcade_id, alias):
+        if not arcadeManager.remove_alias(arcade_id, alias):
             await remove_alias.finish("找不到别名", at_sender=True)
 
     await remove_alias.send("成功删除别名", at_sender=True)
@@ -196,10 +205,17 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if len(arcade_ids) < 1:
             await list_count.finish("找不到机厅", at_sender=True)
 
-        await list_count.send(
-            f"\r\n{"\r\n\r\n".join([await gen_message(bot, arcade_id) for arcade_id in arcade_ids])}",
-            at_sender=True,
-        )
+        messages = [
+            await gen_message(bot, arcade)
+            for arcade in [
+                arcadeManager.get_arcade(arcade_id) for arcade_id in arcade_ids
+            ]
+            if arcade is not None
+        ]
+        if len(messages) < 1:
+            await list_count.finish("找不到机厅", at_sender=True)
+
+        await list_count.send(f"\r\n{"\r\n\r\n".join(messages)}", at_sender=True)
 
 
 @change_count.handle()
@@ -207,7 +223,7 @@ async def _(event: GroupMessageEvent):
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_message().extract_plain_text()
-    match = re.fullmatch(r"(.+?)\s*([加减为＋－＝\+-=])?\s*(\d+)(?:人|卡)?", msg)
+    match = re.fullmatch(r"(.+?)\s*(加|减|为|＋|－|＝|\+|-|=)?\s*(\d+)(?:人|卡)?", msg)
     if not match:
         return
 
@@ -235,6 +251,8 @@ async def _(event: GroupMessageEvent):
             action = "set"
         case None:
             action = "set"
+        case _:
+            return
 
     async with lock:
         matching_arcade = arcadeManager.search(group_id, word)

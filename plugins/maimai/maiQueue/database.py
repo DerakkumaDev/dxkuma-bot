@@ -1,5 +1,6 @@
 import shelve
 import time
+from typing import Any
 
 import nanoid
 from dill import Pickler, Unpickler
@@ -23,10 +24,10 @@ class ArcadeManager(object):
             if "bindings" not in data:
                 data.setdefault("bindings", dict())
 
-    def get_arcade(self, arcade_id: str):
+    def get_arcade(self, arcade_id: str) -> dict[str, Any] | None:
         with shelve.open(self.data_path) as data:
             if arcade_id not in data["arcades"]:
-                return None
+                return
 
             arcade = data["arcades"][arcade_id]
             if arcade["last_action"] is None:
@@ -43,27 +44,27 @@ class ArcadeManager(object):
             arcade = self.reset(arcade_id, int(today))
             return arcade
 
-    def get_arcade_id(self, arcade_name: str):
+    def get_arcade_id(self, arcade_name: str) -> str | None:
         with shelve.open(self.data_path) as data:
             if arcade_name not in data["names"]:
-                return None
+                return
 
             return data["names"][arcade_name]
 
-    def get_bounden_arcade_ids(self, group_id: int):
+    def get_bounden_arcade_ids(self, group_id: int) -> list[str]:
         with shelve.open(self.data_path) as data:
             if group_id not in data["bindings"]:
                 return list()
 
             return data["bindings"][group_id]
 
-    def create(self, arcade_name: str):
+    def create(self, arcade_name: str) -> str | None:
         with shelve.open(self.data_path) as data:
             arcades = data["arcades"]
             names = data["names"]
 
             if arcade_name in names:
-                return None
+                return
 
             arcade_id = nanoid.generate()
             arcades[arcade_id] = {
@@ -80,7 +81,7 @@ class ArcadeManager(object):
             data["names"] = names
             return arcade_id
 
-    def bind(self, group_id: int, arcade_id: str):
+    def bind(self, group_id: int, arcade_id: str) -> bool:
         with shelve.open(self.data_path) as data:
             arcades = data["arcades"]
             bindings = data["bindings"]
@@ -100,7 +101,7 @@ class ArcadeManager(object):
             data["bindings"] = bindings
             return True
 
-    def unbind(self, group_id: int, arcade_id: str):
+    def unbind(self, group_id: int, arcade_id: str) -> bool:
         with shelve.open(self.data_path) as data:
             arcades = data["arcades"]
             bindings = data["bindings"]
@@ -133,11 +134,14 @@ class ArcadeManager(object):
             data["bindings"] = bindings
             return True
 
-    def search(self, group_id: int, word: str):
+    def search(self, group_id: int, word: str) -> list[str]:
         bounden_arcade_ids = self.get_bounden_arcade_ids(group_id)
         matched_ids = list()
         for arcade_id in bounden_arcade_ids:
             arcade = self.get_arcade(arcade_id)
+            if arcade is None:
+                continue
+
             if word in arcade["aliases"]:
                 matched_ids.append(arcade_id)
 
@@ -146,7 +150,18 @@ class ArcadeManager(object):
 
         return matched_ids
 
-    def search_all(self, word: str):
+    def _filter_arcade_ids(
+        self, word: str, names: list[str], scorer, score_cutoff: int
+    ) -> list[str]:
+        results = process.extract(word, names, scorer=scorer, score_cutoff=score_cutoff)
+        filtered = [
+            arcade_id
+            for arcade_id in [self.get_arcade_id(name) for name, _, _ in results]
+            if arcade_id is not None
+        ]
+        return list(dict.fromkeys(filtered))
+
+    def search_all(self, word: str) -> list[str]:
         names = list()
         with shelve.open(self.data_path) as data:
             for arcade_id, arcade in data["arcades"].items():
@@ -155,25 +170,19 @@ class ArcadeManager(object):
 
                 names.append(arcade["name"])
 
-        results = process.extract(word, names, scorer=fuzz.QRatio, score_cutoff=100)
-        filtered = [
-            arcade_id
-            for arcade_id in [self.get_arcade_id(name) for name, _, _ in results]
-        ]
-        matched_ids = list(dict.fromkeys(filtered))
+        matched_ids = self._filter_arcade_ids(
+            word, names, scorer=fuzz.QRatio, score_cutoff=100
+        )
         if len(matched_ids) > 0:
             return matched_ids
 
-        results = process.extract(word, names, scorer=fuzz.WRatio, score_cutoff=80)
-        filtered = [
-            arcade_id
-            for arcade_id in [self.get_arcade_id(name) for name, _, _ in results]
-        ]
-        matched_ids = list(dict.fromkeys(filtered))
+        matched_ids = self._filter_arcade_ids(
+            word, names, scorer=fuzz.WRatio, score_cutoff=80
+        )
 
         return matched_ids
 
-    def add_ailas(self, arcade_id: str, alias: str):
+    def add_alias(self, arcade_id: str, alias: str) -> bool:
         with shelve.open(self.data_path) as data:
             arcades = data["arcades"]
             aliases = data["aliases"]
@@ -193,7 +202,7 @@ class ArcadeManager(object):
             data["aliases"] = aliases
             return True
 
-    def remove_ailas(self, arcade_id: str, alias: str):
+    def remove_alias(self, arcade_id: str, alias: str) -> bool:
         with shelve.open(self.data_path) as data:
             arcades = data["arcades"]
             aliases = data["aliases"]
@@ -222,7 +231,7 @@ class ArcadeManager(object):
         operator: int,
         time: int,
         num: int,
-    ):
+    ) -> dict[str, Any]:
         with shelve.open(self.data_path) as data:
             arcades = data["arcades"]
 
@@ -253,14 +262,14 @@ class ArcadeManager(object):
                 "group": group_id,
                 "operator": operator,
                 "time": time,
-                "action": {"type": type, "before": before, "num": num},
+                "before": before,
             }
             arcades[arcade_id] = arcade
 
             data["arcades"] = arcades
             return arcade
 
-    def reset(self, arcade_id: str, time: int):
+    def reset(self, arcade_id: str, time: int) -> dict[str, Any]:
         with shelve.open(self.data_path) as data:
             arcades = data["arcades"]
 
@@ -272,7 +281,7 @@ class ArcadeManager(object):
                     "group": -1,
                     "operator": -1,
                     "time": time,
-                    "action": {"type": "set", "before": before, "num": 0},
+                    "before": before,
                 }
             arcades[arcade_id] = arcade
 

@@ -53,7 +53,7 @@ class OpenChars(object):
                 game_data = data[group_id]
                 return game_data
 
-        return None
+        return
 
     async def update_game_data(self, group_id: str, game_data):
         with shelve.open(self.data_path) as data:

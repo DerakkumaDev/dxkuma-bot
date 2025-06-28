@@ -58,7 +58,7 @@ def find_song_by_id(song_id, songList):
             return song
 
     # 如果没有找到对应 id 的歌曲，返回 None
-    return None
+    return
 
 
 def resize_image(image, scale):

@@ -50,7 +50,7 @@ def generate_message_state(game_data, user_id):
     for game_content in game_data["game_contents"]:
         if game_content["is_correct"]:
             game_state.append(
-                f"{game_content['index']}. {game_content["title"]}（已猜出）"
+                f"{game_content["index"]}. {game_content["title"]}（已猜出）"
             )
             continue
         display_title = ""
@@ -115,10 +115,10 @@ def generate_message_state(game_data, user_id):
                 )
             )
             game_state.append(
-                f"{game_content['index']}. {game_content["title"]}（已猜出）"
+                f"{game_content["index"]}. {game_content["title"]}（已猜出）"
             )
         else:
-            game_state.append(f"{game_content['index']}. {display_title}")
+            game_state.append(f"{game_content["index"]}. {display_title}")
 
     is_game_over = check_game_over(game_data)
     # if is_game_over:
@@ -172,7 +172,7 @@ def check_music_id(game_data, music_ids: list, user_id):
 def generate_success_state(game_data):
     game_state = list()
     for game_content in game_data["game_contents"]:
-        game_state.append(f"{game_content['index']}. {game_content["title"]}")
+        game_state.append(f"{game_content["index"]}. {game_content["title"]}")
     return "\r\n".join(game_state)
 
 
