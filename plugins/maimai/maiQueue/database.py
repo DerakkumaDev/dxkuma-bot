@@ -275,14 +275,15 @@ class ArcadeManager(object):
 
             arcade = arcades[arcade_id]
             arcade["action_times"] = 0
-            before = arcade["count"]
-            if before > 0:
+            if arcade["count"] > 0:
                 arcade["last_action"] = {
                     "group": -1,
                     "operator": -1,
                     "time": time,
-                    "before": before,
+                    "before": arcade["count"],
                 }
+                arcade["count"] = 0
+
             arcades[arcade_id] = arcade
 
             data["arcades"] = arcades
