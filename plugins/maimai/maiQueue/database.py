@@ -89,9 +89,8 @@ class ArcadeManager(object):
             if group_id in arcades[arcade_id]["bindings"]:
                 return False
 
-            if group_id not in bindings:
-                bindings[group_id] = list()
-            elif arcade_id in bindings[group_id]:
+            bindings.setdefault(group_id, list())
+            if arcade_id in bindings[group_id]:
                 return False
 
             arcades[arcade_id]["bindings"].append(group_id)
@@ -190,9 +189,8 @@ class ArcadeManager(object):
             if alias in arcades[arcade_id]["aliases"]:
                 return False
 
-            if alias not in aliases:
-                aliases[alias] = list()
-            elif arcade_id in aliases[alias]:
+            aliases.setdefault(alias, list())
+            if arcade_id in aliases[alias]:
                 return False
 
             arcades[arcade_id]["aliases"].append(alias)

@@ -84,7 +84,7 @@ async def _(bot: Bot, event: GroupRequestEvent):
     group_id = event.group_id
     user_info = await bot.get_stranger_info(user_id=qq)
     msg = MessageSegment.text(
-        f"迪拉熊由{user_info["nickname"]}（{user_info["qid"] or qq}）邀请加入了本群，发送dlxhelp和迪拉熊一起玩吧~"
+        f"迪拉熊由{user_info["nickname"]}（{qq}）邀请加入了本群，发送dlxhelp和迪拉熊一起玩吧~"
     )
     await bot.send_msg(
         group_id=group_id,

@@ -64,10 +64,12 @@ songinfo = on_regex(
 )
 playinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?)\s*)?.+$", re.I)
 scoreinfo = on_regex(
-    r"^(achv|分数表)\s*(绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?.+$", re.I
+    r"^(achv|分数列?表)\s*(绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?.+$", re.I
 )
 playaudio = on_regex(r"^dlx点歌\s*.+$", re.I)
-randomsong = on_regex(r"^(rand|随(歌|个|首|张))\s*(绿|黄|红|紫|白)?\s*\d+(\.\d|\+)?$")
+randomsong = on_regex(
+    r"^(rand|随(歌|个|首|张))\s*(绿|黄|红|紫|白)?\s*\d+(\.\d|\+)?$", re.I
+)
 maiwhat = on_fullmatch("mai什么", ignorecase=True)
 
 wcb = on_regex(
@@ -75,7 +77,7 @@ wcb = on_regex(
     re.I,
 )
 
-aliasSearch = on_regex(r"^((alias|查看?别名)\s*.+|.+有(什么|哪些)别名？?)$")
+aliasSearch = on_regex(r"^((alias|查看?别名)\s*.+|.+有(什么|哪些)别名？?)$", re.I)
 
 all_plate = on_regex(r"^(plates?|看姓名框)$", re.I)
 all_frame = on_regex(r"^(frames?|看背景)$", re.I)
@@ -114,33 +116,46 @@ async def find_songid_by_alias(name, song_list):
     for info in alias_list["aliases"]:
         song_id = str(info["song_id"])
         for alias in info["aliases"]:
-            alias_map[alias] = song_id
+            alias_map.setdefault(alias, list())
+            if song_id in alias_map[alias]:
+                continue
+            alias_map[alias].append(song_id)
 
     alias_list = await get_alias_list_xray()
     for id, info in alias_list.items():
         song_id = str(id)
         for alias in info:
-            alias_map[alias] = song_id
+            alias_map.setdefault(alias, list())
+            if song_id in alias_map[alias]:
+                continue
+            alias_map[alias].append(song_id)
 
     alias_list = await get_alias_list_ycn()
     for info in alias_list["content"]:
         song_id = str(info["SongID"])
         for alias in info["Alias"]:
-            alias_map[alias] = song_id
+            alias_map.setdefault(alias, list())
+            if song_id in alias_map[alias]:
+                continue
+            alias_map[alias].append(song_id)
 
     results = process.extract(
         name, alias_map.keys(), scorer=fuzz.QRatio, score_cutoff=100
     )
-    filtered = [alias_map[alias] for alias, _, _ in results]
-    matched_ids = list(dict.fromkeys(filtered))
+    filtered = {
+        id for ids in [alias_map[alias] for alias, _, _ in results] for id in ids
+    }
+    matched_ids = list(filtered)
     if len(matched_ids) > 0:
         return matched_ids
 
     results = process.extract(
         name, alias_map.keys(), scorer=fuzz.WRatio, score_cutoff=80
     )
-    filtered = [alias_map[alias] for alias, _, _ in results]
-    matched_ids = list(dict.fromkeys(filtered))
+    filtered = {
+        id for ids in [alias_map[alias] for alias, _, _ in results] for id in ids
+    }
+    matched_ids = list(filtered)
 
     # 芝士排序
     # sorted_matched_ids = sorted(matched_ids, key=int)
@@ -390,39 +405,44 @@ async def get_info_by_name(name, music_type, songList):
     if not rep_ids:
         return 2, None
     for song_id in rep_ids.copy():
+        id_int = int(song_id)
         song_info = find_song_by_id(song_id, songList)
         if not song_info:
             rep_ids.remove(song_id)
-            continue
-
-        id_int = int(song_id)
-        if music_type:
-            if music_type.casefold() == "dx":
-                if song_info["type"] != "DX":
-                    rep_ids.remove(song_id)
-            elif (
-                music_type.casefold() == "sd"
-                or music_type == "标准"
-                or music_type == "标"
-            ):
-                if song_info["type"] != "SD":
-                    rep_ids.remove(song_id)
-        elif song_info["type"] != "DX" or str(id_int % 10000) not in rep_ids:
             other_id = str(id_int + 10000)
+            song_info = find_song_by_id(other_id, songList)
+            if not song_info:
+                continue
+            if not check_type(song_info, music_type):
+                continue
+            rep_ids.append(other_id)
+            song_id = other_id
+        else:
+            if not check_type(song_info, music_type):
+                rep_ids.remove(song_id)
+                continue
+            if song_info["type"] == "DX":
+                other_id = str(id_int % 10000)
+            elif song_info["type"] == "SD":
+                other_id = str(id_int + 10000)
+            else:
+                continue
             if other_id in rep_ids:
                 continue
             other_info = find_song_by_id(other_id, songList)
             if other_info:
+                if not check_type(other_info, music_type):
+                    continue
                 rep_ids.append(other_id)
     if not rep_ids:
         return 2, None
-    elif len(rep_ids) > 20:
+    elif len(rep_ids) > 16:
         return 3, rep_ids
     elif len(rep_ids) > 1:
         output_lst = set()
         for song_id in sorted(rep_ids, key=int):
             song_info = find_song_by_id(song_id, songList)
-            song_title = song_info["title"]
+            song_title = f"{song_info["id"]}：{song_info["title"]}"
             output_lst.add(song_title)
 
         return 1, output_lst if len(output_lst) > 1 else song_info
@@ -432,6 +452,18 @@ async def get_info_by_name(name, music_type, songList):
         return 2, None
 
     return 0, song_info
+
+
+def check_type(song_info, music_type):
+    if not music_type:
+        return True
+    if music_type.casefold() == "dx":
+        if song_info["type"] != "DX":
+            return False
+    elif music_type.casefold() == "sd" or music_type == "标准" or music_type == "标":
+        if song_info["type"] != "SD":
+            return False
+    return True
 
 
 @best50.handle()
@@ -2169,7 +2201,7 @@ async def _(event: MessageEvent):
         return
 
     songList = await get_music_data()
-    result, song_info = await get_info_by_name(song, music_type, songList)
+    result, song_info = await get_info_by_name(song.strip(), music_type, songList)
     if result == 1:
         if isinstance(song_info, set):
             msg = f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}"
@@ -2486,7 +2518,7 @@ async def _(event: MessageEvent):
         )
 
     songList = await get_music_data()
-    result, song_info = await get_info_by_name(name, None, songList)
+    result, song_info = await get_info_by_name(name.strip(), None, songList)
     if result == 1:
         if isinstance(song_info, set):
             msg = f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}"

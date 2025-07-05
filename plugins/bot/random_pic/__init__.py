@@ -93,8 +93,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     msg = event.get_message().extract_plain_text()
     type = "sfw"
     path = PICPATH
-    if group_id not in groups:
-        groups[group_id] = list()
+    groups.setdefault(group_id, list())
     if re.search(r"(涩|色|瑟)图|st", msg, re.I):
         type = "nsfw"
         path = PICPATH_NSFW

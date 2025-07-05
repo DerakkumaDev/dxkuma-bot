@@ -13,10 +13,7 @@ report_tome = on_regex(r"问题|bug", re.I, to_me())
 
 @all_help.handle()
 async def _():
-    msg = (
-        MessageSegment.image(Path("./Static/Help/0.png")),
-        MessageSegment.text("公开测试群：959231211"),
-    )
+    msg = MessageSegment.image(Path("./Static/Help/0.png"))
     await all_help.send(msg)
 
 

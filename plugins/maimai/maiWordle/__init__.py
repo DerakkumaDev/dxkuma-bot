@@ -58,33 +58,46 @@ async def find_songid_by_alias(name, song_list):
     for info in alias_list["aliases"]:
         song_id = str(info["song_id"])
         for alias in info["aliases"]:
-            alias_map[alias] = song_id
+            alias_map.setdefault(alias, list())
+            if song_id in alias_map[alias]:
+                continue
+            alias_map[alias].append(song_id)
 
     alias_list = await get_alias_list_xray()
     for id, info in alias_list.items():
         song_id = str(id)
         for alias in info:
-            alias_map[alias] = song_id
+            alias_map.setdefault(alias, list())
+            if song_id in alias_map[alias]:
+                continue
+            alias_map[alias].append(song_id)
 
     alias_list = await get_alias_list_ycn()
     for info in alias_list["content"]:
         song_id = str(info["SongID"])
         for alias in info["Alias"]:
-            alias_map[alias] = song_id
+            alias_map.setdefault(alias, list())
+            if song_id in alias_map[alias]:
+                continue
+            alias_map[alias].append(song_id)
 
     results = process.extract(
         name, alias_map.keys(), scorer=fuzz.QRatio, score_cutoff=100
     )
-    filtered = [alias_map[alias] for alias, _, _ in results]
-    matched_ids = list(dict.fromkeys(filtered))
+    filtered = {
+        id for ids in [alias_map[alias] for alias, _, _ in results] for id in ids
+    }
+    matched_ids = list(filtered)
     if len(matched_ids) > 0:
         return matched_ids
 
     results = process.extract(
         name, alias_map.keys(), scorer=fuzz.WRatio, score_cutoff=80
     )
-    filtered = [alias_map[alias] for alias, _, _ in results]
-    matched_ids = list(dict.fromkeys(filtered))
+    filtered = {
+        id for ids in [alias_map[alias] for alias, _, _ in results] for id in ids
+    }
+    matched_ids = list(filtered)
 
     # 芝士排序
     # sorted_matched_ids = sorted(matched_ids, key=int)
