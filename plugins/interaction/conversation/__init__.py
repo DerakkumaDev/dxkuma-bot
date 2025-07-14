@@ -6,9 +6,9 @@ from nonebot.adapters.onebot.v11 import Bot, MessageSegment, GroupMessageEvent
 from nonebot.rule import to_me
 from numpy import random
 
-from plugins.bot.concurrent_lock.util import locks
 from util.Config import config
 from util.exceptions import NeedToSwitchException
+from util.lock import locks
 
 xc = on_regex(r"^(香草|想草|xc)(迪拉熊|dlx)$", re.I)
 wxhn = on_regex(r"^(迪拉熊|dlx)我喜欢你$", re.I)

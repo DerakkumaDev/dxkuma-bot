@@ -20,7 +20,9 @@ if __name__ == "__main__":
     driver = nonebot.get_driver()
     driver.register_adapter(V11Adapter)
 
-    nonebot.load_plugins("plugins/bot")
+    nonebot.load_plugins("plugins/maintenance")
     nonebot.load_plugins("plugins/maimai")
+    nonebot.load_plugins("plugins/gallery")
+    nonebot.load_plugins("plugins/interaction")
 
     nonebot.run()

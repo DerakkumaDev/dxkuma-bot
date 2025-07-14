@@ -10,7 +10,7 @@ from nonebot.internal.driver import Driver
 from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
 
 from util.exceptions import NotAllowedException, NeedToSwitchException, SkipException
-from .util import locks, Lock, States
+from util.lock import locks, Lock, States
 
 bots: list[str] = list()
 

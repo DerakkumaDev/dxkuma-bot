@@ -7,9 +7,7 @@ import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 from aiohttp import ClientSession
 
-from plugins.maimai.maiWordle.GLOBAL_CONSTANT import version_df_maps, exclude_list
 from util.Config import config as Config
-from util.Draw import paste, text
 from .Config import (
     font_path,
     maimai_Static,
@@ -24,6 +22,8 @@ from .Config import (
     maimai_Class,
     maimai_Shougou,
 )
+from .Draw import paste, text
+from .GLOBAL_CONSTANT import version_df_maps, exclude_list
 
 ratings = {
     "app": [1.01, 22.4, 15.0],

@@ -24,8 +24,8 @@ from util.Data import (
     get_alias_list_ycn,
     get_alias_list_xray,
 )
-from util.DivingFish import get_player_records, get_player_record
 from util.Rule import regex
+from .DivingFish import get_player_records, get_player_record
 from .GenBests import (
     compute_record,
     generatebests,

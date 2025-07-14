@@ -9,7 +9,6 @@ from PIL import Image, ImageDraw, ImageFont
 
 from util.Config import config
 from util.Data import get_chart_stats
-from util.Draw import paste, text
 from .Config import (
     font_path,
     maimai_Static,
@@ -18,6 +17,7 @@ from .Config import (
     maimai_MusicType,
 )
 from .GenBests import get_fit_diff
+from .Draw import paste, text
 
 # 字体路径
 ttf_black_path = font_path / "rounded-x-mplus-1p-heavy.ttf"
