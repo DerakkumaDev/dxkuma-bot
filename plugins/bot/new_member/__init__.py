@@ -70,14 +70,16 @@ async def _():
 
 @friendRequest.handle()
 async def _(bot: Bot, event: FriendRequestEvent):
+    if bot.self_id in config.allowed_accounts:  # 支持nsfw内容的账号需要审核
+        return
     await event.approve(bot)
 
 
 @groupRequest.handle()
 async def _(bot: Bot, event: GroupRequestEvent):
-    if bot.self_id in config.allowed_accounts:  # 支持nsfw内容的账号需要审核
-        return
     if event.sub_type != "invite":
+        return
+    if bot.self_id in config.allowed_accounts:  # 支持nsfw内容的账号需要审核
         return
     await event.approve(bot)
     qq = event.user_id

@@ -1,5 +1,6 @@
 from nonebot.adapters.onebot.v11 import (
     Bot,
+    Event,
     GroupMessageEvent,
     GroupIncreaseNoticeEvent,
     GroupDecreaseNoticeEvent,
@@ -11,7 +12,7 @@ from nonebot.message import event_preprocessor, run_postprocessor, event_postpro
 from util.exceptions import NotAllowedException, NeedToSwitchException, SkipException
 from .util import locks, Lock, States
 
-bots = list()
+bots: list[str] = list()
 
 
 @event_preprocessor
@@ -21,8 +22,7 @@ async def _(
     if event.get_user_id() in bots:
         raise IgnoredException(SkipException)
 
-    if event.is_tome():
-        return
+    check_event(event)
 
     key = hash(f"{event.group_id}{event.user_id}{event.time}")
     if key not in locks:
@@ -47,8 +47,6 @@ async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
     exception: Exception | None,
 ):
-    if event.is_tome():
-        return
 
     key = hash(f"{event.group_id}{event.user_id}{event.time}")
     if isinstance(exception, NotAllowedException):
@@ -66,8 +64,6 @@ async def _(
 async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
-    if event.is_tome():
-        return
 
     key = hash(f"{event.group_id}{event.user_id}{event.time}")
     locks[key].count -= 1
@@ -87,3 +83,13 @@ async def _(bot: Bot):
 @Driver.on_bot_disconnect
 async def _(bot: Bot):
     bots.remove(bot.self_id)
+
+
+def check_event(event: Event):
+    if isinstance(event, GroupMessageEvent) and "at" in (
+        message := event.get_message()
+    ):
+        if ats := message["at"]:
+            for at in ats:
+                if at.data["qq"] in bots and not event.is_tome():
+                    raise IgnoredException(SkipException)
