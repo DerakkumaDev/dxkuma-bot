@@ -90,7 +90,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     rng = random.default_rng()
     group_id = event.group_id
     qq = event.get_user_id()
-    msg = event.get_message().extract_plain_text()
+    msg = event.get_plaintext()
     type = "sfw"
     path = PICPATH
     groups.setdefault(group_id, list())

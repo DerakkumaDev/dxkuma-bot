@@ -51,7 +51,7 @@ async def _(event: Event, matcher: Matcher, exception: Exception | None):
     bot = get_bot()
     trace = "".join(traceback.format_exception(exception)).replace("\\n", "\r\n")
     msg = MessageSegment.text(
-        f"{trace}{event.get_message().extract_plain_text() if isinstance(event, MessageEvent) else event.get_type()}\r\n{event.get_session_id()}"
+        f"{trace}{event.get_message().to_rich_text() if isinstance(event, MessageEvent) else event.get_type()}\r\n{event.get_session_id()}"
     )
     await bot.send_msg(group_id=config.dev_group, message=msg)
     path = PICPATH

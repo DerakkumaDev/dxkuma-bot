@@ -56,7 +56,7 @@ async def _(event: GroupMessageEvent):
 @roll.handle()
 async def _(event: GroupMessageEvent):
     rng = random.default_rng()
-    text = event.get_message().extract_plain_text()
+    text = event.get_plaintext()
     roll_list = re.findall(r"(?<=是)(.+?)(?=还|$)", text)
     if not roll_list:
         return
