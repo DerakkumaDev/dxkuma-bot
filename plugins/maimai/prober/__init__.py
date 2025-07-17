@@ -1367,9 +1367,7 @@ async def _(bot: Bot, event: MessageEvent):
             at_sender=True,
         )
     songList = await get_music_data()
-    find = re.fullmatch(
-        r"dlxx50((?:\s*[1-5])+)", event.get_plaintext(), re.I
-    )
+    find = re.fullmatch(r"dlxx50((?:\s*[1-5])+)", event.get_plaintext().strip(), re.I)
     star35, star15, mask_enabled = await records_to_bests(
         records, songList, is_dxs=True, dx_star_count=find.group(1)
     )
@@ -1796,9 +1794,7 @@ async def _(bot: Bot, event: MessageEvent):
 
 @rr50.handle()
 async def _(event: MessageEvent):
-    match = re.fullmatch(
-        r"dlxrr(?:50)?\s*(\d+)", event.get_plaintext(), re.I
-    )
+    match = re.fullmatch(r"dlxrr(?:50)?\s*(\d+)", event.get_plaintext().strip(), re.I)
     rating = 0
     if match:
         rating = int(match.group(1))
@@ -2186,7 +2182,7 @@ async def _(event: MessageEvent):
 
 @songinfo.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext()
+    msg = event.get_plaintext().strip()
     match = re.fullmatch(
         r"(?:chart|id|search|查歌)\s*(?:(dx|sd|标准?)\s*)?(.+)|(?:(dx|sd|标准?)\s*)?(.+)是什么歌？?",
         msg,
@@ -2247,7 +2243,7 @@ async def _(event: MessageEvent):
 @playinfo.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    msg = event.get_plaintext()
+    msg = event.get_plaintext().strip()
     match = re.fullmatch(r"(?:score|info)\s*(?:(dx|sd|标准?)\s*)?(.+)", msg, re.I)
     if not match:
         return
@@ -2377,7 +2373,7 @@ async def _(event: MessageEvent):
 
 @playaudio.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext()
+    msg = event.get_plaintext().strip()
     match = re.fullmatch(r"dlx点歌\s*(.+)", msg, re.I)
     if not match:
         return
@@ -2500,7 +2496,7 @@ async def _(event: MessageEvent):
 # 查看别名
 @aliasSearch.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext()
+    msg = event.get_plaintext().strip()
     match = re.fullmatch(
         r"(?:alias|查看?别名)\s*(.+)|(.+)有(什么|哪些)别名？?", msg, re.I
     )
@@ -2781,7 +2777,7 @@ async def _(event: MessageEvent):
 
 @set_token.handle()
 async def _(event: MessageEvent):
-    qq = event.get_user_id()
+    qq = event.get_user_id().strip()
     match = re.fullmatch(r"绑定\s*(落雪|水鱼)\s*(.+)", event.get_plaintext(), re.I)
     prober = match.group(1)
     token = match.group(2)
