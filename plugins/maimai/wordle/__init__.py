@@ -504,7 +504,7 @@ async def _(event: GroupMessageEvent):
 
 @rank.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
-    scores = ranking.get_avg_scores()
+    scores = ranking.avg_scores
     leaderboard = [
         (qq, achi, _times) for qq, achi, _times in scores if times.check_available(qq)
     ]
@@ -530,7 +530,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 @rank_i.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
     user_id = event.get_user_id()
-    scores = ranking.get_avg_scores()
+    scores = ranking.avg_scores
     leaderboard = [
         (qq, achi, _times) for qq, achi, _times in scores if times.check_available(qq)
     ]

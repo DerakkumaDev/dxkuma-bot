@@ -7,13 +7,14 @@ shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler
 
 
-class GalleryRank(object):
+class Ranking(object):
     def __init__(self):
-        self.data_path = "./data/pic_times/"
+        self.data_path = "./data/gallery_ranking/"
         self.pic_path = "./Static/Gallery/SFW/"
         self.nsfw_pic_path = "./Static/Gallery/NSFW/"
 
-    def get_time(self):
+    @property
+    def now(self):
         today = datetime.date.today()
 
         # 获取当前年份
@@ -31,7 +32,7 @@ class GalleryRank(object):
 
         with shelve.open(f"{self.data_path}{time}.db") as data:
             for qq, qq_data in data.items():
-                total_count = qq_data["sfw"] + qq_data["nsfw"]
+                total_count = qq_data["sfw"] + qq_data["nsfw"] + qq_data["video"]
                 leaderboard.append((qq, total_count))
 
         leaderboard.sort(key=lambda x: x[1], reverse=True)
@@ -39,11 +40,11 @@ class GalleryRank(object):
         return leaderboard[:5]
 
     def update_count(self, qq: str, type: str):
-        time = self.get_time()
+        time = self.now
 
         with shelve.open(f"{self.data_path}{time}.db") as count_data:
             if qq not in count_data:
-                count = count_data.setdefault(qq, {"sfw": 0, "nsfw": 0})
+                count = count_data.setdefault(qq, {"sfw": 0, "nsfw": 0, "video": 0})
             else:
                 count = count_data[qq]
 
@@ -51,4 +52,4 @@ class GalleryRank(object):
             count_data[qq] = count
 
 
-galleryRank = GalleryRank()
+ranking = Ranking()

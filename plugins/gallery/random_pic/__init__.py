@@ -11,7 +11,7 @@ from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 from numpy import random
 
-from ..rank.database import galleryRank
+from ..rank.database import ranking
 from util.Config import config
 from util.exceptions import NotAllowedException
 
@@ -43,11 +43,11 @@ async def _(bot: Bot, event: GroupMessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
     type = "sfw"
-    path = galleryRank.pic_path
+    path = ranking.pic_path
     groups.setdefault(group_id, list())
     if re.search(r"(涩|色|瑟)图|st", msg, re.I):
         type = "nsfw"
-        path = galleryRank.nsfw_pic_path
+        path = ranking.nsfw_pic_path
     files = os.listdir(path)
     if not files:
         msg = (
@@ -92,7 +92,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     async with aiofiles.open(pic_path, "rb") as fd:
         send_msg = await rand_pic.send(MessageSegment.image(await fd.read()))
     groups[group_id].append(datetime.datetime.now())
-    galleryRank.update_count(qq=qq, type=type)
+    ranking.update_count(qq=qq, type=type)
     if type == "nsfw":
         msg_id = send_msg["message_id"]
 

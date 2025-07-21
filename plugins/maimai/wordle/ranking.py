@@ -36,7 +36,8 @@ class Ranking(object):
 
             data.setdefault(user_id, [obj])
 
-    def get_avg_scores(self) -> list[tuple[str, float, int]]:
+    @property
+    def avg_scores(self) -> list[tuple[str, float, int]]:
         achis = list()
         with shelve.open(self.data_path) as data:
             for user_id, scores in data.items():
