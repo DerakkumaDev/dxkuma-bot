@@ -4,6 +4,7 @@ import re
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot
 
+from ..random_bvid.database import bvidList
 from ..rank.database import ranking
 
 rank = on_regex(r"^(迪拉熊|dlx)(排行榜|rank)$", re.I)
@@ -23,5 +24,5 @@ async def _(bot: Bot):
         leaderboard_output.append(rank_str)
 
     msg = "\r\n".join(leaderboard_output)
-    msg = f"本周迪拉熊厨力最高的人是……\r\n{msg}\r\n迪拉熊给上面{count}个宝宝一个大大的拥抱~\r\n（积分每周重算）\r\n\r\n图库：{len(os.listdir(ranking.pic_path))}:{len(os.listdir(ranking.nsfw_pic_path))}"
+    msg = f"本周迪拉熊厨力最高的人是……\r\n{msg}\r\n迪拉熊给上面{count}个宝宝一个大大的拥抱~\r\n（积分每周重算）\r\n\r\n图库：{len(os.listdir(ranking.pic_path))}:{len(os.listdir(ranking.nsfw_pic_path))}\r\n视频库：{bvidList.count}"
     await rank.finish(msg)
