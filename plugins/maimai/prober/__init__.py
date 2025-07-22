@@ -2588,8 +2588,8 @@ async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
     id = re.search(r"\d+", msg).group().lstrip("0")
-    plate_path = f"./Cache/Plate/{id}.png"
-    if not os.path.exists(plate_path):
+    file_path = f"./Cache/Plate/{id}.png"
+    if not os.path.exists(file_path):
         async with ClientSession(conn_timeout=3) as session:
             async with session.get(
                 f"https://assets2.lxns.net/maimai/plate/{id}.png"
@@ -2601,7 +2601,7 @@ async def _(event: MessageEvent):
                     )
                     await set_plate.finish(msg, at_sender=True)
 
-                async with aiofiles.open(plate_path, "wb") as fd:
+                async with aiofiles.open(file_path, "wb") as fd:
                     await fd.write(await resp.read())
 
     with shelve.open("./data/user_config.db") as config:
@@ -2624,27 +2624,34 @@ async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
     id = re.search(r"\d+", msg).group().lstrip("0")
-    dir_path = "./Static/maimai/Frame/"
-    file_name = f"UI_Frame_{id}.png"
-    file_path = Path(dir_path) / file_name
-    if os.path.exists(file_path):
-        with shelve.open("./data/user_config.db") as config:
-            if qq not in config:
-                config.setdefault(qq, {"frame": id})
-            else:
-                cfg = config[qq]
-                if "frame" not in config[qq]:
-                    cfg.setdefault("frame", id)
-                else:
-                    cfg["frame"] = id
-                config[qq] = cfg
+    file_path = f"./Static/maimai/Frame/UI_Frame_{id}.png"
+    if not os.path.exists(file_path):
+        async with ClientSession(conn_timeout=3) as session:
+            async with session.get(
+                f"https://assets2.lxns.net/maimai/frame/{id}.png"
+            ) as resp:
+                if resp.status != 200:
+                    msg = (
+                        MessageSegment.text("迪拉熊没有找到合适的背景哦~"),
+                        MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                    )
+                    await set_frame.finish(msg, at_sender=True)
 
-        msg = MessageSegment.text("迪拉熊帮你换好啦~")
-    else:
-        msg = (
-            MessageSegment.text("迪拉熊没有找到合适的背景哦~"),
-            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-        )
+                async with aiofiles.open(file_path, "wb") as fd:
+                    await fd.write(await resp.read())
+
+    with shelve.open("./data/user_config.db") as config:
+        if qq not in config:
+            config.setdefault(qq, {"frame": id})
+        else:
+            cfg = config[qq]
+            if "frame" not in config[qq]:
+                cfg.setdefault("frame", id)
+            else:
+                cfg["frame"] = id
+            config[qq] = cfg
+
+    msg = "迪拉熊帮你换好啦~"
     await set_frame.send(msg, at_sender=True)
 
 
@@ -2653,27 +2660,34 @@ async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
     id = re.search(r"\d+", msg).group().lstrip("0")
-    dir_path = "./Static/maimai/Icon/"
-    file_name = f"{id}.png"
-    file_path = Path(dir_path) / file_name
-    if os.path.exists(file_path):
-        with shelve.open("./data/user_config.db") as config:
-            if qq not in config:
-                config.setdefault(qq, {"icon": id})
-            else:
-                cfg = config[qq]
-                if "icon" not in config[qq]:
-                    cfg.setdefault("icon", id)
-                else:
-                    cfg["icon"] = id
-                config[qq] = cfg
+    file_path = f"./Static/maimai/Icon/{id}.png"
+    if not os.path.exists(file_path):
+        async with ClientSession(conn_timeout=3) as session:
+            async with session.get(
+                f"https://assets2.lxns.net/maimai/icon/{id}.png"
+            ) as resp:
+                if resp.status != 200:
+                    msg = (
+                        MessageSegment.text("迪拉熊没有找到合适的头像哦~"),
+                        MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                    )
+                    await set_icon.finish(msg, at_sender=True)
 
-        msg = MessageSegment.text("迪拉熊帮你换好啦~")
-    else:
-        msg = (
-            MessageSegment.text("迪拉熊没有找到合适的头像哦~"),
-            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-        )
+                async with aiofiles.open(file_path, "wb") as fd:
+                    await fd.write(await resp.read())
+
+    with shelve.open("./data/user_config.db") as config:
+        if qq not in config:
+            config.setdefault(qq, {"icon": id})
+        else:
+            cfg = config[qq]
+            if "icon" not in config[qq]:
+                cfg.setdefault("icon", id)
+            else:
+                cfg["icon"] = id
+            config[qq] = cfg
+
+    msg = "迪拉熊帮你换好啦~"
     await set_icon.send(msg, at_sender=True)
 
 

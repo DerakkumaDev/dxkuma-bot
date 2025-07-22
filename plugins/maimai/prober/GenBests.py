@@ -698,6 +698,13 @@ async def generatebests(
     # 底板
     if frame:
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
+        if not os.path.exists(frame_path):
+            async with ClientSession(conn_timeout=3) as session:
+                async with session.get(
+                    f"https://assets2.lxns.net/maimai/frame/{frame}.png"
+                ) as resp:
+                    async with aiofiles.open(frame_path, "wb") as fd:
+                        await fd.write(await resp.read())
         frame = Image.open(frame_path)
         frame = resize_image(frame, 0.95)
         bests = paste(bests, frame, (48, 45))
@@ -881,6 +888,13 @@ async def generate_wcb(
         frame_path = "./Static/Maimai/List/frame.png"
     else:
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
+        if not os.path.exists(frame_path):
+            async with ClientSession(conn_timeout=3) as session:
+                async with session.get(
+                    f"https://assets2.lxns.net/maimai/frame/{frame}.png"
+                ) as resp:
+                    async with aiofiles.open(frame_path, "wb") as fd:
+                        await fd.write(await resp.read())
     frame = Image.open(frame_path)
     frame = resize_image(frame, 0.95)
     bg = paste(bg, frame, (48, 45))
