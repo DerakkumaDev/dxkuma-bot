@@ -19,7 +19,7 @@ class bvidList(object):
         rng = random.default_rng()
         with shelve.open(self.data_path) as data:
             bvids = data["bvid"]
-            return rng.choice(bvids)
+            return rng.choice(bvids.sort())
 
     def add(self, bvid: str) -> bool:
         with shelve.open(self.data_path) as data:

@@ -10,7 +10,7 @@ from ..rank.database import ranking
 from .database import bvidList
 from util.Config import config
 
-rand_bv = on_regex(r"^(随机)?(迪拉熊|dlx)(视频|sp)$", re.I)
+rand_bv = on_regex(r"^(随机)?(迪拉熊|dlx)(视频|sp|v)$", re.I)
 add_bv = on_regex(r"^(加视频|jsp)(\s*BV[A-Za-z0-9]{10})+$", re.I)
 remove_bv = on_regex(r"^(删视频|jsp)(\s*BV[A-Za-z0-9]{10})+$", re.I)
 
