@@ -404,50 +404,53 @@ async def get_info_by_name(name, music_type, songList):
     rep_ids = await find_songid_by_alias(name, songList)
     if not rep_ids:
         return 2, None
-    for song_id in rep_ids.copy():
-        id_int = int(song_id)
-        song_info = find_song_by_id(song_id, songList)
-        if not song_info:
-            rep_ids.remove(song_id)
-            other_id = str(id_int + 10000)
-            song_info = find_song_by_id(other_id, songList)
+    rep_id = name
+    if name not in rep_ids:
+        for song_id in rep_ids.copy():
+            id_int = int(song_id)
+            song_info = find_song_by_id(song_id, songList)
             if not song_info:
-                continue
-            if not check_type(song_info, music_type):
-                continue
-            rep_ids.append(other_id)
-            song_id = other_id
-        else:
-            if not check_type(song_info, music_type):
                 rep_ids.remove(song_id)
-                continue
-            if song_info["type"] == "DX":
-                other_id = str(id_int % 10000)
-            elif song_info["type"] == "SD":
                 other_id = str(id_int + 10000)
-            else:
-                continue
-            if other_id in rep_ids:
-                continue
-            other_info = find_song_by_id(other_id, songList)
-            if other_info:
-                if not check_type(other_info, music_type):
+                song_info = find_song_by_id(other_id, songList)
+                if not song_info:
+                    continue
+                if not check_type(song_info, music_type):
                     continue
                 rep_ids.append(other_id)
-    if not rep_ids:
-        return 2, None
-    elif len(rep_ids) > 16:
-        return 3, rep_ids
-    elif len(rep_ids) > 1:
-        output_lst = set()
-        for song_id in sorted(rep_ids, key=int):
-            song_info = find_song_by_id(song_id, songList)
-            song_title = f"{song_info["id"]}：{song_info["title"]}"
-            output_lst.add(song_title)
+                song_id = other_id
+            else:
+                if not check_type(song_info, music_type):
+                    rep_ids.remove(song_id)
+                    continue
+                if song_info["type"] == "DX":
+                    other_id = str(id_int % 10000)
+                elif song_info["type"] == "SD":
+                    other_id = str(id_int + 10000)
+                else:
+                    continue
+                if other_id in rep_ids:
+                    continue
+                other_info = find_song_by_id(other_id, songList)
+                if other_info:
+                    if not check_type(other_info, music_type):
+                        continue
+                    rep_ids.append(other_id)
+        if not rep_ids:
+            return 2, None
+        elif len(rep_ids) > 16:
+            return 3, rep_ids
+        elif len(rep_ids) > 1:
+            output_lst = set()
+            for song_id in sorted(rep_ids, key=int):
+                song_info = find_song_by_id(song_id, songList)
+                song_title = f"{song_info["id"]}：{song_info["title"]}"
+                output_lst.add(song_title)
 
-        return 1, output_lst if len(output_lst) > 1 else song_info
+            return 1, output_lst if len(output_lst) > 1 else song_info
 
-    song_info = find_song_by_id(rep_ids[0], songList)
+        rep_id = rep_ids[0]
+    song_info = find_song_by_id(rep_id, songList)
     if not song_info:
         return 2, None
 
