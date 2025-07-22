@@ -5,6 +5,7 @@ from nonebot import on_fullmatch, on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageSegment, GroupMessageEvent
 from nonebot.rule import to_me
 from numpy import random
+from xxhash import xxh32_hexdigest
 
 from util.Config import config
 from util.exceptions import NeedToSwitchException
@@ -77,7 +78,7 @@ async def _(event: GroupMessageEvent):
 @cum.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
     rng = random.default_rng()
-    key = hash(f"{event.group_id}{event.user_id}{event.time}")
+    key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
     if (
         key in locks
         and locks[key].count > 1

@@ -18,4 +18,5 @@ dependencies = [
     "pykakasi>=2.3.0",
     "rapidfuzz>=3.13.0",
     "soundfile>=0.13.1",
+    "xxhash>=3.5.0",
 ]

@@ -8,6 +8,7 @@ from nonebot.adapters.onebot.v11 import (
 from nonebot.exception import IgnoredException
 from nonebot.internal.driver import Driver
 from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
+from xxhash import xxh32_hexdigest
 
 from util.exceptions import NotAllowedException, NeedToSwitchException, SkipException
 from util.lock import locks, Lock, States
@@ -24,7 +25,7 @@ async def _(
 
     check_event(event)
 
-    key = hash(f"{event.group_id}{event.user_id}{event.time}")
+    key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
     if key not in locks:
         locks[key] = Lock()
 
@@ -48,7 +49,7 @@ async def _(
     exception: Exception | None,
 ):
 
-    key = hash(f"{event.group_id}{event.user_id}{event.time}")
+    key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
     if isinstance(exception, NotAllowedException):
         locks[key].state = States.SKIPED
         return
@@ -65,7 +66,7 @@ async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
 
-    key = hash(f"{event.group_id}{event.user_id}{event.time}")
+    key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
     locks[key].count -= 1
     if locks[key].state == States.PROCESSED:
         if locks[key].count <= 0:
