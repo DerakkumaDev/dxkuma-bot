@@ -405,7 +405,7 @@ async def get_info_by_name(name, music_type, songList):
     if not rep_ids:
         return 2, None
     rep_id = name
-    if name not in rep_ids:
+    if music_type or name not in rep_ids:
         for song_id in rep_ids.copy():
             id_int = int(song_id)
             song_info = find_song_by_id(song_id, songList)
