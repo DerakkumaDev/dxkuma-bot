@@ -48,7 +48,6 @@ async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
     exception: Exception | None,
 ):
-
     key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
     if isinstance(exception, NotAllowedException):
         locks[key].state = States.SKIPED
@@ -65,7 +64,6 @@ async def _(
 async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
-
     key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
     locks[key].count -= 1
     if locks[key].state == States.PROCESSED:

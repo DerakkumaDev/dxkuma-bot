@@ -464,7 +464,7 @@ async def music_to_part(
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
         draw.text(
             (376, 172),
-            f"{"+" if diff > 0 else "±" if diff == 0 else ""}{math.trunc(diff * 100) / 100:.2f}",
+            f"{'+' if diff > 0 else '±' if diff == 0 else ''}{math.trunc(diff * 100) / 100:.2f}",
             font=ttf,
             fill=color,
             anchor="lm",
@@ -502,7 +502,7 @@ async def music_to_part(
         ttf = ImageFont.truetype(ttf_bold_path, size=20)
         draw.text(
             (550, 172),
-            f"{"+" if diff > 0 else "±" if diff == 0 else ""}{diff}",
+            f"{'+' if diff > 0 else '±' if diff == 0 else ''}{diff}",
             font=ttf,
             fill=color,
             anchor="rm",

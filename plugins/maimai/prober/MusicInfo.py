@@ -55,11 +55,11 @@ async def music_info(song_data):
     bg = Image.open("./Static/Maimai/Chart/background.png")
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
+    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
     if not os.path.exists(cover_path):
         async with ClientSession(conn_timeout=3) as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
+                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
             ) as resp:
                 async with aiofiles.open(cover_path, "wb") as fd:
                     await fd.write(await resp.read())
@@ -192,7 +192,7 @@ async def music_info(song_data):
         ds_position = (ds_x, ds_y)
         drawtext.text(
             ds_position,
-            f"{song_ds} ({math.trunc(get_fit_diff(song_data["id"], i, song_ds, charts) * 100) / 100:.2f})",
+            f"{song_ds} ({math.trunc(get_fit_diff(song_data['id'], i, song_ds, charts) * 100) / 100:.2f})",
             anchor="mm",
             font=ttf,
             fill=level_color[i],
@@ -270,11 +270,11 @@ async def play_info(data, song_data):
     bg = Image.open("./Static/Maimai/Score/background.png")
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
+    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
     if not os.path.exists(cover_path):
         async with ClientSession(conn_timeout=3) as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
+                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
             ) as resp:
                 async with aiofiles.open(cover_path, "wb") as fd:
                     await fd.write(await resp.read())
@@ -421,7 +421,7 @@ async def play_info(data, song_data):
             ttf = ImageFont.truetype(ttf_bold_path, size=20)
             drawtext.text(
                 (dsra_x, dsra_y),
-                f"{song_data["ds"][i]}->---",
+                f"{song_data['ds'][i]}->---",
                 font=ttf,
                 fill=color,
                 anchor="mm",
@@ -432,7 +432,7 @@ async def play_info(data, song_data):
         if score["ra"] <= 0:
             drawtext.text(
                 (dsra_x, dsra_y),
-                f"{song_data["ds"][i]}->---",
+                f"{song_data['ds'][i]}->---",
                 font=ttf,
                 fill=color,
                 anchor="mm",
@@ -516,11 +516,11 @@ async def utage_music_info(song_data, index=0):
     bg = Image.open("./Static/Maimai/Chart/background_utage.png")
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
+    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
     if not os.path.exists(cover_path):
         async with ClientSession(conn_timeout=3) as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
+                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
             ) as resp:
                 async with aiofiles.open(cover_path, "wb") as fd:
                     await fd.write(await resp.read())
@@ -697,11 +697,11 @@ async def score_info(song_data, index):
     bg = Image.open("./Static/Maimai/Achievements/background.png")
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{int(song_data["id"]) % 10000}.png"
+    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
     if not os.path.exists(cover_path):
         async with ClientSession(conn_timeout=3) as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{int(song_data["id"]) % 10000}.png"
+                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
             ) as resp:
                 async with aiofiles.open(cover_path, "wb") as fd:
                     await fd.write(await resp.read())
@@ -732,7 +732,7 @@ async def score_info(song_data, index):
         )
 
     # 绘制曲师
-    song_artist = f"曲：{song_data["basic_info"]["artist"]}"
+    song_artist = f"曲：{song_data['basic_info']['artist']}"
     ttf = ImageFont.truetype(ttf2_regular_path, size=30)
     artist_position = (545, 694)
     max_width = 565
@@ -884,7 +884,7 @@ async def score_info(song_data, index):
         notes_x += 200
 
     # 谱师
-    song_charters = f"谱：{chart["charter"]}"
+    song_charters = f"谱：{chart['charter']}"
     ttf = ImageFont.truetype(ttf2_regular_path, size=30)
     artist_position = (545, 729)
     max_width = 565

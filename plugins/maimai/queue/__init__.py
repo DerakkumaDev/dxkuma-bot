@@ -116,7 +116,7 @@ async def _(event: GroupMessageEvent):
             await search.finish("找不到机厅", at_sender=True)
 
         arcade_names = [
-            f"{arcade["name"]}\r\n{f"别名：{"、".join(arcade["aliases"])}" if len(arcade["aliases"]) > 0 else ""}"
+            f"{arcade['name']}{f'\r\n别名：{"、".join(arcade["aliases"])}' if len(arcade['aliases']) > 0 else ''}"
             for arcade in arcades
             if arcade is not None
         ]
@@ -124,7 +124,7 @@ async def _(event: GroupMessageEvent):
             await search.finish("找不到机厅", at_sender=True)
 
         await search.send(
-            f"找到以下机厅：\r\n{"\r\n\r\n".join(arcade_names)}",
+            f"找到以下机厅：\r\n{'\r\n\r\n'.join(arcade_names)}",
             at_sender=True,
         )
 
@@ -215,7 +215,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if len(messages) < 1:
             await list_count.finish("找不到机厅", at_sender=True)
 
-        await list_count.send(f"\r\n{"\r\n\r\n".join(messages)}", at_sender=True)
+        await list_count.send(f"\r\n{'\r\n\r\n'.join(messages)}", at_sender=True)
 
 
 @change_count.handle()
@@ -269,5 +269,5 @@ async def _(event: GroupMessageEvent):
         )
 
     await change_count.send(
-        f"{arcade["name"]}已更新为{arcade["count"]}卡", at_sender=True
+        f"{arcade['name']}已更新为{arcade['count']}卡", at_sender=True
     )

@@ -282,7 +282,7 @@ async def _(event: GroupMessageEvent):
         if data["is_correct"]:
             await info_tip.send(
                 (
-                    MessageSegment.text(f"第{data["index"]}行的歌曲已经猜对了mai~"),
+                    MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
@@ -304,7 +304,7 @@ async def _(event: GroupMessageEvent):
             await info_tip.send(
                 (
                     MessageSegment.text(
-                        f"第{data["index"]}行的歌曲信息提示次数用完了mai~"
+                        f"第{data['index']}行的歌曲信息提示次数用完了mai~"
                     ),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
@@ -317,7 +317,7 @@ async def _(event: GroupMessageEvent):
             await info_tip.send(
                 (
                     MessageSegment.text(
-                        f"第{data["index"]}行的歌曲信息提示次数用完了mai~"
+                        f"第{data['index']}行的歌曲信息提示次数用完了mai~"
                     ),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
@@ -331,7 +331,7 @@ async def _(event: GroupMessageEvent):
         await openchars.update_game_data(group_id, game_data)
 
     tip_info = tips[tip_key](song[0])
-    await info_tip.send(f"第{data["index"]}行的歌曲{tip_key}是 {tip_info} mai~")
+    await info_tip.send(f"第{data['index']}行的歌曲{tip_key}是 {tip_info} mai~")
 
 
 @pic_tip.handle()
@@ -369,7 +369,7 @@ async def _(event: GroupMessageEvent):
         if data["is_correct"]:
             await pic_tip.send(
                 (
-                    MessageSegment.text(f"第{data["index"]}行的歌曲已经猜对了mai~"),
+                    MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
@@ -378,7 +378,7 @@ async def _(event: GroupMessageEvent):
         if data["pic_times"] >= 2:
             await pic_tip.send(
                 (
-                    MessageSegment.text(f"第{data["index"]}行的封面提示次数用完了mai~"),
+                    MessageSegment.text(f"第{data['index']}行的封面提示次数用完了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
@@ -392,11 +392,11 @@ async def _(event: GroupMessageEvent):
     await pic_tip.send(
         MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
-    cover_path = f"./Cache/Jacket/{data["music_id"] % 10000}.png"
+    cover_path = f"./Cache/Jacket/{data['music_id'] % 10000}.png"
     if not os.path.exists(cover_path):
         async with ClientSession(conn_timeout=3) as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{data["music_id"] % 10000}.png"
+                f"https://assets2.lxns.net/maimai/jacket/{data['music_id'] % 10000}.png"
             ) as resp:
                 async with aiofiles.open(cover_path, "wb") as fd:
                     await fd.write(await resp.read())
@@ -416,7 +416,7 @@ async def _(event: GroupMessageEvent):
     img_bytes = img_byte_arr.getvalue()
     await pic_tip.send(
         (
-            MessageSegment.text(f"第{data["index"]}行的歌曲部分封面是"),
+            MessageSegment.text(f"第{data['index']}行的歌曲部分封面是"),
             MessageSegment.image(img_bytes),
         )
     )
@@ -457,7 +457,7 @@ async def _(event: GroupMessageEvent):
         if data["is_correct"]:
             await aud_tip.send(
                 (
-                    MessageSegment.text(f"第{data["index"]}行的歌曲已经猜对了mai~"),
+                    MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
@@ -466,7 +466,7 @@ async def _(event: GroupMessageEvent):
         if data["aud_times"] >= 1:
             await aud_tip.send(
                 (
-                    MessageSegment.text(f"第{data["index"]}行的歌曲提示次数用完了mai~"),
+                    MessageSegment.text(f"第{data['index']}行的歌曲提示次数用完了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
@@ -479,15 +479,15 @@ async def _(event: GroupMessageEvent):
 
     await aud_tip.send(
         MessageSegment.text(
-            f"迪拉熊正在准备播放第{data["index"]}行的歌曲，稍等一下mai~"
+            f"迪拉熊正在准备播放第{data['index']}行的歌曲，稍等一下mai~"
         ),
         at_sender=True,
     )
-    music_path = f"./Cache/Music/{data["music_id"] % 10000}.mp3"
+    music_path = f"./Cache/Music/{data['music_id'] % 10000}.mp3"
     if not os.path.exists(music_path):
         async with ClientSession(conn_timeout=3) as session:
             async with session.get(
-                f"https://assets2.lxns.net/maimai/music/{data["music_id"] % 10000}.mp3"
+                f"https://assets2.lxns.net/maimai/music/{data['music_id'] % 10000}.mp3"
             ) as resp:
                 async with aiofiles.open(music_path, "wb") as fd:
                     await fd.write(await resp.read())

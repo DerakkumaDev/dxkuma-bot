@@ -444,7 +444,7 @@ async def get_info_by_name(name, music_type, songList):
             output_lst = set()
             for song_id in sorted(rep_ids, key=int):
                 song_info = find_song_by_id(song_id, songList)
-                song_title = f"{song_info["id"]}：{song_info["title"]}"
+                song_title = f"{song_info['id']}：{song_info['title']}"
                 output_lst.add(song_title)
 
             return 1, output_lst if len(output_lst) > 1 else song_info
@@ -565,7 +565,7 @@ async def _(bot: Bot, event: MessageEvent):
                     MessageSegment.at(sender_qq),
                     MessageSegment.text(" "),
                     MessageSegment.text(
-                        f"迪拉熊没有在{source_name}查分器上找到{"你" if target_qq == event.get_user_id() else "他"}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
+                        f"迪拉熊没有在{source_name}查分器上找到{'你' if target_qq == event.get_user_id() else '他'}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
                     ),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 )
@@ -662,7 +662,7 @@ async def _(bot: Bot, event: MessageEvent):
             if resp.status != 200:
                 msg = (
                     MessageSegment.text(
-                        f"迪拉熊没有在{source_name}查分器上找到{"你" if target_qq == event.get_user_id() else "他"}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
+                        f"迪拉熊没有在{source_name}查分器上找到{'你' if target_qq == event.get_user_id() else '他'}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
                     ),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 )
@@ -703,7 +703,7 @@ async def _(bot: Bot, event: MessageEvent):
     if status == 400:
         msg = (
             MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息哦~"
+                f"迪拉熊没有找到{'你' if target_qq == event.get_user_id() else '他'}的信息哦~"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
@@ -719,7 +719,7 @@ async def _(bot: Bot, event: MessageEvent):
         await ap50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -731,7 +731,7 @@ async def _(bot: Bot, event: MessageEvent):
         await ap50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有全完美的成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有全完美的成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -811,7 +811,7 @@ async def _(bot: Bot, event: MessageEvent):
     if status == 400:
         msg = (
             MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息哦~"
+                f"迪拉熊没有找到{'你' if target_qq == event.get_user_id() else '他'}的信息哦~"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
@@ -827,7 +827,7 @@ async def _(bot: Bot, event: MessageEvent):
         await fc50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -839,7 +839,7 @@ async def _(bot: Bot, event: MessageEvent):
         await fc50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有全连的成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有全连的成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -919,7 +919,7 @@ async def _(bot: Bot, event: MessageEvent):
     if status == 400:
         msg = (
             MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息哦~"
+                f"迪拉熊没有找到{'你' if target_qq == event.get_user_id() else '他'}的信息哦~"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
@@ -935,7 +935,7 @@ async def _(bot: Bot, event: MessageEvent):
         await fit50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -945,9 +945,9 @@ async def _(bot: Bot, event: MessageEvent):
     b35, b15, mask_enabled = await records_to_bests(records, songList, is_fit=True)
     if not b35 and not b15:
         if mask_enabled:
-            msg = f"迪拉熊无法获取{"你" if target_qq == event.get_user_id() else "他"}的真实成绩哦~"
+            msg = f"迪拉熊无法获取{'你' if target_qq == event.get_user_id() else '他'}的真实成绩哦~"
         else:
-            msg = f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩哦~"
+            msg = f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何匹配的成绩哦~"
         await fit50.finish(
             (
                 MessageSegment.text(msg),
@@ -1029,7 +1029,7 @@ async def _(bot: Bot, event: MessageEvent):
     if status == 400:
         msg = (
             MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息哦~"
+                f"迪拉熊没有找到{'你' if target_qq == event.get_user_id() else '他'}的信息哦~"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
@@ -1045,7 +1045,7 @@ async def _(bot: Bot, event: MessageEvent):
         await best40.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -1127,7 +1127,7 @@ async def _(bot: Bot, event: MessageEvent):
     if status == 400:
         msg = (
             MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息哦~"
+                f"迪拉熊没有找到{'你' if target_qq == event.get_user_id() else '他'}的信息哦~"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
@@ -1143,7 +1143,7 @@ async def _(bot: Bot, event: MessageEvent):
         await rate50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -1157,7 +1157,7 @@ async def _(bot: Bot, event: MessageEvent):
         await rate50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何匹配的成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -1237,7 +1237,7 @@ async def _(bot: Bot, event: MessageEvent):
     if status == 400:
         msg = (
             MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息哦~"
+                f"迪拉熊没有找到{'你' if target_qq == event.get_user_id() else '他'}的信息哦~"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
@@ -1253,7 +1253,7 @@ async def _(bot: Bot, event: MessageEvent):
         await dxs50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -1263,9 +1263,9 @@ async def _(bot: Bot, event: MessageEvent):
     dxs35, dxs15, mask_enabled = await records_to_bests(records, songList, is_dxs=True)
     if not dxs35 and not dxs15:
         if mask_enabled:
-            msg = f"迪拉熊无法获取{"你" if target_qq == event.get_user_id() else "他"}的真实成绩哦~"
+            msg = f"迪拉熊无法获取{'你' if target_qq == event.get_user_id() else '他'}的真实成绩哦~"
         else:
-            msg = f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩哦~"
+            msg = f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何匹配的成绩哦~"
         await dxs50.finish(
             (
                 MessageSegment.text(msg),
@@ -1347,7 +1347,7 @@ async def _(bot: Bot, event: MessageEvent):
     if status == 400:
         msg = (
             MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息哦~"
+                f"迪拉熊没有找到{'你' if target_qq == event.get_user_id() else '他'}的信息哦~"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
@@ -1363,7 +1363,7 @@ async def _(bot: Bot, event: MessageEvent):
         await star50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -1376,9 +1376,9 @@ async def _(bot: Bot, event: MessageEvent):
     )
     if not star35 and not star15:
         if mask_enabled:
-            msg = f"迪拉熊无法获取{"你" if target_qq == event.get_user_id() else "他"}的真实成绩哦~"
+            msg = f"迪拉熊无法获取{'你' if target_qq == event.get_user_id() else '他'}的真实成绩哦~"
         else:
-            msg = f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩哦~"
+            msg = f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何匹配的成绩哦~"
         await star50.finish(
             (
                 MessageSegment.text(msg),
@@ -1616,7 +1616,7 @@ async def _(bot: Bot, event: MessageEvent):
     if status == 400:
         msg = (
             MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息哦~"
+                f"迪拉熊没有找到{'你' if target_qq == event.get_user_id() else '他'}的信息哦~"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
@@ -1632,7 +1632,7 @@ async def _(bot: Bot, event: MessageEvent):
         await sd50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -1644,7 +1644,7 @@ async def _(bot: Bot, event: MessageEvent):
         await sd50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何匹配的成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何匹配的成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -1724,7 +1724,7 @@ async def _(bot: Bot, event: MessageEvent):
     if status == 400:
         msg = (
             MessageSegment.text(
-                f"迪拉熊没有找到{"你" if target_qq == event.get_user_id() else "他"}的信息哦~"
+                f"迪拉熊没有找到{'你' if target_qq == event.get_user_id() else '他'}的信息哦~"
             ),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
@@ -1740,7 +1740,7 @@ async def _(bot: Bot, event: MessageEvent):
         await all50.finish(
             (
                 MessageSegment.text(
-                    f"{"你" if target_qq == event.get_user_id() else "他"}没有上传任何成绩哦~"
+                    f"{'你' if target_qq == event.get_user_id() else '他'}没有上传任何成绩哦~"
                 ),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
@@ -2106,7 +2106,7 @@ async def _(event: MessageEvent):
                 if resp.status != 200:
                     msg = (
                         MessageSegment.text(
-                            f"迪拉熊没有在{source_name}查分器上找到{"你" if qq == event.get_user_id() else "他"}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
+                            f"迪拉熊没有在{source_name}查分器上找到{'你' if qq == event.get_user_id() else '他'}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
                         ),
                         MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                     )
@@ -2203,7 +2203,7 @@ async def _(event: MessageEvent):
     result, song_info = await get_info_by_name(song.strip(), music_type, songList)
     if result == 1:
         if isinstance(song_info, set):
-            msg = f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}"
+            msg = f"迪拉熊找到啦~结果有：\r\n{'\r\n'.join(song_info)}"
             await songinfo.finish(MessageSegment.text(msg))
     elif result == 2:
         await songinfo.finish(
@@ -2236,7 +2236,7 @@ async def _(event: MessageEvent):
         )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.text(f"{song_info["id"]}：{song_info["title"]}"),
+        MessageSegment.text(f"{song_info['id']}：{song_info['title']}"),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
@@ -2260,7 +2260,7 @@ async def _(event: MessageEvent):
     result, song_info = await get_info_by_name(song, music_type, songList)
     if result == 1:
         if isinstance(song_info, set):
-            msg = f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}"
+            msg = f"迪拉熊找到啦~结果有：\r\n{'\r\n'.join(song_info)}"
             await playinfo.finish(MessageSegment.text(msg))
     elif result == 2:
         await playinfo.finish(
@@ -2336,7 +2336,7 @@ async def _(event: MessageEvent):
     result, song_info = await get_info_by_name(song, music_type, songList)
     if result == 1:
         if isinstance(song_info, set):
-            msg = f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}"
+            msg = f"迪拉熊找到啦~结果有：\r\n{'\r\n'.join(song_info)}"
             await scoreinfo.finish(MessageSegment.text(msg))
     elif (
         result == 2
@@ -2389,7 +2389,7 @@ async def _(event: MessageEvent):
     result, song_info = await get_info_by_name(song, None, songList)
     if result == 1:
         if isinstance(song_info, set):
-            msg = f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}"
+            msg = f"迪拉熊找到啦~结果有：\r\n{'\r\n'.join(song_info)}"
             await playaudio.finish(MessageSegment.text(msg))
     elif result == 2:
         await playaudio.finish(
@@ -2462,7 +2462,7 @@ async def _(event: MessageEvent):
     )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.text(f"{song["id"]}：{song["title"]}"),
+        MessageSegment.text(f"{song['id']}：{song['title']}"),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
@@ -2489,7 +2489,7 @@ async def _(event: MessageEvent):
         )
     end_time = time.perf_counter()
     msg = (
-        MessageSegment.text(f"{song["id"]}：{song["title"]}"),
+        MessageSegment.text(f"{song['id']}：{song['title']}"),
         MessageSegment.image(img),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
@@ -2520,7 +2520,7 @@ async def _(event: MessageEvent):
     result, song_info = await get_info_by_name(name.strip(), None, songList)
     if result == 1:
         if isinstance(song_info, set):
-            msg = f"迪拉熊找到啦~结果有：\r\n{"\r\n".join(song_info)}"
+            msg = f"迪拉熊找到啦~结果有：\r\n{'\r\n'.join(song_info)}"
             await aliasSearch.finish(MessageSegment.text(msg))
     elif result == 2:
         await aliasSearch.finish(
