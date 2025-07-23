@@ -181,6 +181,11 @@ class ArcadeManager(object):
 
         return matched_ids
 
+    @property
+    def all_arcade_ids(self) -> list[str]:
+        with shelve.open(self.data_path) as data:
+            return data["arcades"].keys()
+
     def add_alias(self, arcade_id: str, alias: str) -> bool:
         with shelve.open(self.data_path) as data:
             arcades = data["arcades"]

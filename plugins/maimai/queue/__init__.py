@@ -6,6 +6,7 @@ from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 
 from .database import arcadeManager
 from .utils import gen_message
+from util.Config import config
 
 lock = Lock()
 
@@ -14,6 +15,7 @@ registering = on_regex(r"^注册机厅\s*.+$", re.I)
 binding = on_regex(r"^绑定机厅\s*.+$", re.I)
 unbinding = on_regex(r"^解绑机厅\s*.+$", re.I)
 search = on_regex(r"^搜索机厅\s*.+$", re.I)
+list_all = on_regex(r"^(所有|全部)机厅$", re.I)
 add_alias = on_regex(r"^添加别名\s*.+?\s+.+$", re.I)
 remove_alias = on_regex(r"^删除别名\s*.+?\s+.+$", re.I)
 list_count = on_regex(r"^(机厅|jt|.+\s*)有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
@@ -90,6 +92,35 @@ async def _(event: GroupMessageEvent):
             await unbinding.finish("找不到机厅", at_sender=True)
 
     await unbinding.send("成功解绑机厅", at_sender=True)
+
+
+@list_all.handle()
+async def _(bot: Bot, event: GroupMessageEvent):
+    if event.group_id != config.dev_group:
+        return
+
+    async with lock:
+        all_arcade_ids = arcadeManager.all_arcade_ids
+        all_arcade_count = len(all_arcade_ids)
+        if all_arcade_count < 1:
+            await list_all.finish("找不到机厅", at_sender=True)
+
+        arcades = [arcadeManager.get_arcade(arcade_id) for arcade_id in all_arcade_ids]
+        if len(arcades) < 1:
+            await list_all.finish("找不到机厅", at_sender=True)
+
+        arcade_names = [
+            f"{arcade['name']}{f'\r\n别名：{"、".join(arcade["aliases"])}' if len(arcade['aliases']) > 0 else ''}\r\n{await gen_message(bot, arcade)}"
+            for arcade in arcades
+            if arcade is not None
+        ]
+        if len(arcade_names) < 1:
+            await list_all.finish("找不到机厅", at_sender=True)
+
+        await list_all.send(
+            f"找到以下机厅：\r\n{'\r\n\r\n'.join(arcade_names)}",
+            at_sender=True,
+        )
 
 
 @search.handle()
@@ -206,7 +237,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
             await list_count.finish("找不到机厅", at_sender=True)
 
         messages = [
-            await gen_message(bot, arcade)
+            f"{arcade['name']}\r\n{await gen_message(bot, arcade)}"
             for arcade in [
                 arcadeManager.get_arcade(arcade_id) for arcade_id in arcade_ids
             ]
