@@ -29,7 +29,7 @@ async def gen_message(
     if event.reply:
         reply_msg = event.reply
         l.append(
-            f'<reply sender_id="{reply_msg.sender.user_id}" sender_name="{escape(reply_msg.sender.card or reply_msg.sender.nickname or "")}">{"".join(await gen_message_segment(seg, bot, group_id) for seg in reply_msg.message)}</reply>'
+            f'<reply sender_id="{reply_msg.sender.user_id}" sender_name="{escape(reply_msg.sender.card or reply_msg.sender.nickname or "")}">{"".join([await gen_message_segment(seg, bot, group_id) for seg in reply_msg.message])}</reply>'
         )
     for seg in event.get_message():
         l.append(await gen_message_segment(seg, bot, group_id))
