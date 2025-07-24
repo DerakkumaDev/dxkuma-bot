@@ -13,6 +13,7 @@ from nonebot.internal.matcher import Matcher
 from nonebot.message import run_postprocessor
 from numpy import random
 from starlette.websockets import WebSocketDisconnect
+from volcenginesdkarkruntime._exceptions import ArkError
 
 from util.Config import config
 from util.exceptions import NotAllowedException, NeedToSwitchException
@@ -45,6 +46,7 @@ async def _(event: Event, matcher: Matcher, exception: Exception | None):
             NotAllowedException,
             NeedToSwitchException,
             error[0],
+            ArkError,
         ),
     ):
         return
