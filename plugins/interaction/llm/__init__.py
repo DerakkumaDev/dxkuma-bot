@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from anyio.to_thread import run_sync
 from nonebot import on_message
 from nonebot.adapters.onebot.v11 import (
     Bot,
@@ -33,18 +34,22 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
     context_id = contextIdList.get(chat_id)
     if context_id is None:
-        response = client.context.create(
-            model="ep-20250724172944-7s56v",
-            messages=[{"role": "system", "content": config.llm_prompt}],
-            mode="session",
-            truncation_strategy={"type": "rolling_tokens", "rolling_tokens": True},
+        response = await run_sync(
+            lambda: client.context.create(
+                model="ep-20250724172944-7s56v",
+                messages=[{"role": "system", "content": config.llm_prompt}],
+                mode="session",
+                truncation_strategy={"type": "rolling_tokens", "rolling_tokens": True},
+            )
         )
         contextIdList.set(chat_id, context_id := response.id)
 
-    completion = client.context.completions.create(
-        model="ep-20250724172944-7s56v",
-        context_id=context_id,
-        messages=[{"role": "user", "content": message}],
+    completion = await run_sync(
+        lambda: client.context.completions.create(
+            model="ep-20250724172944-7s56v",
+            context_id=context_id,
+            messages=[{"role": "user", "content": message}],
+        )
     )
     reply = "\r\n".join(choice.message.content for choice in completion.choices)
     if reply == "<ignored/>" or reply == "&lt;ignored/&gt;":
@@ -113,31 +118,35 @@ async def m(event: GroupMessageEvent, bot: Bot, group_id: int) -> str:
                 if not url:
                     l.append(f"<{seg.type}/>")
                     continue
-                l.append(f"<image>{p(i(url))}</image>")
+                l.append(f"<image>{p(await i(url))}</image>")
             else:
                 l.append(f"<{seg.type}/>")
     return "".join(l)
 
 
-def i(url: str) -> str:
+async def i(url: str) -> str:
     return "\r\n".join(
         choice.message.content
-        for choice in client.chat.completions.create(
-            model="doubao-seed-1-6-flash-250715",
-            messages=[
-                {
-                    "content": [
+        for choice in (
+            await run_sync(
+                lambda: client.chat.completions.create(
+                    model="doubao-seed-1-6-flash-250715",
+                    messages=[
                         {
-                            "image_url": {"url": url},
-                            "type": "image_url",
-                        },
-                        {
-                            "text": "现在你是一名专业的高级数据标记员，请你用干练的语言为LLM尽可能详细的解释这张图片。",
-                            "type": "text",
-                        },
+                            "content": [
+                                {
+                                    "image_url": {"url": url},
+                                    "type": "image_url",
+                                },
+                                {
+                                    "text": "现在你是一名专业的高级数据标记员，请你用干练的语言为LLM尽可能详细的解释这张图片。",
+                                    "type": "text",
+                                },
+                            ],
+                            "role": "user",
+                        }
                     ],
-                    "role": "user",
-                }
-            ],
+                )
+            )
         ).choices
     )

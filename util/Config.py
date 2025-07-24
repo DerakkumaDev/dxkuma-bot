@@ -33,6 +33,7 @@ class Config:
         self.ark_api_key = None
         self.llm_prompt = None
         self.user_prefix = None
+        self.llm_enabled_groups = None
 
         # 解析配置文件
         self.read_config()
@@ -54,6 +55,7 @@ class Config:
         self.ark_api_key = data["llm"]["ark_api_key"]
         self.llm_prompt = data["llm"]["prompt"]
         self.user_prefix = data["llm"]["user_prefix"]
+        self.llm_enabled_groups = data["llm"]["enabled_groups"]
 
 
 config = Config()
