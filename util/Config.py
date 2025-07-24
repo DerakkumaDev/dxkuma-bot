@@ -29,6 +29,10 @@ class Config:
         self.admin_accounts = None
         # backend
         self.backend_url = None
+        # llm
+        self.ark_api_key = None
+        self.llm_prompt = None
+        self.user_prefix = None
 
         # 解析配置文件
         self.read_config()
@@ -47,6 +51,9 @@ class Config:
         self.lx_token = data["lxns"]["token"]
         self.admin_accounts = data["admin"]["accounts"]
         self.backend_url = data["backend"]["url"]
+        self.ark_api_key = data["llm"]["ark_api_key"]
+        self.llm_prompt = data["llm"]["prompt"]
+        self.user_prefix = data["llm"]["user_prefix"]
 
 
 config = Config()
