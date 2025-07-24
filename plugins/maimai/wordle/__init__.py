@@ -30,7 +30,7 @@ lock = Lock()
 
 start_open_chars = on_regex(r"^dlx猜歌$", re.I)
 open_chars = on_regex(r"^开\s*(.|[a-zA-Z]+)$")
-all_message_handle = on_message(priority=999)
+all_message_handle = on_message(priority=1000, block=False)
 pass_game = on_regex(r"^(结束猜歌|将大局逆转吧)$")
 info_tip = on_regex(r"^(提示|提醒|信息)\s*[1-5]?$")
 pic_tip = on_regex(r"^(封面|曲绘|图片?)\s*[1-5]?$")
