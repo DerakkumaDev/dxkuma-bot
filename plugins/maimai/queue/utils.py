@@ -1,4 +1,4 @@
-import time
+from datetime import datetime
 from typing import Any
 
 from nonebot.adapters.onebot.v11 import Bot
@@ -15,7 +15,7 @@ async def gen_message(bot: Bot, arcade: dict[str, Any]) -> str:
         messages.append("当前无人排卡")
 
     messages.append(
-        f"最后在{time.strftime('%Y年%m月%d日 %H:%M', time.localtime(arcade['last_action']['time']))}（UTC+8）"
+        f"最后在{datetime.strftime(datetime.fromtimestamp(arcade['last_action']['time']), '%Y年%m月%d日 %H:%M')}（UTC+8）"
     )
     action, delta = num2action(arcade["count"], arcade["last_action"]["before"])
     if arcade["last_action"]["group"] < 0 and arcade["last_action"]["operator"] < 0:

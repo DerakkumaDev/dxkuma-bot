@@ -1,5 +1,5 @@
 import shelve
-import time
+from datetime import datetime
 from typing import Any
 
 import nanoid
@@ -33,15 +33,13 @@ class ArcadeManager(object):
             if arcade["last_action"] is None:
                 return arcade
 
-            last_action_time = arcade["last_action"]["time"]
-            now = time.localtime()
-            today = time.mktime(
-                (now.tm_year, now.tm_mon, now.tm_mday, 4, 0, 0, 0, 0, -1)
-            )
-            if last_action_time >= today or now.tm_hour < 4:
+            last_action_time = datetime.fromtimestamp(arcade["last_action"]["time"])
+            now = datetime.now()
+            today = datetime(now.year, now.month, now.day, 4, 0, 0, 0)
+            if last_action_time >= today or now.hour < 4:
                 return arcade
 
-            arcade = self.reset(arcade_id, int(today))
+            arcade = self.reset(arcade_id, int(today.timestamp()))
             return arcade
 
     def get_arcade_id(self, arcade_name: str) -> str | None:
