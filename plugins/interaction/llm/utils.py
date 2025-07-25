@@ -23,7 +23,7 @@ def escape(message: str) -> str:
     )
 
 
-async def gen_message(event: MessageEvent, bot: Bot) -> str:
+async def gen_message(event: MessageEvent, bot: Bot, is_chat_mode: bool) -> str:
     group_id = event.group_id if isinstance(event, GroupMessageEvent) else None
     l = list()
     if event.reply:
@@ -31,7 +31,7 @@ async def gen_message(event: MessageEvent, bot: Bot) -> str:
         l.append(
             f"<reply{gen_name_field('sender', str(reply_msg.sender.user_id), reply_msg.sender.card or reply_msg.sender.nickname or str())}>{str().join([await gen_message_segment(seg, bot, group_id) for seg in reply_msg.message])}</reply>"
         )
-    if event.is_tome():
+    if event.is_tome() and is_chat_mode:
         l.append("<at>迪拉熊</at>")
     for seg in event.get_message():
         l.append(await gen_message_segment(seg, bot, group_id))
@@ -92,9 +92,7 @@ async def gen_message_segment(
             return f"<{seg.type}/>"
         return f"<image>{escape(await gen_image_info(url))}</image>"
     elif seg.type == "face":
-        return (
-            f"<face>{escape(seg.data.get('raw', dict()).get('faceText', str()))}</face>"
-        )
+        return f"<face>{escape(seg.data.get('raw', dict()).get('faceText', str()) or str())}</face>"
     else:
         return f"<{seg.type}/>"
 
