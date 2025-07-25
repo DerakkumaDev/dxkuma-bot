@@ -8,6 +8,9 @@ class Config:
     def __init__(self):
         if not os.path.exists("./kuma.conf"):
             shutil.copyfile("./example.conf", "./kuma.conf")
+
+        self.bots: list[str] = list()
+
         # info
         self.version = None
         # log

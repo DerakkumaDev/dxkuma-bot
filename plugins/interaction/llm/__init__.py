@@ -7,7 +7,6 @@ from nonebot.adapters.onebot.v11 import (
     Bot,
     MessageEvent,
     GroupMessageEvent,
-    MessageSegment,
 )
 
 from .database import contextIdList
@@ -51,7 +50,7 @@ async def _(bot: Bot, event: MessageEvent):
         if context_id is None:
             response = await run_sync(
                 lambda: client.context.create(
-                    model="ep-20250724172944-7s56v",
+                    model="ep-m-20250725142030-kn9m4",
                     messages=[{"role": "system", "content": config.llm_system_prompt}],
                     mode="session",
                     truncation_strategy={
@@ -64,7 +63,7 @@ async def _(bot: Bot, event: MessageEvent):
 
         completion = await run_sync(
             lambda: client.context.completions.create(
-                model="ep-20250724172944-7s56v",
+                model="ep-m-20250725142030-kn9m4",
                 context_id=context_id,
                 messages=[{"role": "user", "content": message}],
             )

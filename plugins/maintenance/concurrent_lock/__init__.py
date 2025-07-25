@@ -10,17 +10,16 @@ from nonebot.internal.driver import Driver
 from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
 from xxhash import xxh32_hexdigest
 
+from util.Config import config
 from util.exceptions import NotAllowedException, NeedToSwitchException, SkipException
 from util.lock import locks, Lock, States
-
-bots: list[str] = list()
 
 
 @event_preprocessor
 async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
-    if event.get_user_id() in bots:
+    if event.get_user_id() in config.bots:
         raise IgnoredException(SkipException)
 
     check_event(event)
@@ -76,12 +75,12 @@ async def _(
 
 @Driver.on_bot_connect
 async def _(bot: Bot):
-    bots.append(bot.self_id)
+    config.bots.append(bot.self_id)
 
 
 @Driver.on_bot_disconnect
 async def _(bot: Bot):
-    bots.remove(bot.self_id)
+    config.bots.remove(bot.self_id)
 
 
 def check_event(event: Event):
@@ -90,5 +89,5 @@ def check_event(event: Event):
     ):
         if ats := message["at"]:
             for at in ats:
-                if at.data["qq"] in bots and not event.is_tome():
+                if at.data["qq"] in config.bots and not event.is_tome():
                     raise IgnoredException(SkipException)

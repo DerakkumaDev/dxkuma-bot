@@ -29,7 +29,7 @@ async def gen_message(event: MessageEvent, bot: Bot) -> str:
     if event.reply:
         reply_msg = event.reply
         l.append(
-            f'<reply sender_id="{reply_msg.sender.user_id}" sender_name="{escape(reply_msg.sender.card or reply_msg.sender.nickname or str())}">{str().join([await gen_message_segment(seg, bot, group_id) for seg in reply_msg.message])}</reply>'
+            f"<reply{gen_name_field('sender', str(reply_msg.sender.user_id), reply_msg.sender.card or reply_msg.sender.nickname or str())}>{str().join([await gen_message_segment(seg, bot, group_id) for seg in reply_msg.message])}</reply>"
         )
     if event.is_tome():
         l.append("<at>迪拉熊</at>")
@@ -61,9 +61,10 @@ async def gen_message_segment(
                     user_id=int(seg.data.get("qq", "0"))
                 )
                 user_name = escape(user_info.get("nickname", str()))
-        return f'<at user_id="{seg.data.get("qq", str())}">{user_name}</at>'
+
+        return f"<at{gen_name_field('user', seg.data.get('qq', str()), user_name, True)}</at>"
     elif seg.type == "poke":
-        return f'<poke user_id="{seg.data.get("id", str())}">{escape(seg.data.get("name", str()))}</poke>'
+        return f"<poke{gen_name_field('user', seg.data.get('id', str()), escape(seg.data.get('name', str())), True)}</poke>"
     elif seg.type == "share":
         return f'<share href="{escape(seg.data.get("url", str()))}">{escape(seg.data.get("title", str()))}</share>'
     elif seg.type == "contact":
@@ -78,7 +79,7 @@ async def gen_message_segment(
         except:
             return "<reply/>"
         sender = reply_msg.get("sender", dict())
-        return f'<reply sender_id="{sender.get("user_id", str())}" sender_name="{escape(sender.get("card", str()) or sender.get("nickname", str()))}">{str().join([await gen_message_segment(segg, bot, group_id) for segg in reply_msg.get("message", list())])}</reply>'
+        return f"<reply{gen_name_field('sender', sender.get('user_id', str()), sender.get('card', str()) or sender.get('nickname', str()))}>{str().join([await gen_message_segment(sub_seg, bot, group_id) for sub_seg in reply_msg.get('message', list())])}</reply>"
     elif seg.type == "forward":
         try:
             forward_msg = await bot.get_forward_msg(id=seg.data.get("id", str()))
@@ -98,18 +99,31 @@ async def gen_message_segment(
         return f"<{seg.type}/>"
 
 
+def gen_name_field(key: str, user_id: str, name: str, name_value: bool = False):
+    if name_value:
+        if user_id in config.bots:
+            return ">迪拉熊"
+        else:
+            return f' {key}_id="{user_id}">{escape(name)}'
+    else:
+        if user_id in config.bots:
+            return f' {key}="迪拉熊"'
+        else:
+            return f' {key}_id="{user_id}" {key}_name="{escape(name)}"'
+
+
 async def gen_image_info(url: str) -> str:
     return "\r\n".join(
         choice.message.content
         for choice in (
             await run_sync(
                 lambda: client.chat.completions.create(
-                    model="doubao-seed-1-6-flash-250715",
+                    model="ep-m-20250725142002-m664c",
                     messages=[
                         {
                             "content": [
                                 {
-                                    "image_url": {"url": url},
+                                    "image_url": {"detail": "high", "url": url},
                                     "type": "image_url",
                                 },
                                 {
