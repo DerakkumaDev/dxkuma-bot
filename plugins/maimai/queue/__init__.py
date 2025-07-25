@@ -110,7 +110,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
             await list_all.finish("找不到机厅", at_sender=True)
 
         arcade_names = [
-            f"{arcade['name']}{f'\r\n别名：{"、".join(arcade["aliases"])}' if len(arcade['aliases']) > 0 else ''}\r\n{await gen_message(bot, arcade)}"
+            f"{arcade['name']}{f'\r\n别名：{"、".join(arcade["aliases"])}' if len(arcade['aliases']) > 0 else str()}\r\n{await gen_message(bot, arcade)}"
             for arcade in arcades
             if arcade is not None
         ]
@@ -147,7 +147,7 @@ async def _(event: GroupMessageEvent):
             await search.finish("找不到机厅", at_sender=True)
 
         arcade_names = [
-            f"{arcade['name']}{f'\r\n别名：{"、".join(arcade["aliases"])}' if len(arcade['aliases']) > 0 else ''}"
+            f"{arcade['name']}{f'\r\n别名：{"、".join(arcade["aliases"])}' if len(arcade['aliases']) > 0 else str()}"
             for arcade in arcades
             if arcade is not None
         ]

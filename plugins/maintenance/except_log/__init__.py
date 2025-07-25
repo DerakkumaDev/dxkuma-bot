@@ -51,7 +51,7 @@ async def _(event: Event, matcher: Matcher, exception: Exception | None):
     ):
         return
     bot = get_bot()
-    trace = "".join(traceback.format_exception(exception)).replace("\\n", "\r\n")
+    trace = str().join(traceback.format_exception(exception)).replace("\\n", "\r\n")
     msg = MessageSegment.text(
         f"{trace}{event.get_message().to_rich_text() if isinstance(event, MessageEvent) else event.get_type()}\r\n{event.get_session_id()}"
     )

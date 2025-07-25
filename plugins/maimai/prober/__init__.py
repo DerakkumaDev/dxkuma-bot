@@ -193,7 +193,7 @@ async def records_to_bests(
                     "dxScore": np.sum(song["charts"][i]["notes"]) * 3,
                     "fc": "fsdp",
                     "fs": "app",
-                    "level": "",
+                    "level": str(),
                     "level_index": i,
                     "level_label": [
                         "Basic",

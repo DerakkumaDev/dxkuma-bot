@@ -23,8 +23,8 @@ handler = on_message(priority=10000, block=False)
 async def _(bot: Bot, event: MessageEvent):
     now = datetime.now()
     if isinstance(event, GroupMessageEvent):
-        user_name = event.sender.card or event.sender.nickname or ""
-        msg_text = await gen_message(event, bot, event.group_id)
+        user_name = event.sender.card or event.sender.nickname or str()
+        msg_text = await gen_message(event, bot)
         chat_id = f"{event.group_id}.g"
         group_name = (await bot.get_group_info(group_id=event.group_id))["group_name"]
         message = str.format(
@@ -74,4 +74,4 @@ async def _(bot: Bot, event: MessageEvent):
     if reply == "<ignored/>":
         return
 
-    await handler.send(MessageSegment.text(reply))
+    await handler.send(reply)

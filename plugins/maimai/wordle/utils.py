@@ -53,7 +53,7 @@ def generate_message_state(game_data, user_id):
                 f"{game_content['index']}. {game_content['title']}（已猜出）"
             )
             continue
-        display_title = ""
+        display_title = str()
         is_all_open = True
         for c in game_content["title"]:
             if (

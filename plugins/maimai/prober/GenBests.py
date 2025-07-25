@@ -372,7 +372,7 @@ async def music_to_part(
     diff=-1,
     preferred=None,
 ):
-    level_label = level_label.replace(":", "")
+    level_label = level_label.replace(":", str())
     color = (255, 255, 255)
     if level_index == 4:
         color = (88, 140, 204)
@@ -464,7 +464,7 @@ async def music_to_part(
         ttf = ImageFont.truetype(ttf_bold_path, size=24)
         draw.text(
             (376, 172),
-            f"{'+' if diff > 0 else '±' if diff == 0 else ''}{math.trunc(diff * 100) / 100:.2f}",
+            f"{'+' if diff > 0 else '±' if diff == 0 else str()}{math.trunc(diff * 100) / 100:.2f}",
             font=ttf,
             fill=color,
             anchor="lm",
@@ -502,7 +502,7 @@ async def music_to_part(
         ttf = ImageFont.truetype(ttf_bold_path, size=20)
         draw.text(
             (550, 172),
-            f"{'+' if diff > 0 else '±' if diff == 0 else ''}{diff}",
+            f"{'+' if diff > 0 else '±' if diff == 0 else str()}{diff}",
             font=ttf,
             fill=color,
             anchor="rm",
@@ -827,7 +827,7 @@ async def generatebests(
         "sd50": "Best 成绩标准差 50（含金量b50）",
         "all50": "全成绩 Best 50",
         "best40": "Best 40",
-        "rr50": "",
+        "rr50": str(),
     }
     type_name = type_names[type] if type in type_names else "Best 50"
     ttf = ImageFont.truetype(ttf2_bold_path, size=32)

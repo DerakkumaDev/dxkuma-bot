@@ -170,7 +170,7 @@ async def music_info(song_data):
     level_y = 1046
     for i, song_level in enumerate(songs_level):
         if "+" in song_level:
-            song_level = song_level.replace("+", "")
+            song_level = song_level.replace("+", str())
             level_label = ["Basic", "Advanced", "Expert", "Master", "ReMASTER"][i]
             plus_path = maimai_Plus / f"{level_label}.png"
             plus_icon = Image.open(plus_path)
@@ -408,7 +408,7 @@ async def play_info(data, song_data):
 
         # 等级
         if "+" in level:
-            level = level.replace("+", "")
+            level = level.replace("+", str())
             plus_path = maimai_Plus / f"{level_label}.png"
             plus_icon = Image.open(plus_path)
             bg = paste(bg, plus_icon, (plus_x, plus_y))
@@ -621,7 +621,7 @@ async def utage_music_info(song_data, index=0):
 
     # 等级
     ttf = ImageFont.truetype(ttf_black_path, size=50)
-    song_level = song_data["level"][0].replace("?", "")
+    song_level = song_data["level"][0].replace("?", str())
     drawtext.text((650, 1046), song_level, anchor="mm", font=ttf, fill=(131, 19, 158))
 
     # 物量
@@ -809,7 +809,7 @@ async def score_info(song_data, index):
         (186, 126, 232),
     ]
     if "+" in song_level:
-        song_level = song_level.replace("+", "")
+        song_level = song_level.replace("+", str())
         level_label = ["Basic", "Advanced", "Expert", "Master", "ReMASTER"][index]
         plus_path = maimai_Plus / f"{level_label}.png"
         plus_icon = Image.open(plus_path)

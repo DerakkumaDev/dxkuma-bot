@@ -17,7 +17,7 @@ message_times = dict()
 # 消息预处理
 def message_preprocess(message: Message):
     return (
-        "".join(
+        str().join(
             seg.to_rich_text(truncate=None) if seg.type != "image" else seg.data["file"]
             for seg in message
         ),
