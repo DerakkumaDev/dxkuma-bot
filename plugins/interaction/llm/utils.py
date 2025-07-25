@@ -48,12 +48,12 @@ async def gen_message_segment(
                 user_info = await bot.get_group_member_info(
                     group_id=group_id, user_id=int(seg.data.get("qq", "0"))
                 )
-                user_name = user_info["card"] or user_info["nickname"]
+                user_name = escape(user_info["card"] or user_info["nickname"])
             else:
                 user_info = await bot.get_stranger_info(
                     user_id=int(seg.data.get("qq", "0"))
                 )
-                user_name = user_info["nickname"]
+                user_name = escape(user_info["nickname"])
         return f'<at user_id="{seg.data.get("qq", "")}">{user_name}</at>'
     elif seg.type == "poke":
         return f'<poke user_id="{seg.data.get("id", "")}">{escape(seg.data.get("name", ""))}</poke>'
@@ -95,7 +95,7 @@ async def gen_image_info(url: str) -> str:
                                     "type": "image_url",
                                 },
                                 {
-                                    "text": "现在你是一名专业的高级数据标记员，请你用干练的语言为LLM尽可能详细的解释这张图片。你的回复中不要包含任何主观内容，只需要描述图片中的内容。",
+                                    "text": "你将作为专业高级数据标记员，用干练语言为大语言模型详细解释一张图片。请仅描述图片内容，不包含任何主观内容。",
                                     "type": "text",
                                 },
                             ],

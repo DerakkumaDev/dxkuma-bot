@@ -31,8 +31,8 @@ class Config:
         self.backend_url = None
         # llm
         self.ark_api_key = None
-        self.llm_prompt = None
-        self.user_prefix = None
+        self.llm_system_prompt = None
+        self.llm_user_prompt = None
         self.llm_enabled_groups = None
 
         # 解析配置文件
@@ -53,8 +53,8 @@ class Config:
         self.admin_accounts = data["admin"]["accounts"]
         self.backend_url = data["backend"]["url"]
         self.ark_api_key = data["llm"]["ark_api_key"]
-        self.llm_prompt = data["llm"]["prompt"]
-        self.user_prefix = data["llm"]["user_prefix"]
+        self.llm_system_prompt = data["llm"]["system_prompt"]
+        self.llm_user_prompt = data["llm"]["user_prompt"]
         self.llm_enabled_groups = data["llm"]["enabled_groups"]
 
 
