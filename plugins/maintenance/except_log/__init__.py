@@ -21,7 +21,7 @@ from util.exceptions import NotAllowedException, NeedToSwitchException
 PICPATH = "./Static/Gallery/SFW/"
 
 
-def check_image(imgpath: Path):
+def check_image(imgpath: Path | str):
     try:
         image = Image.open(imgpath)
     except UnidentifiedImageError:

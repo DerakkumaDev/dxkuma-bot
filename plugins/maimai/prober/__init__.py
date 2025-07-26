@@ -3,7 +3,7 @@ import os
 import re
 import shelve
 import time
-import urllib
+from urllib import parse
 from pathlib import Path
 
 import aiofiles
@@ -223,6 +223,8 @@ async def records_to_bests(
                     b = dx
                 elif sd:
                     b = sd
+                else:
+                    continue
                 b.pop(0)
         return sd[:35], dx[:15], False
     for record in records:
@@ -473,7 +475,7 @@ def check_type(song_info, music_type):
 async def _(bot: Bot, event: MessageEvent):
     sender_qq = event.user_id
     target_qq = event.get_user_id()
-    user_info = await bot.get_stranger_info(user_id=target_qq)
+    user_info = await bot.get_stranger_info(user_id=sender_qq)
     for message in event.get_message():
         if message.type != "at":
             continue
@@ -557,7 +559,7 @@ async def _(bot: Bot, event: MessageEvent):
             params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
         start_time = time.perf_counter()
         async with session.get(
-            f"{config.backend_url}/bests/{source}?%s" % urllib.parse.urlencode(params)
+            f"{config.backend_url}/bests/{source}?%s" % parse.urlencode(params)
         ) as resp:
             end_time = time.perf_counter()
             if resp.status != 200:
@@ -655,8 +657,7 @@ async def _(bot: Bot, event: MessageEvent):
             params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
         start_time = time.perf_counter()
         async with session.get(
-            f"{config.backend_url}/bests/anime/{source}?%s"
-            % urllib.parse.urlencode(params)
+            f"{config.backend_url}/bests/anime/{source}?%s" % parse.urlencode(params)
         ) as resp:
             end_time = time.perf_counter()
             if resp.status != 200:
@@ -1457,7 +1458,7 @@ async def _(bot: Bot, event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
             await cf50.finish(msg, at_sender=True)
-    if target_qq == None:
+    if target_qq is None:
         msg = (
             MessageSegment.text("你没有比较任何人哦~"),
             MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
@@ -2041,7 +2042,7 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    pattern = r"(?:(\d+\+?)|(真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|镜))(?:\s*(\d+))?"
+    pattern = r"(?:(\d+\+?)|(真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|宴|镜))(?:\s*(\d+))?"
     match = re.search(pattern, msg)
     level = match.group(1)
     ds = None
@@ -2082,7 +2083,7 @@ async def _(event: MessageEvent):
     if level:
         if source == "lxns" and not lx_personal_token:
             msg = (
-                MessageSegment.text(f"你还没有绑定落雪查分器哦~"),
+                MessageSegment.text("你还没有绑定落雪查分器哦~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
             await wcb.finish(msg, at_sender=True)
@@ -2099,8 +2100,7 @@ async def _(event: MessageEvent):
                 params["plate"] = plate
             start_time = time.perf_counter()
             async with session.get(
-                f"{config.backend_url}/list/{source}?%s"
-                % urllib.parse.urlencode(params)
+                f"{config.backend_url}/list/{source}?%s" % parse.urlencode(params)
             ) as resp:
                 end_time = time.perf_counter()
                 if resp.status != 200:

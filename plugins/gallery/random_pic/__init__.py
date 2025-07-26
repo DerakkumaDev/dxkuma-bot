@@ -23,7 +23,7 @@ LIMIT_TIMES = 10
 groups: dict[int, list[datetime.datetime]] = dict()
 
 
-def check_image(imgpath: Path):
+def check_image(imgpath: Path | str):
     try:
         image = Image.open(imgpath)
     except UnidentifiedImageError:

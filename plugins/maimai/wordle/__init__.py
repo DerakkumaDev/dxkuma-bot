@@ -569,7 +569,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
         leaderboard_output.append(f"\r\n游玩次数：{leaderboard[index][2]}")
     else:
-        leaderboard_output.append(f"你现在还不在排行榜上哦~")
+        leaderboard_output.append("你现在还不在排行榜上哦~")
         achi, _times = ranking.get_score(user_id)
         leaderboard_output.append(f"\r\n游玩次数：{_times}")
 

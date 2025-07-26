@@ -18,4 +18,4 @@ class Lock(object):
         self.count = 0
 
 
-locks: dict[int, Lock] = dict()
+locks: dict[str, Lock] = dict()

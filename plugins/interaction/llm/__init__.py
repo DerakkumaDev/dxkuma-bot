@@ -17,7 +17,7 @@ locks: dict[str, Lock] = dict()
 
 handler = on_message(priority=10000, block=False)
 
-chat_mode_on = on_regex(r"^((开启|开始|启用|启动)聊天(模式)?|(迪拉熊|dlx)说话?)$")
+chat_mode_on = on_regex(r"^((开启|开始|启用|启动|打开)聊天(模式)?|(迪拉熊|dlx)说话?)$")
 chat_mode_off = on_regex(r"^((关闭|禁用|结束)聊天(模式)?|(迪拉熊|dlx)闭嘴?)$")
 
 

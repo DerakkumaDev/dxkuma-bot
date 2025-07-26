@@ -1,5 +1,5 @@
 import nonebot
-from nonebot.adapters.onebot import V11Adapter
+from nonebot.adapters.onebot.v11 import Adapter as V11Adapter
 
 from util.Config import config
 

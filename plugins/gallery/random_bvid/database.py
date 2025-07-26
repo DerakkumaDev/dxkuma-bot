@@ -7,7 +7,7 @@ shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler
 
 
-class bvidList(object):
+class BvidList(object):
     def __init__(self):
         self.data_path = "./data/bvid.db"
         with shelve.open(self.data_path) as data:
@@ -46,4 +46,4 @@ class bvidList(object):
             return len(bvids)
 
 
-bvidList = bvidList()
+bvidList = BvidList()
