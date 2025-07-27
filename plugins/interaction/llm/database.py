@@ -8,30 +8,36 @@ shelve.Unpickler = Unpickler
 CONTEXT_LIMIT = 50 - 1
 
 
-class ContextIdList(object):
+class ContextManager(object):
     def __init__(self):
         self.data_path = "./data/llm.db"
         with shelve.open(self.data_path) as data:
-            if "context_ids" not in data:
-                data.setdefault("context_ids", dict())
+            if "contexts" not in data:
+                data.setdefault("contexts", dict())
 
             if "chat_mode" not in data:
                 data.setdefault("chat_mode", dict())
 
-    def get(self, id: str):
+    def get_context(self, id: str):
         with shelve.open(self.data_path) as data:
-            if id not in data["context_ids"]:
-                return None
+            if id not in data["contexts"]:
+                return list()
 
-            return data["context_ids"][id]
+            return data["contexts"][id]
 
-    def set(self, id: str, context_id: str):
+    def add_to_context(self, id: str, role: str, message: str):
         with shelve.open(self.data_path) as data:
-            context_ids = data["context_ids"]
+            contexts = data["contexts"]
 
-            context_ids[id] = context_id
+            if id not in contexts:
+                contexts.setdefault(id, list())
 
-            data["context_ids"] = context_ids
+            while len(contexts[id]) >= CONTEXT_LIMIT:
+                contexts[id].pop(0)
+
+            contexts[id].append({"role": role, "content": message})
+
+            data["contexts"] = contexts
 
     def get_chatmode(self, id: str):
         with shelve.open(self.data_path) as data:
@@ -49,4 +55,4 @@ class ContextIdList(object):
             data["chat_mode"] = chat_modes
 
 
-contextIdList = ContextIdList()
+contextManager = ContextManager()

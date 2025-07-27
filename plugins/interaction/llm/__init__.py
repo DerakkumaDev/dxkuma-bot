@@ -9,7 +9,7 @@ from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
 )
 
-from .database import contextIdList
+from .database import contextManager
 from .utils import client, escape, gen_message
 from util.Config import config
 
@@ -26,24 +26,26 @@ async def _(bot: Bot, event: MessageEvent):
     now = datetime.now()
     if isinstance(event, GroupMessageEvent):
         chat_id = f"{event.group_id}.g"
-        chat_mode = contextIdList.get_chatmode(chat_id)
+        chat_mode = contextManager.get_chatmode(chat_id)
         if not chat_mode and not event.is_tome():
             return
 
         user_name = event.sender.card or event.sender.nickname or str()
         msg_text = await gen_message(event, bot, chat_mode)
         group_name = (await bot.get_group_info(group_id=event.group_id))["group_name"]
-        message = (
-            f'<message time="{now.isoformat()}" chatroom_name="{escape(group_name)}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>',
-        )
+        raw_message = f'<message time="{now.isoformat()}" chatroom_name="{escape(group_name)}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
         message = str(
-            str.format(config.llm_user_prompt, message) if chat_mode else message
+            str.format(config.llm_user_prompt, raw_message)
+            if chat_mode
+            else raw_message
         )
     else:
         chat_id = f"{event.get_user_id()}.p"
         user_name = event.sender.nickname
         msg_text = await gen_message(event, bot, True)
-        message = f'<message time="{now.isoformat()}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
+        raw_message = message = str(
+            f'<message time="{now.isoformat()}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
+        )
 
     if not msg_text:
         return
@@ -52,33 +54,19 @@ async def _(bot: Bot, event: MessageEvent):
         locks[chat_id] = Lock()
 
     async with locks[chat_id]:
-        context_id = contextIdList.get(chat_id)
-        if context_id is None:
-            response = await run_sync(
-                lambda: client.context.create(
-                    model="ep-m-20250725142030-kn9m4",
-                    messages=[{"role": "system", "content": config.llm_system_prompt}],
-                    mode="session",
-                    truncation_strategy={
-                        "type": "rolling_tokens",
-                        "rolling_tokens": True,
-                    },
-                )
-            )
-            contextIdList.set(chat_id, context_id := response.id)
-
+        contextManager.add_to_context(chat_id, "user", raw_message)
+        context = contextManager.get_context(chat_id)
         completion = await run_sync(
-            lambda: client.context.completions.create(
-                model="ep-m-20250725142030-kn9m4",
-                context_id=context_id,
-                messages=[{"role": "user", "content": message}],
+            lambda: client.bot_chat.completions.create(
+                model=config.llm_model, messages=context
             )
         )
 
-    reply = "\r\n".join(choice.message.content for choice in completion.choices)
-    if reply == "<ignored/>":
-        return
+        reply = "\r\n".join(choice.message.content for choice in completion.choices)
+        if reply == "<ignored/>":
+            return
 
+        contextManager.add_to_context(chat_id, "assistant", reply)
     await handler.send(reply)
 
 
@@ -88,7 +76,7 @@ async def _(event: GroupMessageEvent):
         return
 
     chat_id = f"{event.group_id}.g"
-    contextIdList.set_chatmode(chat_id, True)
+    contextManager.set_chatmode(chat_id, True)
     await chat_mode_on.send("迪拉熊帮你换好啦~", at_sender=True)
 
 
@@ -98,5 +86,5 @@ async def _(event: GroupMessageEvent):
         return
 
     chat_id = f"{event.group_id}.g"
-    contextIdList.set_chatmode(chat_id, False)
+    contextManager.set_chatmode(chat_id, False)
     await chat_mode_on.send("迪拉熊帮你换好啦~", at_sender=True)
