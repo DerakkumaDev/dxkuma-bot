@@ -2225,20 +2225,16 @@ async def _(event: MessageEvent):
         MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     if song_info["basic_info"]["genre"] == "宴会場":
-        start_time = time.perf_counter()
         img = await utage_music_info(
             song_data=song_info,
         )
     else:
-        start_time = time.perf_counter()
         img = await music_info(
             song_data=song_info,
         )
-    end_time = time.perf_counter()
     msg = (
         MessageSegment.text(f"{song_info['id']}：{song_info['title']}"),
         MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
     await songinfo.send(msg)
 
@@ -2308,16 +2304,11 @@ async def _(event: MessageEvent):
     await playinfo.send(
         MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
-    start_time = time.perf_counter()
     img = await play_info(
         data,
         song_info,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await playinfo.send(msg, at_sender=True)
 
 
@@ -2361,16 +2352,11 @@ async def _(event: MessageEvent):
     await scoreinfo.send(
         MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
-    start_time = time.perf_counter()
     img = await score_info(
         song_data=song_info,
         index=type_index,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await scoreinfo.send(msg)
 
 
@@ -2456,15 +2442,12 @@ async def _(event: MessageEvent):
     await randomsong.send(
         MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
-    start_time = time.perf_counter()
     img = await music_info(
         song_data=song,
     )
-    end_time = time.perf_counter()
     msg = (
         MessageSegment.text(f"{song['id']}：{song['title']}"),
         MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
     await randomsong.send(msg, at_sender=True)
 
@@ -2478,20 +2461,16 @@ async def _(event: MessageEvent):
         MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
     )
     if song["basic_info"]["genre"] == "宴会場":
-        start_time = time.perf_counter()
         img = await utage_music_info(
             song_data=song,
         )
     else:
-        start_time = time.perf_counter()
         img = await music_info(
             song_data=song,
         )
-    end_time = time.perf_counter()
     msg = (
         MessageSegment.text(f"{song['id']}：{song['title']}"),
         MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
     await maiwhat.send(msg, at_sender=True)
 
