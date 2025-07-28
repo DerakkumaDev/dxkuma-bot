@@ -43,8 +43,8 @@ async def generate_game_data():
     return game_data
 
 
-def generate_message_state(game_data, user_id):
-    now = datetime.now()
+def generate_message_state(game_data, user_id, time: int):
+    now = datetime.fromtimestamp(time)
     game_state = list()
     char_all_open = list()
     for game_content in game_data["game_contents"]:
@@ -126,8 +126,8 @@ def generate_message_state(game_data, user_id):
     return is_game_over, "\r\n".join(game_state), char_all_open, game_data
 
 
-def check_music_id(game_data, music_ids: list, user_id):
-    now = datetime.now()
+def check_music_id(game_data, music_ids: list, user_id, time: int):
+    now = datetime.fromtimestamp(time)
     guess_success = list()
     for music_id in music_ids:
         for game_content in game_data["game_contents"]:

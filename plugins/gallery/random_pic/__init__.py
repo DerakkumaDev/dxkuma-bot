@@ -66,6 +66,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
             MessageSegment.image(Path("./Static/Gallery/0.png")),
         )
         await rand_pic.finish(msg)
+    now = datetime.datetime.fromtimestamp(event.time)
     if type == "nsfw":
         if os.path.exists("./data/nsfw_lock"):
             await rand_pic.send("由于该账号被警告，该功能暂时关闭，请稍后再试mai~")
@@ -73,7 +74,6 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if bot.self_id not in config.allowed_accounts:  # type 为 'nsfw' 且非指定机器人
             raise NotAllowedException
     elif group_id != config.special_group:  # 不被限制的 group_id
-        now = datetime.datetime.now()
         while len(groups[group_id]) > 0:
             t = groups[group_id][0]
             if now - t < datetime.timedelta(minutes=LIMIT_MINUTES):
@@ -91,7 +91,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
             await rand_pic.finish(msg)
     async with aiofiles.open(pic_path, "rb") as fd:
         send_msg = await rand_pic.send(MessageSegment.image(await fd.read()))
-    groups[group_id].append(datetime.datetime.now())
+    groups[group_id].append(now)
     ranking.update_count(qq=qq, type=type)
     if type == "nsfw":
         msg_id = send_msg["message_id"]

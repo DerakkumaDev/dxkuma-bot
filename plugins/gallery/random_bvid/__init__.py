@@ -25,7 +25,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     group_id = event.group_id
     qq = event.get_user_id()
     groups.setdefault(group_id, list())
-    now = datetime.datetime.now()
+    now = datetime.datetime.fromtimestamp(event.time)
     if group_id != config.special_group:  # 不被限制的 group_id
         while len(groups[group_id]) > 0:
             t = groups[group_id][0]
@@ -63,7 +63,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         webUrl=f"https://www.bilibili.com/video/{bvid}/",
     )
     await rand_bv.send(MessageSegment.json(json.dumps(mini_app_ark["data"]).decode()))
-    groups[group_id].append(datetime.datetime.now())
+    groups[group_id].append(now)
     ranking.update_count(qq=qq, type="video")
 
 
