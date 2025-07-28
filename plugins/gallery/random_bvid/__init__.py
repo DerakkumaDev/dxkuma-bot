@@ -69,7 +69,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
 @add_bv.handle()
 async def _(event: GroupMessageEvent):
-    if event.group_id != config.dev_group:
+    if event.user_id not in config.admin_accounts:
         return
 
     msg = event.get_plaintext()
@@ -81,7 +81,7 @@ async def _(event: GroupMessageEvent):
 
 @remove_bv.handle()
 async def _(event: GroupMessageEvent):
-    if event.group_id != config.dev_group:
+    if event.user_id not in config.admin_accounts:
         return
 
     msg = event.get_plaintext()

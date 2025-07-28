@@ -96,7 +96,7 @@ async def _(event: GroupMessageEvent):
 
 @list_all.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
-    if event.group_id != config.dev_group:
+    if event.user_id not in config.admin_accounts:
         return
 
     async with lock:
