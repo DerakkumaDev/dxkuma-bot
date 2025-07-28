@@ -11,9 +11,9 @@ from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 from numpy import random
 
-from ..rank.database import ranking
 from util.Config import config
 from util.exceptions import NotAllowedException
+from ..rank.database import ranking
 
 rand_pic = on_regex(r"^(随机)?(迪拉熊|dlx)((涩|色|瑟)图|st)?$", re.I)
 

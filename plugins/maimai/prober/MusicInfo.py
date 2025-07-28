@@ -4,8 +4,8 @@ from io import BytesIO
 
 import aiofiles
 import numpy as np
-from aiohttp import ClientSession
 from PIL import Image, ImageDraw, ImageFont
+from aiohttp import ClientSession
 
 from util.Config import config
 from util.Data import get_chart_stats
@@ -16,8 +16,8 @@ from .Config import (
     maimai_Plus,
     maimai_MusicType,
 )
-from .GenBests import get_fit_diff
 from .Draw import paste, text
+from .GenBests import get_fit_diff
 
 # 字体路径
 ttf_black_path = font_path / "rounded-x-mplus-1p-heavy.ttf"

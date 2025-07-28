@@ -6,9 +6,9 @@ from aiohttp import ClientSession
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 
-from ..rank.database import ranking
-from .database import bvidList
 from util.Config import config
+from .database import bvidList
+from ..rank.database import ranking
 
 rand_bv = on_regex(r"^(随机)?(迪拉熊|dlx)(视频|sp|v)$", re.I)
 add_bv = on_regex(r"^(加视频|jsp)(\s*BV[A-Za-z0-9]{10})+$", re.I)

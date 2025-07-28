@@ -10,10 +10,9 @@ from nonebot.adapters.onebot.v11 import (
 )
 from openai import NOT_GIVEN
 
+from util.Config import config
 from .database import contextManager
 from .utils import client, escape, gen_message, locks
-from util.Config import config
-
 
 handler = on_message(priority=10000, block=False)
 

@@ -4,9 +4,9 @@ from anyio import Lock
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 
+from util.Config import config
 from .database import arcadeManager
 from .utils import gen_message
-from util.Config import config
 
 lock = Lock()
 

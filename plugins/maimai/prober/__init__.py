@@ -3,8 +3,8 @@ import os
 import re
 import shelve
 import time
-from urllib import parse
 from pathlib import Path
+from urllib import parse
 
 import aiofiles
 import numpy as np
