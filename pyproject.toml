@@ -12,6 +12,7 @@ dependencies = [
     "nonebot-adapter-onebot>=2.4.6",
     "nonebot2[fastapi]>=2.4.2",
     "numpy>=2.3.2",
+    "openai>=1.97.1",
     "orjson>=3.11.1",
     "pillow>=11.3.0",
     "pyhocon>=0.3.61",
@@ -19,6 +20,5 @@ dependencies = [
     "rapidfuzz>=3.13.0",
     "soundfile>=0.13.1",
     "sqlalchemy>=2.0.41",
-    "volcengine-python-sdk[ark]>=4.0.7",
     "xxhash>=3.5.0",
 ]

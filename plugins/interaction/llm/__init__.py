@@ -8,12 +8,12 @@ from nonebot.adapters.onebot.v11 import (
     MessageEvent,
     GroupMessageEvent,
 )
+from openai import NOT_GIVEN
 
 from .database import contextManager
-from .utils import client, escape, gen_message
+from .utils import client, escape, gen_message, locks
 from util.Config import config
 
-locks: dict[str, Lock] = dict()
 
 handler = on_message(priority=10000, block=False)
 
@@ -23,7 +23,7 @@ chat_mode_off = on_regex(r"^((关闭|禁用|结束)聊天(模式)?|(迪拉熊|dl
 
 @handler.handle()
 async def _(bot: Bot, event: MessageEvent):
-    now = datetime.now()
+    now = datetime.fromtimestamp(event.time)
     if isinstance(event, GroupMessageEvent):
         chat_id = f"{event.group_id}.g"
         chat_mode = contextManager.get_chatmode(chat_id)
@@ -31,42 +31,55 @@ async def _(bot: Bot, event: MessageEvent):
             return
 
         user_name = event.sender.card or event.sender.nickname or str()
-        msg_text = await gen_message(event, bot, chat_mode)
+        msg_text, image_urls = await gen_message(event, bot, chat_mode)
         group_name = (await bot.get_group_info(group_id=event.group_id))["group_name"]
-        raw_message = f'<message time="{now.isoformat()}" chatroom_name="{escape(group_name)}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
-        message = str(
-            str.format(config.llm_user_prompt, raw_message)
-            if chat_mode
-            else raw_message
-        )
+        message = f'<message time="{now.isoformat()}" chatroom_name="{escape(group_name)}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
+        message = str.format(config.llm_user_prompt, message) if chat_mode else message
     else:
         chat_id = f"{event.get_user_id()}.p"
         user_name = event.sender.nickname
-        msg_text = await gen_message(event, bot, True)
-        raw_message = message = str(
-            f'<message time="{now.isoformat()}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
-        )
+        msg_text, image_urls = await gen_message(event, bot, True)
+        message = f'<message time="{now.isoformat()}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
 
     if not msg_text:
         return
+
+    content = list()
+
+    for image_url in image_urls:
+        content.append(
+            {"type": "input_image", "detail": "high", "image_url": image_url}
+        )
+
+    content.append({"type": "input_text", "text": message})
+
+    input = [{"role": "user", "content": content}]
 
     if chat_id not in locks:
         locks[chat_id] = Lock()
 
     async with locks[chat_id]:
-        contextManager.add_to_context(chat_id, "user", raw_message)
-        context = contextManager.get_context(chat_id)
-        completion = await run_sync(
-            lambda: client.bot_chat.completions.create(
-                model=config.llm_model, messages=context
+        context_id = contextManager.get_contextid(chat_id)
+        if context_id is None:
+            input.insert(0, {"role": "system", "content": config.llm_system_prompt})
+
+        response = await run_sync(
+            lambda: client.responses.create(
+                model=config.llm_model,
+                input=input,
+                previous_response_id=NOT_GIVEN if context_id is None else context_id,
+                extra_body={
+                    "caching": {"type": "enabled"},
+                    "thinking": {"type": "disabled"},
+                },
             )
         )
+        contextManager.set_contextid(chat_id, response.id)
 
-        reply = "\r\n".join(choice.message.content for choice in completion.choices)
-        if reply == "<ignored/>":
-            return
+    reply = response.output_text
+    if reply == "<ignored/>":
+        return
 
-        contextManager.add_to_context(chat_id, "assistant", reply)
     await handler.send(reply)
 
 
