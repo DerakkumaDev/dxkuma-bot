@@ -2221,17 +2221,10 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await songinfo.send(
-        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
-    )
     if song_info["basic_info"]["genre"] == "宴会場":
-        img = await utage_music_info(
-            song_data=song_info,
-        )
+        img = await utage_music_info(song_data=song_info)
     else:
-        img = await music_info(
-            song_data=song_info,
-        )
+        img = await music_info(song_data=song_info)
     msg = (
         MessageSegment.text(f"{song_info['id']}：{song_info['title']}"),
         MessageSegment.image(img),
@@ -2301,13 +2294,7 @@ async def _(event: MessageEvent):
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
         await playinfo.finish(msg, at_sender=True)
-    await playinfo.send(
-        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
-    )
-    img = await play_info(
-        data,
-        song_info,
-    )
+    img = await play_info(data, song_info)
     msg = MessageSegment.image(img)
     await playinfo.send(msg, at_sender=True)
 
@@ -2349,13 +2336,7 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await scoreinfo.send(
-        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
-    )
-    img = await score_info(
-        song_data=song_info,
-        index=type_index,
-    )
+    img = await score_info(song_data=song_info, index=type_index)
     msg = MessageSegment.image(img)
     await scoreinfo.send(msg)
 
@@ -2439,12 +2420,7 @@ async def _(event: MessageEvent):
         msg = "迪拉熊没有找到匹配的乐曲哦~"
         await randomsong.finish(MessageSegment.text(msg), at_sender=True)
     song = rng.choice(s_songs)
-    await randomsong.send(
-        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
-    )
-    img = await music_info(
-        song_data=song,
-    )
+    img = await music_info(song_data=song)
     msg = (
         MessageSegment.text(f"{song['id']}：{song['title']}"),
         MessageSegment.image(img),
@@ -2457,17 +2433,10 @@ async def _(event: MessageEvent):
     rng = random.default_rng()
     songList = await get_music_data()
     song = rng.choice(songList)
-    await maiwhat.send(
-        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
-    )
     if song["basic_info"]["genre"] == "宴会場":
-        img = await utage_music_info(
-            song_data=song,
-        )
+        img = await utage_music_info(song_data=song)
     else:
-        img = await music_info(
-            song_data=song,
-        )
+        img = await music_info(song_data=song)
     msg = (
         MessageSegment.text(f"{song['id']}：{song['title']}"),
         MessageSegment.image(img),
