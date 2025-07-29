@@ -33,7 +33,8 @@ class Config:
         # backend
         self.backend_url = None
         # llm
-        self.ark_api_key = None
+        self.llm_base_url = None
+        self.llm_api_key = None
         self.llm_model = None
         self.llm_system_prompt = None
         self.llm_user_prompt = None
@@ -55,7 +56,8 @@ class Config:
         self.lx_token = data["prober"]["lxns_token"]
         self.admin_accounts = data["admin"]["accounts"]
         self.backend_url = data["backend"]["url"]
-        self.ark_api_key = data["llm"]["ark_api_key"]
+        self.llm_base_url = data["llm"]["base_url"]
+        self.llm_api_key = data["llm"]["api_key"]
         self.llm_model = data["llm"]["model"]
         self.llm_system_prompt = data["llm"]["system_prompt"]
         self.llm_user_prompt = data["llm"]["user_prompt"]

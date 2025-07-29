@@ -13,9 +13,7 @@ from util.Config import config
 
 locks: dict[str, Lock] = dict()
 
-client = OpenAI(
-    base_url="https://ark.cn-beijing.volces.com/api/v3", api_key=config.ark_api_key
-)
+client = OpenAI(base_url=config.llm_base_url, api_key=config.llm_api_key)
 
 
 def escape(message: str) -> str:
@@ -38,7 +36,20 @@ async def gen_message(
     if event.reply:
         reply_msg = event.reply
         l.append(
-            f"<reply{gen_name_field('sender', str(reply_msg.sender.user_id), reply_msg.sender.card or reply_msg.sender.nickname or str())}>{str().join([await gen_message_segment(seg, bot, group_id, urls) for seg in reply_msg.message])}</reply>"
+            f"<reply{
+                gen_name_field(
+                    'sender',
+                    str(reply_msg.sender.user_id),
+                    reply_msg.sender.card or reply_msg.sender.nickname or str(),
+                )
+            }>{
+                str().join(
+                    [
+                        await gen_message_segment(seg, bot, group_id, urls)
+                        for seg in reply_msg.message
+                    ]
+                )
+            }</reply>"
         )
 
     if event.is_tome() and is_chat_mode:
@@ -62,30 +73,50 @@ async def gen_message_segment(
     if seg.type == "text":
         return escape(seg.data.get("text", str()))
     elif seg.type == "at":
+        user_id = seg.data.get("qq", "0")
+        if user_id == "all":
+            return "<at_all/>"
+
         user_name = escape(seg.data.get("name", str()))
         if not user_name:
             if group_id:
                 user_info = await bot.get_group_member_info(
-                    group_id=group_id, user_id=int(seg.data.get("qq", "0"))
+                    group_id=group_id, user_id=int(user_id)
                 )
                 user_name = escape(
                     user_info.get("card", str()) or user_info.get("nickname", str())
                 )
             else:
-                user_info = await bot.get_stranger_info(
-                    user_id=int(seg.data.get("qq", "0"))
-                )
+                user_info = await bot.get_stranger_info(user_id=int(user_id))
                 user_name = escape(user_info.get("nickname", str()))
 
-        return f"<at{gen_name_field('user', seg.data.get('qq', str()), user_name, True)}</at>"
+        return f"<at{gen_name_field('user', user_id, user_name, True)}</at>"
     elif seg.type == "poke":
-        return f"<poke{gen_name_field('user', seg.data.get('id', str()), escape(seg.data.get('name', str())), True)}</poke>"
-    elif seg.type == "share":
-        return f'<share href="{escape(seg.data.get("url", str()))}">{escape(seg.data.get("title", str()))}</share>'
+        user_id = seg.data.get("id", "0")
+        if group_id:
+            user_info = await bot.get_group_member_info(
+                group_id=group_id, user_id=int(user_id)
+            )
+            user_name = escape(
+                user_info.get("card", str()) or user_info.get("nickname", str())
+            )
+        else:
+            user_info = await bot.get_stranger_info(user_id=int(user_id))
+            user_name = escape(user_info.get("nickname", str()))
+
+        return f'<poke type="{escape(seg.data.get("type", str()))}"{
+            gen_name_field("user", user_id, user_name, True)
+        }</poke>'
     elif seg.type == "contact":
-        return f'<contact type="{seg.data.get("type", str())}">{seg.data.get("id", str())}</contact>'
-    elif seg.type == "location":
-        return f"<location>{escape(seg.data.get('title', str()))}</location>"
+        contact_type = seg.data.get("type", str())
+        contact_id = seg.data.get("id", "0")
+        if contact_type == "qq":
+            user_info = await bot.get_stranger_info(user_id=int(contact_id))
+            contact_name = escape(user_info.get("nickname", str()))
+        elif contact_type == "group":
+            group_info = await bot.get_group_info(group_id=int(contact_id))
+            contact_name = escape(group_info.get("card", str()))
+        return f'<contact type="{contact_type}"{gen_name_field("contact", contact_id, contact_name, True)}</contact>'
     elif seg.type == "music":
         return f"<music>{escape(seg.data.get('title', str()))}</music>"
     elif seg.type == "reply":
@@ -94,12 +125,27 @@ async def gen_message_segment(
         except:
             return "<reply/>"
         sender = reply_msg.get("sender", dict())
-        return f"<reply{gen_name_field('sender', sender.get('user_id', str()), sender.get('card', str()) or sender.get('nickname', str()))}>{str().join([await gen_message_segment(sub_seg, bot, group_id, urls) for sub_seg in reply_msg.get('message', list())])}</reply>"
+        return f"<reply{
+            gen_name_field(
+                'sender',
+                sender.get('user_id', str()),
+                sender.get('card', str()) or sender.get('nickname', str()),
+            )
+        }>{
+            str().join(
+                [
+                    await gen_message_segment(sub_seg, bot, group_id, urls)
+                    for sub_seg in reply_msg.get('message', list())
+                ]
+            )
+        }</reply>"
     elif seg.type == "forward":
-        try:
-            forward_msg = await bot.get_forward_msg(id=seg.data.get("id", str()))
-        except:
-            return "<forward/>"
+        forward_msg = seg.data.get("content", list())
+        if not forward_msg:
+            try:
+                forward_msg = await bot.get_forward_msg(id=seg.data.get("id", str()))
+            except:
+                return "<forward/>"
         messages = list()
         for message in forward_msg.get("messages", list()):
             now = datetime.fromtimestamp(
@@ -114,7 +160,11 @@ async def gen_message_segment(
             )
             if message.get("message_type", "private") != "group":
                 messages.append(
-                    f'<message time="{now.isoformat()}" sender_id="{sender.get("user_id", str())}" sender_name="{escape(sender.get("nickname", str()))}">\n{msg_text}\n</message>'
+                    f'<message time="{now.isoformat()}" sender_id="{
+                        sender.get("user_id", str())
+                    }" sender_name="{escape(sender.get("nickname", str()))}">\n{
+                        msg_text
+                    }\n</message>'
                 )
                 continue
 
@@ -125,7 +175,11 @@ async def gen_message_segment(
             except:
                 group_name = str()
             messages.append(
-                f'<message time="{now.isoformat()}" chatroom_name="{escape(group_name)}" sender_id="{sender.get("user_id", str())}" sender_name="{escape(sender.get("nickname", str()))}">\n{msg_text}\n</message>'
+                f'<message time="{now.isoformat()}" chatroom_name="{
+                    escape(group_name)
+                }" sender_id="{sender.get("user_id", str())}" sender_name="{
+                    escape(sender.get("nickname", str()))
+                }">\n{msg_text}\n</message>'
             )
         return f"<forward>{str().join(messages)}</forward>"
     elif seg.type == "image":
@@ -138,18 +192,35 @@ async def gen_message_segment(
         return result
     elif seg.type == "face":
         return f"<face>{escape(seg.data.get('raw', dict()).get('faceText', str()) or str())}</face>"
+    elif seg.type == "video":
+        return f"<video>{escape(seg.data.get('name', str()))}</video>"
+    elif seg.type == "record":
+        return f"<record>{escape(seg.data.get('name', str()))}</record>"
+    elif seg.type == "file":
+        return f"<file>{escape(seg.data.get('name', str()))}</file>"
+    elif seg.type == "mface":
+        return f"<mface>{escape(seg.data.get('summary', str()))}</mface>"
+    elif seg.type == "markdown":
+        return f"<markdown>{escape(seg.data.get('content', str()))}</markdown>"
+    elif seg.type == "dice":
+        return f"<dice>{escape(seg.data.get('result', str()))}</dice>"
+    elif seg.type == "rps":
+        return f"<rps>{escape(seg.data.get('result', str()))}</rps>"
     else:
-        return f"<{seg.type}/>"
+        return f"<{seg.type}>{seg.data}<{seg.type}/>"
 
 
 def gen_name_field(key: str, user_id: str, name: str, name_value: bool = False):
+    name = escape(name)
     if name_value:
         if user_id in config.bots:
             return ">迪拉熊"
         else:
-            return f' {key}_id="{user_id}">{escape(name)}'
+            return f' {key}_id="{user_id}">{name}'
     else:
         if user_id in config.bots:
             return f' {key}="迪拉熊"'
+        elif not name:
+            return f' {key}_id="{user_id}"'
         else:
-            return f' {key}_id="{user_id}" {key}_name="{escape(name)}"'
+            return f' {key}_id="{user_id}" {key}_name="{name}"'

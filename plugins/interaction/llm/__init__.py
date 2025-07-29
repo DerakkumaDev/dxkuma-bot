@@ -32,13 +32,19 @@ async def _(bot: Bot, event: MessageEvent):
         user_name = event.sender.card or event.sender.nickname or str()
         msg_text, image_urls = await gen_message(event, bot, chat_mode)
         group_name = (await bot.get_group_info(group_id=event.group_id))["group_name"]
-        message = f'<message time="{now.isoformat()}" chatroom_name="{escape(group_name)}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
+        message = f'<message time="{now.isoformat()}" chatroom_name="{
+            escape(group_name)
+        }" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{
+            msg_text
+        }\n</message>'
         message = str.format(config.llm_user_prompt, message) if chat_mode else message
     else:
         chat_id = f"{event.get_user_id()}.p"
         user_name = event.sender.nickname
         msg_text, image_urls = await gen_message(event, bot, True)
-        message = f'<message time="{now.isoformat()}" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
+        message = f'<message time="{now.isoformat()}" sender_id="{
+            event.get_user_id()
+        }" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
 
     if not msg_text:
         return
@@ -86,7 +92,7 @@ async def _(event: GroupMessageEvent):
 
     chat_id = f"{event.group_id}.g"
     contextManager.set_chatmode(chat_id, True)
-    await chat_mode_on.send("迪拉熊帮你换好啦~", at_sender=True)
+    await chat_mode_on.send("迪拉熊可以聊天啦~", at_sender=True)
 
 
 @chat_mode_off.handle()
@@ -96,4 +102,4 @@ async def _(event: GroupMessageEvent):
 
     chat_id = f"{event.group_id}.g"
     contextManager.set_chatmode(chat_id, False)
-    await chat_mode_on.send("迪拉熊帮你换好啦~", at_sender=True)
+    await chat_mode_on.send("迪拉熊闭嘴啦~", at_sender=True)
