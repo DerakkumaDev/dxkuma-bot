@@ -28,7 +28,6 @@ from .utils import (
     generate_message_state,
     check_music_id,
     generate_success_state,
-    get_chart_info,
     get_version_info,
 )
 
@@ -307,24 +306,10 @@ async def _(event: GroupMessageEvent):
                 key=lambda x: x["level_value"],
                 reverse=True,
             )[0]["note_designer"],
-            "类型": lambda s: "DX"
-            if (
-                chart := sorted(
-                    (
-                        chart
-                        for charts in s["difficulties"].values()
-                        for chart in charts
-                    ),
-                    key=lambda x: x["level_value"],
-                    reverse=True,
-                )[0]
-            )["type"]
-            == "dx"
-            else "标准"
-            if chart["type"] == "standard"
-            else "宴会场"
-            if chart["type"] == "utage"
-            else "？",
+            # "类型": lambda s: "、".join(
+            #     {"dx": "DX", "standard": "标准", "utage": "宴会场"}[k]
+            #     for k in [k for k, v in s["difficulties"].items() if len(v) > 0]
+            # ),
             "曲师": lambda s: s["artist"],
             "分类": lambda s: [
                 genre["title"]
