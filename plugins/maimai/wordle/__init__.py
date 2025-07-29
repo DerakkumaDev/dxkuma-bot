@@ -24,11 +24,17 @@ from util.Data import (
 from .database import openchars
 from .ranking import ranking
 from .times import times
-from .utils import generate_message_state, check_music_id, generate_success_state
+from .utils import (
+    generate_message_state,
+    check_music_id,
+    generate_success_state,
+    get_chart_info,
+    get_version_info,
+)
 
 locks: dict[str, Lock] = dict()
 
-start_open_chars = on_regex(r"^dlx猜歌$", re.I)
+start_open_chars = on_regex(r"^(迪拉熊|dlx)猜歌$", re.I)
 open_chars = on_regex(r"^开\s*(.|[a-zA-Z]+)$")
 all_message_handle = on_message(priority=1000, block=False)
 pass_game = on_regex(r"^(结束猜歌|将大局逆转吧)$")
@@ -289,15 +295,44 @@ async def _(event: GroupMessageEvent):
             )
             return
 
+        songList = await get_music_data_lxns()
         tips = {
-            "紫谱等级": lambda s: s["level"][3 if len(s["level"]) >= 5 else -1],
-            "紫谱谱师": lambda s: s["charts"][3 if len(s["charts"]) >= 5 else -1][
-                "charter"
-            ],
-            "曲师": lambda s: s["basic_info"]["artist"],
-            "分类": lambda s: s["basic_info"]["genre"],
-            "BPM": lambda s: s["basic_info"]["bpm"],
-            "初出版本": lambda s: s["basic_info"]["from"],
+            "最高等级": lambda s: sorted(
+                (chart for charts in s["difficulties"].values() for chart in charts),
+                key=lambda x: x["level_value"],
+                reverse=True,
+            )[0]["level"],
+            "谱师": lambda s: sorted(
+                (chart for charts in s["difficulties"].values() for chart in charts),
+                key=lambda x: x["level_value"],
+                reverse=True,
+            )[0]["note_designer"],
+            "类型": lambda s: "DX"
+            if (
+                chart := sorted(
+                    (
+                        chart
+                        for charts in s["difficulties"].values()
+                        for chart in charts
+                    ),
+                    key=lambda x: x["level_value"],
+                    reverse=True,
+                )[0]
+            )["type"]
+            == "dx"
+            else "标准"
+            if chart["type"] == "standard"
+            else "宴会场"
+            if chart["type"] == "utage"
+            else "？",
+            "曲师": lambda s: s["artist"],
+            "分类": lambda s: [
+                genre["title"]
+                for genre in songList["genres"]
+                if genre["genre"] == s["genre"]
+            ][0],
+            "BPM": lambda s: s["bpm"],
+            "初出版本": lambda s: get_version_info(s, songList),
         }
 
         tip_keys = [d for d in tips.keys() if d not in data["tips"]]

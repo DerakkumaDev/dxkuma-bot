@@ -65,7 +65,7 @@ playinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?)\s*)?.+$", re.I)
 scoreinfo = on_regex(
     r"^(achv|分数列?表)\s*(绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?.+$", re.I
 )
-playaudio = on_regex(r"^dlx点歌\s*.+$", re.I)
+playaudio = on_regex(r"^(迪拉熊|dlx)点歌\s*.+$", re.I)
 randomsong = on_regex(
     r"^(rand|随(歌|个|首|张))\s*(绿|黄|红|紫|白)?\s*\d+(\.\d|\+)?$", re.I
 )
@@ -2343,7 +2343,7 @@ async def _(event: MessageEvent):
 @playaudio.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext().strip()
-    match = re.fullmatch(r"dlx点歌\s*(.+)", msg, re.I)
+    match = re.fullmatch(r"(迪拉熊|dlx)点歌\s*(.+)", msg, re.I)
     if not match:
         return
 

@@ -1,3 +1,4 @@
+import sys
 import unicodedata
 from datetime import datetime
 
@@ -184,3 +185,12 @@ def check_char_in_text(text: str, char: str):
                 return True
 
     return False
+
+
+def get_version_info(s, song_list):
+    versions = song_list["versions"]
+    versions.append(sys.maxsize)
+    for i in range(len(versions) - 1):
+        v = versions[i]
+        if v["version"] <= s["version"] < versions[i + 1]["version"]:
+            return v
