@@ -10,6 +10,7 @@ music_data_lock = Lock()
 chart_stats_lock = Lock()
 alias_list_lxns_lock = Lock()
 alias_list_ycn_lock = Lock()
+alias_list_xray_lock = Lock()
 
 
 async def get_music_data():
@@ -123,7 +124,7 @@ async def get_alias_list_ycn():
 async def get_alias_list_xray():
     cache_dir = "./Cache/Data/Alias/Xray/"
     cache_path = f"{cache_dir}{date.today().isoformat()}.json"
-    async with alias_list_ycn_lock:
+    async with alias_list_xray_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
             async with ClientSession(conn_timeout=3) as session:

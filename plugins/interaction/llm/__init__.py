@@ -54,10 +54,7 @@ async def _(bot: Bot, event: MessageEvent):
 
     input = [{"role": "user", "content": content}]
 
-    if chat_id not in locks:
-        locks[chat_id] = Lock()
-
-    async with locks[chat_id]:
+    async with locks.setdefault(chat_id, Lock()):
         context_id = contextManager.get_contextid(chat_id)
         if context_id is None:
             input.insert(0, {"role": "system", "content": config.llm_system_prompt})

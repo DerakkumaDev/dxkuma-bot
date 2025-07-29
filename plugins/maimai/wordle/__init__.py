@@ -12,8 +12,8 @@ from aiohttp import ClientSession
 from anyio import Lock
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
-from rapidfuzz import fuzz_py as fuzz
-from rapidfuzz import process_py as process
+from rapidfuzz import fuzz
+from rapidfuzz import process
 
 from util.Data import (
     get_alias_list_lxns,
@@ -26,7 +26,7 @@ from .ranking import ranking
 from .times import times
 from .utils import generate_message_state, check_music_id, generate_success_state
 
-lock = Lock()
+locks: dict[str, Lock] = dict()
 
 start_open_chars = on_regex(r"^dlx猜歌$", re.I)
 open_chars = on_regex(r"^开\s*(.|[a-zA-Z]+)$")
@@ -110,7 +110,7 @@ async def find_songid_by_alias(name, song_list):
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
     user_id = event.get_user_id()
-    async with lock:
+    async with locks.setdefault(group_id, Lock()):
         game_data = await openchars.start(group_id)
         _, game_state, _, game_data = generate_message_state(
             game_data, user_id, event.time
@@ -132,7 +132,7 @@ async def _(event: GroupMessageEvent):
         return
 
     char = match.group(1)
-    async with lock:
+    async with locks.setdefault(group_id, Lock()):
         not_opened, game_data = openchars.open_char(group_id, char, user_id)
         if not_opened is None:
             return
@@ -183,64 +183,61 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
     user_id = event.get_user_id()
-    async with lock:
-        game_data = openchars.get_game_data(group_id)
-        if not game_data:
-            return
+    game_data = openchars.get_game_data(group_id)
+    if not game_data:
+        return
 
-        msg_content = event.get_plaintext()
-        if not msg_content:
-            return
+    msg_content = event.get_plaintext()
+    if not msg_content:
+        return
 
-        try:
-            songList = await get_music_data()
-            music_ids = await find_songid_by_alias(msg_content, songList)
-        except:
-            return
-        if not music_ids:
-            return
+    try:
+        songList = await get_music_data()
+        music_ids = await find_songid_by_alias(msg_content, songList)
+    except:
+        return
+    if not music_ids:
+        return
 
-        guess_success, game_data = check_music_id(
-            game_data, music_ids, user_id, event.time
+    guess_success, game_data = check_music_id(game_data, music_ids, user_id, event.time)
+    if not guess_success:
+        return
+
+    for i, title, id in guess_success:
+        cover_path = f"./Cache/Jacket/{id % 10000}.png"
+        if not os.path.exists(cover_path):
+            async with ClientSession(conn_timeout=3) as session:
+                async with session.get(
+                    f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
+                ) as resp:
+                    async with aiofiles.open(cover_path, "wb") as fd:
+                        await fd.write(await resp.read())
+
+        await all_message_handle.send(
+            (
+                MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
+                MessageSegment.image(Path(cover_path)),
+                MessageSegment.text(title),
+            ),
+            at_sender=True,
         )
-        if not guess_success:
-            return
-
-        for i, title, id in guess_success:
-            cover_path = f"./Cache/Jacket/{id % 10000}.png"
-            if not os.path.exists(cover_path):
-                async with ClientSession(conn_timeout=3) as session:
-                    async with session.get(
-                        f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
-                    ) as resp:
-                        async with aiofiles.open(cover_path, "wb") as fd:
-                            await fd.write(await resp.read())
-
-            await all_message_handle.send(
-                (
-                    MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
-                    MessageSegment.image(Path(cover_path)),
-                    MessageSegment.text(title),
-                ),
-                at_sender=True,
-            )
-        is_game_over, game_state, _, game_data = generate_message_state(
-            game_data, user_id, event.time
+    is_game_over, game_state, _, game_data = generate_message_state(
+        game_data, user_id, event.time
+    )
+    await start_open_chars.send(game_state)
+    if is_game_over:
+        openchars.game_over(group_id)
+        await start_open_chars.send(
+            "全部答对啦，恭喜各位🎉\r\n可以发送“dlx猜歌”再次游玩mai~"
         )
-        await start_open_chars.send(game_state)
-        if is_game_over:
-            openchars.game_over(group_id)
-            await start_open_chars.send(
-                "全部答对啦，恭喜各位🎉\r\n可以发送“dlx猜歌”再次游玩mai~"
-            )
-        else:
-            await openchars.update_game_data(group_id, game_data)
+    else:
+        await openchars.update_game_data(group_id, game_data)
 
 
 @pass_game.handle()
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
-    async with lock:
+    async with locks.setdefault(group_id, Lock()):
         game_data = openchars.get_game_data(group_id)
         if not game_data:
             return
@@ -258,7 +255,7 @@ async def _(event: GroupMessageEvent):
     user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
-    async with lock:
+    async with locks.setdefault(group_id, Lock()):
         game_data = openchars.get_game_data(group_id)
         if not game_data:
             return
@@ -345,7 +342,7 @@ async def _(event: GroupMessageEvent):
     user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
-    async with lock:
+    async with locks.setdefault(group_id, Lock()):
         game_data = openchars.get_game_data(group_id)
         if not game_data:
             return
@@ -433,7 +430,7 @@ async def _(event: GroupMessageEvent):
     user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
-    async with lock:
+    async with locks.setdefault(group_id, Lock()):
         game_data = openchars.get_game_data(group_id)
         if not game_data:
             return
