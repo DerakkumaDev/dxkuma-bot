@@ -19,7 +19,7 @@ from rapidfuzz import process
 from util.Config import config
 from util.Data import (
     get_chart_stats,
-    get_music_data,
+    get_music_data_df,
     get_alias_list_lxns,
     get_alias_list_ycn,
     get_alias_list_xray,
@@ -726,7 +726,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     ap35, ap15, _ = await records_to_bests(records, songList, ["ap", "app"])
     if not ap35 and not ap15:
         await ap50.finish(
@@ -834,7 +834,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     fc35, fc15, _ = await records_to_bests(records, songList, ["fc", "fcp"])
     if not fc35 and not fc15:
         await fc50.finish(
@@ -942,7 +942,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     b35, b15, mask_enabled = await records_to_bests(records, songList, is_fit=True)
     if not b35 and not b15:
         if mask_enabled:
@@ -1052,7 +1052,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     b25, b15, _ = await records_to_bests(records, songList, is_old=True)
     await best40.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
@@ -1152,7 +1152,7 @@ async def _(bot: Bot, event: MessageEvent):
         )
     msg_text = event.get_plaintext().replace("+", "p").casefold()
     rate_rules = re.findall(r"s{1,3}p?|a{1,3}|b{1,3}|[cd]", msg_text, re.I)
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     rate35, rate15, _ = await records_to_bests(records, songList, rate_rules=rate_rules)
     if not rate35 and not rate15:
         await rate50.finish(
@@ -1260,7 +1260,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     dxs35, dxs15, mask_enabled = await records_to_bests(records, songList, is_dxs=True)
     if not dxs35 and not dxs15:
         if mask_enabled:
@@ -1370,7 +1370,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     find = re.fullmatch(r"dlxx50((?:\s*[1-5])+)", event.get_plaintext().strip(), re.I)
     star35, star15, mask_enabled = await records_to_bests(
         records, songList, is_dxs=True, dx_star_count=find.group(1)
@@ -1508,7 +1508,7 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
         await cf50.finish(msg, at_sender=True)
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     sender_records = sender_data["records"]
     if not sender_records:
         await cf50.finish(
@@ -1527,7 +1527,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     b35, b15, mask_enabled = await compare_bests(
         sender_records, target_records, songList
     )
@@ -1639,7 +1639,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     b35, b15, _ = await records_to_bests(records, songList, is_sd=True)
     if not b35 and not b15:
         await sd50.finish(
@@ -1747,7 +1747,7 @@ async def _(bot: Bot, event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     all35, all15, _ = await records_to_bests(records, songList, is_all=True)
     await all50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
@@ -1812,7 +1812,7 @@ async def _(event: MessageEvent):
             )
             return
 
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     rr35, rr15, _ = await records_to_bests(
         None,
         songList,
@@ -1877,7 +1877,7 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     filted_records, mask_enabled = records_filter(
         records=records, is_sun=True, songList=songList
     )
@@ -1970,7 +1970,7 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     filted_records, mask_enabled = records_filter(
         records=records, is_lock=True, songList=songList
     )
@@ -2135,7 +2135,7 @@ async def _(event: MessageEvent):
                 ),
                 at_sender=True,
             )
-        songList = await get_music_data()
+        songList = await get_music_data_df()
         filted_records, _ = records_filter(
             records=records, level=level, ds=ds, gen=gen, songList=songList
         )
@@ -2199,7 +2199,7 @@ async def _(event: MessageEvent):
     if not song:
         return
 
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     result, song_info = await get_info_by_name(song.strip(), music_type, songList)
     if result == 1:
         if isinstance(song_info, set):
@@ -2245,7 +2245,7 @@ async def _(event: MessageEvent):
     if not song:
         return
 
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     result, song_info = await get_info_by_name(song, music_type, songList)
     if result == 1:
         if isinstance(song_info, set):
@@ -2310,7 +2310,7 @@ async def _(event: MessageEvent):
     if not song:
         return
 
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     result, song_info = await get_info_by_name(song, music_type, songList)
     if result == 1:
         if isinstance(song_info, set):
@@ -2352,7 +2352,7 @@ async def _(event: MessageEvent):
     if not song:
         return
 
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     result, song_info = await get_info_by_name(song, None, songList)
     if result == 1:
         if isinstance(song_info, set):
@@ -2403,7 +2403,7 @@ async def _(event: MessageEvent):
     if "." in level:
         s_type = "ds"
     s_songs = list()
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     for song in songList:
         if song["basic_info"]["genre"] == "宴会場":
             continue
@@ -2431,7 +2431,7 @@ async def _(event: MessageEvent):
 @maiwhat.handle()
 async def _(event: MessageEvent):
     rng = random.default_rng()
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     song = rng.choice(songList)
     if song["basic_info"]["genre"] == "宴会場":
         img = await utage_music_info(song_data=song)
@@ -2464,7 +2464,7 @@ async def _(event: MessageEvent):
             at_sender=True,
         )
 
-    songList = await get_music_data()
+    songList = await get_music_data_df()
     result, song_info = await get_info_by_name(name.strip(), None, songList)
     if result == 1:
         if isinstance(song_info, set):

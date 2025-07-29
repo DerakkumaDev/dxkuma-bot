@@ -19,7 +19,7 @@ from util.Data import (
     get_alias_list_lxns,
     get_alias_list_ycn,
     get_alias_list_xray,
-    get_music_data,
+    get_music_data_lxns,
 )
 from .database import openchars
 from .ranking import ranking
@@ -45,8 +45,8 @@ async def find_songid_by_alias(name, song_list):
     matched_ids = list()
 
     # 芝士查找
-    for info in song_list:
-        if name.casefold() == info["title"].casefold() or name == info["id"]:
+    for info in song_list["songs"]:
+        if name.casefold() == info["title"].casefold() or name == str(info["id"]):
             matched_ids.append(info["id"])
 
     if matched_ids:
@@ -192,7 +192,7 @@ async def _(event: GroupMessageEvent):
         return
 
     try:
-        songList = await get_music_data()
+        songList = await get_music_data_lxns()
         music_ids = await find_songid_by_alias(msg_content, songList)
     except:
         return
@@ -312,8 +312,8 @@ async def _(event: GroupMessageEvent):
             )
             return
 
-        songList = await get_music_data()
-        song = [d for d in songList if d["id"] == str(data["music_id"])]
+        songList = await get_music_data_lxns()
+        song = [d for d in songList["songs"] if d["id"] == data["music_id"]]
         if len(song) != 1:
             await info_tip.send(
                 (

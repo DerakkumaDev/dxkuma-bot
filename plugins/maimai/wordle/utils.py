@@ -4,7 +4,7 @@ from datetime import datetime
 from numpy import random
 from pykakasi import kakasi
 
-from util.Data import get_music_data
+from util.Data import get_music_data_lxns
 from .ranking import ranking
 from .times import times
 
@@ -21,16 +21,13 @@ async def generate_game_data():
     rng = random.default_rng()
     game_data = {"open_chars": list()}
     game_contents = list()
-    temp_game_contents_ids = list()
     while len(game_contents) <= 4:
-        music = rng.choice(await get_music_data())
-        if music["id"] in temp_game_contents_ids:
-            continue
+        music = rng.choice((await get_music_data_lxns())["songs"])
         game_contents.append(
             {
                 "index": len(game_contents) + 1,
                 "title": music["title"],
-                "music_id": int(music["id"]),
+                "music_id": music["id"],
                 "is_correct": False,
                 "tips": list(),
                 "pic_times": 0,
