@@ -44,7 +44,8 @@ async def _(bot: Bot, event: GroupMessageEvent):
         headers = {"User-Agent": f"kumabot/{config.version[0]}.{config.version[1]}"}
         async with ClientSession(conn_timeout=3, headers=headers) as session:
             async with session.get(
-                f"https://api.bilibili.com/x/web-interface/wbi/view?bvid={bvid}"
+                "https://api.bilibili.com/x/web-interface/wbi/view",
+                params={"bvid": bvid},
             ) as resp:
                 video_info = await resp.json(loads=json.loads)
         if video_info["code"] != 0:

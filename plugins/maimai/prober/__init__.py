@@ -4,7 +4,6 @@ import re
 import shelve
 import time
 from pathlib import Path
-from urllib import parse
 
 import aiofiles
 import numpy as np
@@ -559,7 +558,7 @@ async def _(bot: Bot, event: MessageEvent):
             params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
         start_time = time.perf_counter()
         async with session.get(
-            f"{config.backend_url}/bests/{source}?%s" % parse.urlencode(params)
+            f"{config.backend_url}/bests/{source}", params=params
         ) as resp:
             end_time = time.perf_counter()
             if resp.status != 200:
@@ -657,7 +656,7 @@ async def _(bot: Bot, event: MessageEvent):
             params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
         start_time = time.perf_counter()
         async with session.get(
-            f"{config.backend_url}/bests/anime/{source}?%s" % parse.urlencode(params)
+            f"{config.backend_url}/bests/anime/{source}", params=params
         ) as resp:
             end_time = time.perf_counter()
             if resp.status != 200:
@@ -2100,7 +2099,7 @@ async def _(event: MessageEvent):
                 params["plate"] = plate
             start_time = time.perf_counter()
             async with session.get(
-                f"{config.backend_url}/list/{source}?%s" % parse.urlencode(params)
+                f"{config.backend_url}/list/{source}", params=params
             ) as resp:
                 end_time = time.perf_counter()
                 if resp.status != 200:
