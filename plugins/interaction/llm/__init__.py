@@ -1,14 +1,8 @@
 from datetime import datetime
 
 from anyio import Lock
-from anyio.to_thread import run_sync
 from nonebot import on_message, on_regex
-from nonebot.adapters.onebot.v11 import (
-    Bot,
-    MessageEvent,
-    GroupMessageEvent,
-)
-from openai import NOT_GIVEN
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
 
 from util.Config import config
 from .database import contextManager
@@ -65,11 +59,10 @@ async def _(bot: Bot, event: MessageEvent):
         if context_id is None:
             input.insert(0, {"role": "system", "content": config.llm_system_prompt})
 
-        response = await run_sync(
-            lambda: client.responses.create(
+        response = await client.responses.create(
                 model=config.llm_model,
                 input=input,
-                previous_response_id=NOT_GIVEN if context_id is None else context_id,
+                previous_response_id=context_id,
                 extra_body={
                     "caching": {"type": "enabled"},
                     "thinking": {"type": "disabled"},

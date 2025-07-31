@@ -29,7 +29,7 @@ nanoid==2.0.0
 nonebot-adapter-onebot==2.4.6
 nonebot2==2.4.2
 numpy==2.3.2
-openai==1.97.1
+openai==1.98.0
 orjson==3.11.1
 pillow==11.3.0
 propcache==0.3.2

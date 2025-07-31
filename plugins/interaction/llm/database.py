@@ -1,3 +1,4 @@
+from openai import NOT_GIVEN
 from sqlalchemy import create_engine, Column, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -35,7 +36,7 @@ class ContextManager(object):
                 session.query(ContextId).filter(ContextId.chat_id == chat_id).first()
             )
             if context_id is None:
-                return None
+                return NOT_GIVEN
             return context_id.context_id
 
     def set_contextid(self, chat_id: str, context_id: str):

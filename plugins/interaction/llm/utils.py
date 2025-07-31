@@ -7,13 +7,13 @@ from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
     MessageSegment,
 )
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from util.Config import config
 
 locks: dict[str, Lock] = dict()
 
-client = OpenAI(base_url=config.llm_base_url, api_key=config.llm_api_key)
+client = AsyncOpenAI(base_url=config.llm_base_url, api_key=config.llm_api_key)
 
 
 def escape(message: str) -> str:
