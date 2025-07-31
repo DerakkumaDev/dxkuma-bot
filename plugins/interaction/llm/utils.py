@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from anyio import Lock
 from nonebot.adapters.onebot.v11 import (
     Bot,
     MessageEvent,
@@ -11,7 +10,6 @@ from openai import AsyncOpenAI
 
 from util.Config import config
 
-locks: dict[str, Lock] = dict()
 
 client = AsyncOpenAI(base_url=config.llm_base_url, api_key=config.llm_api_key)
 
@@ -28,11 +26,10 @@ def escape(message: str) -> str:
 
 
 async def gen_message(
-    event: MessageEvent, bot: Bot, is_chat_mode: bool
-) -> tuple[str, list[str]]:
+    event: MessageEvent, bot: Bot, is_chat_mode: bool, urls: list[str]
+) -> str:
     group_id = event.group_id if isinstance(event, GroupMessageEvent) else None
     l = list()
-    urls = list()
     if event.reply:
         reply_msg = event.reply
         l.append(
@@ -58,7 +55,7 @@ async def gen_message(
     for seg in event.get_message():
         l.append(await gen_message_segment(seg, bot, group_id, urls))
 
-    return str().join(l), urls
+    return str().join(l)
 
 
 async def gen_message_segment(
@@ -170,9 +167,10 @@ async def gen_message_segment(
                 continue
 
             try:
-                group_name = (
-                    await bot.get_group_info(group_id=message.get("group_id", 0))
-                )["group_name"]
+                group_info = await bot.get_group_info(
+                    group_id=message.get("group_id", 0)
+                )
+                group_name = group_info.get("group_name", str())
             except Exception:
                 group_name = str()
             messages.append(

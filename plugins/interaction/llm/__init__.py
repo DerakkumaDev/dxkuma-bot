@@ -1,12 +1,13 @@
+import asyncio
 from datetime import datetime
 
-from anyio import Lock
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
 
 from util.Config import config
 from .database import contextManager
-from .utils import client, escape, gen_message, locks
+from .utils import escape, gen_message
+from .tasks import times, request_queues, outtime_check
 
 handler = on_message(priority=10000, block=False)
 
@@ -20,63 +21,41 @@ chat_mode_off = on_regex(r"^((关闭|禁用|结束)(聊天|主动)(模式)?|(迪
 async def _(bot: Bot, event: MessageEvent):
     now = datetime.fromtimestamp(event.time)
     if isinstance(event, GroupMessageEvent):
-        chat_id = f"{event.group_id}.g"
+        qqid = event.group_id
+        chat_type = "group"
+        chat_id = f"{qqid}.{chat_type[0]}"
         chat_mode = contextManager.get_chatmode(chat_id)
         if not chat_mode and not event.is_tome():
             return
 
-        user_name = event.sender.card or event.sender.nickname or str()
-        msg_text, image_urls = await gen_message(event, bot, chat_mode)
-        group_name = (await bot.get_group_info(group_id=event.group_id))["group_name"]
+        request_queue = request_queues.setdefault(
+            chat_id, {"texts": list(), "images": list()}
+        )
+        msg_text = await gen_message(event, bot, chat_mode, request_queue["images"])
+        group_info = await bot.get_group_info(group_id=event.group_id)
         message = f'<message time="{now.isoformat()}" chatroom_name="{
-            escape(group_name)
-        }" sender_id="{event.get_user_id()}" sender_name="{escape(user_name)}">\n{
-            msg_text
-        }\n</message>'
-        message = str.format(config.llm_user_prompt, message) if chat_mode else message
+            escape(group_info.get("group_name", str()))
+        }" sender_id="{event.user_id}" sender_name="{
+            escape(event.sender.card or event.sender.nickname or str())
+        }">\n{msg_text}\n</message>'
     else:
-        chat_id = f"{event.get_user_id()}.p"
-        user_name = event.sender.nickname
-        msg_text, image_urls = await gen_message(event, bot, True)
-        message = f'<message time="{now.isoformat()}" sender_id="{
-            event.get_user_id()
-        }" sender_name="{escape(user_name)}">\n{msg_text}\n</message>'
+        qqid = event.user_id
+        chat_type = "private"
+        chat_id = f"{qqid}.{chat_type[0]}"
+        request_queue = request_queues.setdefault(
+            chat_id, {"texts": list(), "images": list()}
+        )
+        msg_text = await gen_message(event, bot, False, request_queue["images"])
+        message = f'<message time="{now.isoformat()}" sender_id="{qqid}" sender_name="{
+            escape(event.sender.nickname)
+        }">\n{msg_text}\n</message>'
 
     if not msg_text:
         return
 
-    content = list()
-    for image_url in image_urls:
-        content.append(
-            {"type": "input_image", "detail": "high", "image_url": image_url}
-        )
-
-    content.append({"type": "input_text", "text": message})
-
-    input = [{"role": "user", "content": content}]
-
-    async with locks.setdefault(chat_id, Lock()):
-        context_id = contextManager.get_contextid(chat_id)
-        if context_id is None:
-            input.insert(0, {"role": "system", "content": config.llm_system_prompt})
-
-        response = await client.responses.create(
-                model=config.llm_model,
-                input=input,
-                previous_response_id=context_id,
-                extra_body={
-                    "caching": {"type": "enabled"},
-                    "thinking": {"type": "disabled"},
-                },
-            )
-        )
-        contextManager.set_contextid(chat_id, response.id)
-
-    reply = response.output_text
-    if reply == "<ignored/>":
-        return
-
-    await handler.send(reply)
+    request_queue["texts"].append(message)
+    times[chat_id] = event.time
+    asyncio.create_task(outtime_check(chat_id, chat_type, qqid, chat_mode))
 
 
 @chat_mode_on.handle()
