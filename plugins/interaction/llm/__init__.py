@@ -12,9 +12,11 @@ from .tasks import times, request_queues, outtime_check
 handler = on_message(priority=10000, block=False)
 
 chat_mode_on = on_regex(
-    r"^((开启|开始|启用|启动|打开)(聊天|主动)(模式)?|(迪拉熊|dlx)说话?)$"
+    r"^((开启|开始|启用|启动|打开|切换)主动(模式)?|(关闭|禁用|结束)被动(模式)?|(迪拉熊|dlx)说话?)$"
 )
-chat_mode_off = on_regex(r"^((关闭|禁用|结束)(聊天|主动)(模式)?|(迪拉熊|dlx)闭嘴?)$")
+chat_mode_off = on_regex(
+    r"^((关闭|禁用|结束)主动(模式)?|(开启|开始|启用|启动|打开|切换)被动(模式)?|(迪拉熊|dlx)闭嘴?)$"
+)
 
 
 @handler.handle()

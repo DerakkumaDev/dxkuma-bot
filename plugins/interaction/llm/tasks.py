@@ -1,7 +1,6 @@
 import asyncio
 from asyncio import Task
 from datetime import datetime
-from typing import Any
 
 import anyio
 from nonebot import get_bot
@@ -26,7 +25,10 @@ async def outtime_check(
     await anyio.sleep(OUTTIME)
     if (
         chat_id not in times
-        or (datetime.now().timestamp() - times[chat_id]) < OUTTIME
+        or (
+            (datetime.now().timestamp() - times[chat_id]) < OUTTIME
+            and len(request_queues[chat_id]) <= 10
+        )
         or (chat_id in request_queue_tasks and not request_queue_tasks[chat_id].done())
         or chat_id not in request_queues
         or len(request_queues[chat_id]) <= 0
@@ -112,9 +114,6 @@ async def request_queue_task(
             texts.append(chunk.delta)
 
     reply = str().join(texts)
-    if reply == "<ignored/>" or len(texts) <= 0:
-        return
-
     await push_and_start_sending(chat_id, reply, chat_type, qq_id)
 
 
@@ -129,14 +128,14 @@ async def push_and_start_sending(chat_id: str, reply: str, chat_type: str, qq_id
 async def response_queue_task(chat_id: str, chat_type: str, qq_id: int):
     while len(response_queues[chat_id]) > 0:
         sender = get_bot()
-        if chat_type == "group":
-            await sender.send_group_msg(
-                group_id=qq_id, message=response_queues[chat_id][0]
-            )
-        elif chat_type == "private":
-            await sender.send_private_msg(
-                user_id=qq_id, message=response_queues[chat_id][0]
-            )
-
+        message = response_queues[chat_id][0]
         response_queues[chat_id].pop(0)
+        if "<ignored/>" in message or len(message) <= 0:
+            continue
+
+        if chat_type == "group":
+            await sender.send_group_msg(group_id=qq_id, message=message)
+        elif chat_type == "private":
+            await sender.send_private_msg(user_id=qq_id, message=message)
+
         await anyio.sleep(2)

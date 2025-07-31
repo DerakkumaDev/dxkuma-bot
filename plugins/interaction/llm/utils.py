@@ -6,12 +6,16 @@ from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
     MessageSegment,
 )
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, DefaultAioHttpClient
 
 from util.Config import config
 
 
-client = AsyncOpenAI(base_url=config.llm_base_url, api_key=config.llm_api_key)
+client = AsyncOpenAI(
+    base_url=config.llm_base_url,
+    api_key=config.llm_api_key,
+    http_client=DefaultAioHttpClient(),
+)
 
 
 def escape(message: str) -> str:
@@ -138,14 +142,15 @@ async def gen_message_segment(
             )
         }</reply>"
     elif seg.type == "forward":
-        forward_msg = seg.data.get("content", list())
-        if not forward_msg:
+        forward_messages = seg.data.get("content", list())
+        if not forward_messages:
             try:
                 forward_msg = await bot.get_forward_msg(id=seg.data.get("id", str()))
             except Exception:
                 return "<forward/>"
+            forward_messages = forward_msg.get("messages", list())
         messages = list()
-        for message in forward_msg.get("messages", list()):
+        for message in forward_messages:
             now = datetime.fromtimestamp(
                 message.get("time", datetime.now().timestamp())
             )
@@ -170,9 +175,9 @@ async def gen_message_segment(
                 group_info = await bot.get_group_info(
                     group_id=message.get("group_id", 0)
                 )
-                group_name = group_info.get("group_name", str())
             except Exception:
-                group_name = str()
+                group_info = dict()
+            group_name = group_info.get("group_name", str())
             messages.append(
                 f'<message time="{now.isoformat()}" chatroom_name="{
                     escape(group_name)

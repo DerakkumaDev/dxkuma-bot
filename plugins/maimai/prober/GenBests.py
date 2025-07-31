@@ -277,21 +277,24 @@ def dxscore_proc(dxscore, sum_dxscore):
 
 
 def rating_proc(ra: int, rate: str):
-    try:
-        if ra < 232:
-            return "-----"
+    if ra < 232:
+        return "-----"
 
+    try:
         achieve = ratings[rate][0]
         num = ratings[rate][1]
-
-        result = math.ceil((ra / (achieve * num)) * 10) / 10
-
-        if result > 15.0:
-            return "-----"
-
-        return result
-    except (KeyError, ZeroDivisionError):
+    except KeyError:
         return "-----"
+
+    try:
+        result = math.ceil((ra / (achieve * num)) * 10) / 10
+    except ZeroDivisionError:
+        return "-----"
+
+    if result > 15.0:
+        return "-----"
+
+    return result
 
 
 def compute_ra(ra: int):
