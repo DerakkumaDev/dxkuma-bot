@@ -110,6 +110,7 @@ async def gen_message_segment(
     elif seg.type == "contact":
         contact_type = seg.data.get("type", str())
         contact_id = seg.data.get("id", "0")
+        contact_name = str()
         if contact_type == "qq":
             user_info = await bot.get_stranger_info(user_id=int(contact_id))
             contact_name = escape(user_info.get("nickname", str()))
@@ -122,7 +123,7 @@ async def gen_message_segment(
     elif seg.type == "reply":
         try:
             reply_msg = await bot.get_msg(message_id=seg.data.get("id", 0))
-        except:
+        except Exception:
             return "<reply/>"
         sender = reply_msg.get("sender", dict())
         return f"<reply{
@@ -144,7 +145,7 @@ async def gen_message_segment(
         if not forward_msg:
             try:
                 forward_msg = await bot.get_forward_msg(id=seg.data.get("id", str()))
-            except:
+            except Exception:
                 return "<forward/>"
         messages = list()
         for message in forward_msg.get("messages", list()):
@@ -172,7 +173,7 @@ async def gen_message_segment(
                 group_name = (
                     await bot.get_group_info(group_id=message.get("group_id", 0))
                 )["group_name"]
-            except:
+            except Exception:
                 group_name = str()
             messages.append(
                 f'<message time="{now.isoformat()}" chatroom_name="{

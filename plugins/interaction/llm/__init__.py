@@ -10,8 +10,10 @@ from .utils import client, escape, gen_message, locks
 
 handler = on_message(priority=10000, block=False)
 
-chat_mode_on = on_regex(r"^((开启|开始|启用|启动|打开)聊天(模式)?|(迪拉熊|dlx)说话?)$")
-chat_mode_off = on_regex(r"^((关闭|禁用|结束)聊天(模式)?|(迪拉熊|dlx)闭嘴?)$")
+chat_mode_on = on_regex(
+    r"^((开启|开始|启用|启动|打开)(聊天|主动)(模式)?|(迪拉熊|dlx)说话?)$"
+)
+chat_mode_off = on_regex(r"^((关闭|禁用|结束)(聊天|主动)(模式)?|(迪拉熊|dlx)闭嘴?)$")
 
 
 @handler.handle()
@@ -44,7 +46,6 @@ async def _(bot: Bot, event: MessageEvent):
         return
 
     content = list()
-
     for image_url in image_urls:
         content.append(
             {"type": "input_image", "detail": "high", "image_url": image_url}
@@ -85,7 +86,7 @@ async def _(event: GroupMessageEvent):
 
     chat_id = f"{event.group_id}.g"
     contextManager.set_chatmode(chat_id, True)
-    await chat_mode_on.send("迪拉熊可以聊天啦~", at_sender=True)
+    await chat_mode_on.send("迪拉熊可以主动说话啦~", at_sender=True)
 
 
 @chat_mode_off.handle()
@@ -95,4 +96,4 @@ async def _(event: GroupMessageEvent):
 
     chat_id = f"{event.group_id}.g"
     contextManager.set_chatmode(chat_id, False)
-    await chat_mode_on.send("迪拉熊闭嘴啦~", at_sender=True)
+    await chat_mode_on.send("迪拉熊不能主动说话啦~", at_sender=True)

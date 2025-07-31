@@ -24,7 +24,7 @@ async def _(event: GroupMessageEvent):
 async def _(bot: Bot):
     try:
         sender = get_bot()
-    except:
+    except Exception:
         return
     await sender.send_group_msg(
         group_id=config.dev_group, message=f"{bot.self_id} is DOWN"

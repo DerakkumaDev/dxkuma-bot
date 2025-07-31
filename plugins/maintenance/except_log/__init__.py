@@ -7,7 +7,12 @@ import aiofiles
 from PIL import Image, UnidentifiedImageError
 from aiohttp import ClientError
 from nonebot import get_bot
-from nonebot.adapters.onebot.v11 import MessageSegment, Event, MessageEvent
+from nonebot.adapters.onebot.v11 import (
+    MessageSegment,
+    Event,
+    MessageEvent,
+    GroupMessageEvent,
+)
 from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
 from nonebot.internal.matcher import Matcher
 from nonebot.message import run_postprocessor
@@ -56,6 +61,8 @@ async def _(event: Event, matcher: Matcher, exception: Exception | None):
         f"{trace}{event.get_message().to_rich_text() if isinstance(event, MessageEvent) else event.get_type()}\r\n{event.get_session_id()}"
     )
     await bot.send_msg(group_id=config.dev_group, message=msg)
+    if isinstance(event, GroupMessageEvent) and event.group_id == config.dev_group:
+        return
     path = PICPATH
     files = os.listdir(path)
     if not files:

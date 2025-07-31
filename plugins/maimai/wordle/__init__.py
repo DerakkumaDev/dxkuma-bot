@@ -199,7 +199,7 @@ async def _(event: GroupMessageEvent):
     try:
         songList = await get_music_data_lxns()
         music_ids = await find_songid_by_alias(msg_content, songList)
-    except:
+    except Exception:
         return
     if not music_ids:
         return
