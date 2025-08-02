@@ -37,7 +37,10 @@ def escape(message: str) -> str:
 
 
 async def gen_message(
-    event: MessageEvent, bot: Bot, is_chat_mode: bool, urls: list[str]
+    event: MessageEvent,
+    bot: Bot,
+    is_chat_mode: bool,
+    medias: list[dict[str, str | float]],
 ) -> str:
     group_id = event.group_id if isinstance(event, GroupMessageEvent) else None
     l = list()
@@ -53,7 +56,7 @@ async def gen_message(
             }>{
                 str().join(
                     [
-                        await gen_message_segment(seg, bot, group_id, urls)
+                        await gen_message_segment(seg, bot, group_id, medias)
                         for seg in reply_msg.message
                     ]
                 )
@@ -64,7 +67,7 @@ async def gen_message(
         l.append("<at>迪拉熊</at>")
 
     for seg in event.get_message():
-        l.append(await gen_message_segment(seg, bot, group_id, urls))
+        l.append(await gen_message_segment(seg, bot, group_id, medias))
 
     return str().join(l)
 
@@ -73,7 +76,7 @@ async def gen_message_segment(
     seg: MessageSegment | dict[str, dict[str, str]],
     bot: Bot,
     group_id: int | None,
-    urls: list[str],
+    medias: list[dict[str, str | float]],
 ) -> str:
     if isinstance(seg, dict):
         seg = MessageSegment(seg.get("type", str()), seg.get("data", dict()))
@@ -143,7 +146,7 @@ async def gen_message_segment(
         }>{
             str().join(
                 [
-                    await gen_message_segment(sub_seg, bot, group_id, urls)
+                    await gen_message_segment(sub_seg, bot, group_id, medias)
                     for sub_seg in reply_msg.get('message', list())
                 ]
             )
@@ -164,7 +167,7 @@ async def gen_message_segment(
             sender = message.get("sender", dict())
             msg_text = str().join(
                 [
-                    await gen_message_segment(sub_seg, bot, group_id, urls)
+                    await gen_message_segment(sub_seg, bot, group_id, medias)
                     for sub_seg in message.get("message", list())
                 ]
             )
@@ -196,15 +199,21 @@ async def gen_message_segment(
     elif seg.type == "image":
         url = seg.data.get("url", str())
         if not url:
-            return f"<{seg.type}/>"
+            return f"<image>{escape(seg.data.get('name', str()))}</image>"
 
-        result = f'<image index="{len(urls)}"/>'
-        urls.append(url)
+        result = f'<image index="{len(medias)}"/>'
+        medias.append({"type": "image", "url": url})
         return result
     elif seg.type == "face":
         return f"<face>{escape(seg.data.get('raw', dict()).get('faceText', str()) or str())}</face>"
     elif seg.type == "video":
-        return f"<video>{escape(seg.data.get('name', str()))}</video>"
+        url = seg.data.get("url", str())
+        if not url:
+            return f"<video>{escape(seg.data.get('name', str()))}</video>"
+
+        result = f'<video index="{len(medias)}"/>'
+        medias.append({"type": "video", "url": url})
+        return result
     elif seg.type == "record":
         return f"<record>{escape(seg.data.get('name', str()))}</record>"
     elif seg.type == "file":

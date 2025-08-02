@@ -13,7 +13,7 @@ from .utils import client, system_prompt, user_prompt, prompt_hash as global_pro
 
 OUTTIME = 10 / 3
 
-request_queues: dict[str, dict[str, list[str]]] = dict()
+request_queues: dict[str, dict[str, list[str | dict[str, str | float]]]] = dict()
 response_queues: dict[str, list[str]] = dict()
 request_queue_tasks: dict[str, Task] = dict()
 response_queue_tasks: dict[str, Task] = dict()
@@ -44,14 +44,24 @@ async def outtime_check(bot: Bot, chat_id: str, chat_type: str, qq_id: int):
 
 
 async def request_queue_task(
-    bot: Bot, chat_id: str, chat_type: str, qq_id: int, content: dict[str, list[str]]
+    bot: Bot,
+    chat_id: str,
+    chat_type: str,
+    qq_id: int,
+    content: dict[str, list[str | dict[str, str | float]]],
 ):
     context_id = contextManager.get_contextid(chat_id)
     input_content = list()
-    for image_url in content["images"]:
-        input_content.append(
-            {"type": "input_image", "detail": "high", "image_url": image_url}
-        )
+
+    for media in content["medias"]:
+        media_info = {
+            "type": f"input_{media['type']}",
+            f"{media['type']}_url": media["url"],
+        }
+        if media["type"] == "vedio":
+            media_info["fps"] = 2 / 10
+
+        input_content.append(media_info)
 
     message = "\n".join(content["texts"])
     message = str.format(user_prompt, message)

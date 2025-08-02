@@ -30,9 +30,9 @@ async def _(bot: Bot, event: MessageEvent):
             return
 
         request_queue = request_queues.setdefault(
-            chat_id, {"texts": list(), "images": list()}
+            chat_id, {"texts": list(), "medias": list()}
         )
-        msg_text = await gen_message(event, bot, chat_mode, request_queue["images"])
+        msg_text = await gen_message(event, bot, chat_mode, request_queue["medias"])
         group_info = await bot.get_group_info(group_id=event.group_id)
         message = f'<message time="{now.isoformat()}" chatroom_name="{
             escape(group_info.get("group_name", str()))
@@ -44,9 +44,9 @@ async def _(bot: Bot, event: MessageEvent):
         chat_type = "private"
         chat_id = f"{qqid}.{chat_type[0]}"
         request_queue = request_queues.setdefault(
-            chat_id, {"texts": list(), "images": list()}
+            chat_id, {"texts": list(), "medias": list()}
         )
-        msg_text = await gen_message(event, bot, False, request_queue["images"])
+        msg_text = await gen_message(event, bot, False, request_queue["medias"])
         message = f'<message time="{now.isoformat()}" sender_id="{qqid}" sender_name="{
             escape(event.sender.nickname)
         }">\n{msg_text}\n</message>'
