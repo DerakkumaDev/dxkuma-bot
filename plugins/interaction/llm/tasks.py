@@ -94,7 +94,7 @@ async def request_queue_task(
             if len(texts) > 0:
                 reply = str().join(texts)
                 await push_and_start_sending(bot, chat_id, reply, chat_type, qq_id)
-            texts.clear()
+            texts = list()
         else:
             texts.append(chunk.delta)
 

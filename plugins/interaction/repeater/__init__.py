@@ -11,7 +11,7 @@ blacklist = config.blacklist
 m = on_message(priority=100000, block=False)
 
 last_message: dict[str, str] = dict()
-message_times: dict[str, set[int]] = dict()
+message_times: dict[str, list[int]] = dict()
 
 
 # 消息预处理
@@ -32,15 +32,21 @@ async def _(event: GroupMessageEvent):
         return
 
     gid = str(event.group_id)
-    if gid in repeater_group or "all" in repeater_group:
-        message_str, message = message_preprocess(event.get_message())
-        digest = xxh32_hexdigest(message_str)
-        if last_message.get(gid, str()) != digest:
-            message_times[gid] = set()
+    if gid not in repeater_group and "all" not in repeater_group:
+        return
 
-        qq = event.user_id
-        message_times[gid].add(qq)
-        if len(message_times.get(gid, set())) == config.shortest_times:
-            await m.send(message)
-
+    message_str, message = message_preprocess(event.get_message())
+    digest = xxh32_hexdigest(message_str)
+    if last_message.get(gid, str()) != digest:
         last_message[gid] = digest
+        message_times[gid] = list()
+
+    qq = event.user_id
+    if qq in message_times[gid]:
+        return
+
+    message_times[gid].append(qq)
+    if len(message_times[gid]) != config.shortest_times:
+        return
+
+    await m.send(message)

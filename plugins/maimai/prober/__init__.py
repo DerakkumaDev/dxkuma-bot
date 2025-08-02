@@ -298,7 +298,7 @@ async def records_to_bests(
         b.append(record)
     if is_all:
         all_records = sorted(dx, key=default_k, reverse=True)
-        dx.clear()
+        dx = list()
         for record in [
             i
             for i in all_records
