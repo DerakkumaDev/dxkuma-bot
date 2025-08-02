@@ -7,6 +7,7 @@ from nonebot.adapters.onebot.v11 import (
     MessageSegment,
 )
 from openai import AsyncOpenAI, DefaultAioHttpClient
+from xxhash import xxh32_hexdigest
 
 from util.Config import config
 
@@ -16,6 +17,12 @@ client = AsyncOpenAI(
     api_key=config.llm_api_key,
     http_client=DefaultAioHttpClient(),
 )
+
+with open("prompt/system.md", "r") as f:
+    system_prompt = f.read()
+with open("prompt/user.md", "r") as f:
+    user_prompt = f.read()
+prompt_hash = xxh32_hexdigest(system_prompt)
 
 
 def escape(message: str) -> str:

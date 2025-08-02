@@ -4,7 +4,6 @@ from datetime import datetime
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
 
-from util.Config import config
 from .database import contextManager
 from .utils import escape, gen_message
 from .tasks import times, request_queues, outtime_check
@@ -57,7 +56,7 @@ async def _(bot: Bot, event: MessageEvent):
 
     request_queue["texts"].append(message)
     times[chat_id] = event.time
-    asyncio.create_task(outtime_check(chat_id, chat_type, qqid, chat_mode))
+    asyncio.create_task(outtime_check(bot, chat_id, chat_type, qqid))
 
 
 @chat_mode_on.handle()

@@ -20,7 +20,14 @@ class ChatMode(Base):
     __tablename__ = "chat_modes"
 
     chat_id = Column(String, primary_key=True)
-    chat_mode = Column(Boolean, default=True)
+    chat_mode = Column(Boolean, default=False)
+
+
+class PromptHash(Base):
+    __tablename__ = "prompt_hashs"
+
+    chat_id = Column(String, primary_key=True)
+    prompt_hash = Column(String, nullable=False)
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -57,7 +64,7 @@ class ContextManager(object):
                 session.query(ChatMode).filter(ChatMode.chat_id == chat_id).first()
             )
             if chat_mode is None:
-                return True
+                return False
             return chat_mode.chat_mode
 
     def set_chatmode(self, chat_id: str, chat_mode: bool):
@@ -70,6 +77,27 @@ class ContextManager(object):
             else:
                 new_chat_mode = ChatMode(chat_id=chat_id, chat_mode=chat_mode)
                 session.add(new_chat_mode)
+            session.commit()
+
+    def get_prompthash(self, chat_id: str):
+        with SessionLocal() as session:
+            prompt_hash = (
+                session.query(PromptHash).filter(PromptHash.chat_id == chat_id).first()
+            )
+            if prompt_hash is None:
+                return None
+            return prompt_hash.prompt_hash
+
+    def set_prompthash(self, chat_id: str, prompt_hash: str):
+        with SessionLocal() as session:
+            existing = (
+                session.query(PromptHash).filter(PromptHash.chat_id == chat_id).first()
+            )
+            if existing:
+                existing.prompt_hash = prompt_hash
+            else:
+                new_prompt_hash = PromptHash(chat_id=chat_id, prompt_hash=prompt_hash)
+                session.add(new_prompt_hash)
             session.commit()
 
 

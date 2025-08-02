@@ -176,3 +176,4 @@ kuma.conf
 data
 Cache
 backend
+prompt
