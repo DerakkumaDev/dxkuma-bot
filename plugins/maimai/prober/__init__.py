@@ -76,7 +76,9 @@ wcb = on_regex(
     re.I,
 )
 
-aliasSearch = on_regex(r"^((alias|查看?别名)\s*.+|.+有(什么|哪些)别名？?)$", re.I)
+aliasSearch = on_regex(
+    r"^((alias|查看?别(名|称))\s*.+|.+有(什么|哪些)别(名|称)？?)$", re.I
+)
 
 all_plate = on_regex(r"^(plates?|看姓名框)$", re.I)
 all_frame = on_regex(r"^(frames?|看背景)$", re.I)
@@ -2448,7 +2450,7 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     msg = event.get_plaintext().strip()
     match = re.fullmatch(
-        r"(?:alias|查看?别名)\s*(.+)|(.+)有(什么|哪些)别名？?", msg, re.I
+        r"(?:alias|查看?别(名|称))\s*(.+)|(.+)有(什么|哪些)别(名|称)？?", msg, re.I
     )
     if not match:
         return

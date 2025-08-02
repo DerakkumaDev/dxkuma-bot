@@ -16,8 +16,8 @@ binding = on_regex(r"^绑定机厅\s*.+$", re.I)
 unbinding = on_regex(r"^解绑机厅\s*.+$", re.I)
 search = on_regex(r"^搜索机厅\s*.+$", re.I)
 list_all = on_regex(r"^(所有|全部)机厅$", re.I)
-add_alias = on_regex(r"^添加别名\s*.+?\s+.+$", re.I)
-remove_alias = on_regex(r"^删除别名\s*.+?\s+.+$", re.I)
+add_alias = on_regex(r"^添加别(名|称)\s*.+?\s+.+$", re.I)
+remove_alias = on_regex(r"^删除别(名|称)\s*.+?\s+.+$", re.I)
 list_count = on_regex(r"^(机厅|jt|.+\s*)有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
 change_count = on_regex(r"^.+?\s*(加|减|为|＋|－|＝|\+|-|=)?\s*\d+(人|卡)?$", re.I)
 
@@ -164,7 +164,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"添加别名\s*(.+?)\s+(.+)", msg)
+    match = re.fullmatch(r"添加别(名|称)\s*(.+?)\s+(.+)", msg)
     if not match:
         return
 
@@ -189,7 +189,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"删除别名\s*(.+?)\s+(.+)", msg)
+    match = re.fullmatch(r"删除别(名|称)\s*(.+?)\s+(.+)", msg)
     if not match:
         return
 
