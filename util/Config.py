@@ -22,8 +22,9 @@ class Config:
         # group
         self.dev_group = None
         self.special_group = None
-        # nsfw
-        self.allowed_accounts = None
+        # bots
+        self.nsfw_allowed = None
+        self.auto_agree = None
         # diving_fish
         self.df_token = None
         # lxns
@@ -51,7 +52,8 @@ class Config:
         self.token = data["nonebot"]["token"]
         self.dev_group = data["group"]["dev"]
         self.special_group = data["group"]["special"]
-        self.allowed_accounts = data["nsfw"]["allowed_accounts"]
+        self.nsfw_allowed = data["bots"]["nsfw_allowed"]
+        self.auto_agree = data["bots"]["auto_agree"]
         self.df_token = data["prober"]["diving_fish_token"]
         self.lx_token = data["prober"]["lxns_token"]
         self.admin_accounts = data["admin"]["accounts"]

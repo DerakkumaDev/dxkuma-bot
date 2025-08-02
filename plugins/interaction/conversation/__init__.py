@@ -76,18 +76,18 @@ async def _(event: GroupMessageEvent):
 
 
 @cum.handle()
-async def _(bot: Bot, event: GroupMessageEvent):
+async def _(event: GroupMessageEvent):
     rng = random.default_rng()
-    key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
+    key = xxh32_hexdigest(f"{event.time}_{event.group_id}_{event.real_seq}")
     if (
         key in locks
         and locks[key].count > 1
-        and bot.self_id not in config.allowed_accounts
+        and event.self_id not in config.nsfw_allowed
     ):
         raise NeedToSwitchException
 
     i = 0
-    if bot.self_id in config.allowed_accounts:
+    if event.self_id in config.nsfw_allowed:
         i = rng.choice([0, 1], p=[0.1, 0.9])
 
     msg = MessageSegment.image(Path(f"./Static/Cum/{i}.png"))

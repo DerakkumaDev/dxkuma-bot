@@ -2,6 +2,8 @@ from enum import Enum, unique
 
 from anyio import Semaphore
 
+from util.Config import config
+
 
 @unique
 class States(Enum):
@@ -15,7 +17,11 @@ class Lock(object):
     def __init__(self):
         self.state = States.PROCESSING
         self.semaphore = Semaphore(1)
-        self.count = 0
+        self.bots = list()
+
+    @property
+    def count(self):
+        return len(set(config.bots) - set(self.bots))
 
 
 locks: dict[str, Lock] = dict()

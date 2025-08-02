@@ -17,6 +17,7 @@ from util.lock import locks, Lock, States
 
 @event_preprocessor
 async def _(
+    bot: Bot,
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
     if event.get_user_id() in config.bots:
@@ -24,15 +25,16 @@ async def _(
 
     check_event(event)
 
-    key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
+    key = xxh32_hexdigest(
+        f"{event.time}_{event.group_id}_{event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id}"
+    )
     if key not in locks:
         locks[key] = Lock()
 
-    locks[key].count += 1
     await locks[key].semaphore.acquire()
     if locks[key].state == States.PROCESSED:
         if locks[key].count > 1:
-            locks[key].count -= 1
+            locks[key].bots.append(bot.self_id)
             locks[key].semaphore.release()
         else:
             del locks[key]
@@ -47,7 +49,9 @@ async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
     exception: Exception | None,
 ):
-    key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
+    key = xxh32_hexdigest(
+        f"{event.time}_{event.group_id}_{event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id}"
+    )
     if isinstance(exception, NotAllowedException):
         locks[key].state = States.SKIPED
         return
@@ -61,10 +65,13 @@ async def _(
 
 @event_postprocessor
 async def _(
+    bot: Bot,
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
-    key = xxh32_hexdigest(f"{event.group_id}{event.user_id}{event.time}")
-    locks[key].count -= 1
+    key = xxh32_hexdigest(
+        f"{event.time}_{event.group_id}_{event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id}"
+    )
+    locks[key].bots.append(bot.self_id)
     if locks[key].state == States.PROCESSED:
         if locks[key].count <= 0:
             del locks[key]

@@ -24,10 +24,9 @@ conversations = {
 
 
 @poke.handle()
-async def _(bot: Bot, event: PokeNotifyEvent):
+async def _(event: PokeNotifyEvent):
     rng = random.default_rng()
-    qq = event.get_user_id()
-    if not event.group_id or qq == bot.self_id:
+    if not event.group_id:
         return
     weights = [
         0.1125,

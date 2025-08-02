@@ -71,7 +71,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if os.path.exists("./data/nsfw_lock"):
             await rand_pic.send("由于该账号被警告，该功能暂时关闭，请稍后再试mai~")
             return
-        if bot.self_id not in config.allowed_accounts:  # type 为 'nsfw' 且非指定机器人
+        if event.self_id not in config.nsfw_allowed:  # type 为 'nsfw' 且非指定机器人
             raise NotAllowedException
     elif group_id != config.special_group:  # 不被限制的 group_id
         while len(groups[group_id]) > 0:
