@@ -186,14 +186,13 @@ async def _(event: GroupMessageEvent):
 
 @all_message_handle.handle()
 async def _(event: GroupMessageEvent):
-    group_id = str(event.group_id)
-    user_id = event.get_user_id()
-    game_data = openchars.get_game_data(group_id)
-    if not game_data:
-        return
-
     msg_content = event.get_plaintext()
     if not msg_content:
+        return
+
+    group_id = str(event.group_id)
+    game_data = openchars.get_game_data(group_id)
+    if not game_data:
         return
 
     try:
@@ -201,9 +200,11 @@ async def _(event: GroupMessageEvent):
         music_ids = await find_songid_by_alias(msg_content, songList)
     except Exception:
         return
+
     if not music_ids:
         return
 
+    user_id = event.get_user_id()
     guess_success, game_data = check_music_id(game_data, music_ids, user_id, event.time)
     if not guess_success:
         return
@@ -229,10 +230,10 @@ async def _(event: GroupMessageEvent):
     is_game_over, game_state, _, game_data = generate_message_state(
         game_data, user_id, event.time
     )
-    await start_open_chars.send(game_state)
+    await all_message_handle.send(game_state)
     if is_game_over:
         openchars.game_over(group_id)
-        await start_open_chars.send(
+        await all_message_handle.send(
             "全部答对啦，恭喜各位🎉\r\n可以发送“dlx猜歌”再次游玩mai~"
         )
     else:
@@ -596,4 +597,4 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
     msg = "\r\n".join(leaderboard_output)
     msg = f"你在排行榜上的位置：\r\n{msg}\r\n\r\n迪拉熊提醒你：长时间未参与将暂时不计入排行榜，重新参与十首歌即可重新上榜哦~"
-    await rank.send(MessageSegment.text(msg), at_sender=True)
+    await rank_i.send(MessageSegment.text(msg), at_sender=True)

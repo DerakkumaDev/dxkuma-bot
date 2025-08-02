@@ -76,4 +76,4 @@ async def _(event: GroupMessageEvent):
 
     chat_id = f"{event.group_id}.g"
     contextManager.set_chatmode(chat_id, False)
-    await chat_mode_on.send("迪拉熊不能主动说话啦~", at_sender=True)
+    await chat_mode_off.send("迪拉熊不能主动说话啦~", at_sender=True)

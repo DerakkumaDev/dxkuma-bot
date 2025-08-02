@@ -89,4 +89,4 @@ async def _(event: GroupMessageEvent):
     bvids = re.findall(r"BV[A-Za-z0-9]{10}", msg)
     for bvid in bvids:
         bvidList.remove(bvid)
-    await add_bv.finish(MessageSegment.text("已删除"))
+    await remove_bv.finish(MessageSegment.text("已删除"))
