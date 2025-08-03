@@ -36,10 +36,10 @@ async def outtime_check(bot: Bot, chat_type: str, qq_id: int):
         return
 
     content = request_queues[chat_id]
-    del request_queues[chat_id]
-    del times[chat_id]
     task = asyncio.create_task(request_queue_task(bot, chat_type, qq_id, content))
     request_queue_tasks[chat_id] = task
+    del request_queues[chat_id]
+    del times[chat_id]
 
 
 async def request_queue_task(

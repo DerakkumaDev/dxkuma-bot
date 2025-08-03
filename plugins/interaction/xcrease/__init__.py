@@ -70,7 +70,7 @@ async def _():
 
 @friendRequest.handle()
 async def _(bot: Bot, event: FriendRequestEvent):
-    if event.self_id in config.auto_agree:
+    if event.self_id not in config.auto_agree:
         return
     await event.approve(bot)
 
@@ -79,7 +79,7 @@ async def _(bot: Bot, event: FriendRequestEvent):
 async def _(bot: Bot, event: GroupRequestEvent):
     if event.sub_type != "invite":
         return
-    if event.self_id in config.auto_agree:
+    if event.self_id not in config.auto_agree:
         return
     await event.approve(bot)
     qq = event.user_id

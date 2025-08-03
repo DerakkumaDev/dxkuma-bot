@@ -2,6 +2,7 @@ import os
 import traceback
 from dbm import error
 from pathlib import Path
+from typing import Optional
 
 import aiofiles
 from PIL import Image, UnidentifiedImageError
@@ -17,7 +18,6 @@ from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
 from nonebot.internal.matcher import Matcher
 from nonebot.message import run_postprocessor
 from numpy import random
-from openai import OpenAIError
 from starlette.websockets import WebSocketDisconnect
 
 from util.Config import config
@@ -40,7 +40,7 @@ def check_image(imgpath: Path | str):
 
 
 @run_postprocessor
-async def _(event: Event, matcher: Matcher, exception: Exception | None):
+async def _(event: Event, matcher: Matcher, exception: Optional[Exception]):
     rng = random.default_rng()
     if not exception or isinstance(
         exception,
@@ -51,7 +51,6 @@ async def _(event: Event, matcher: Matcher, exception: Exception | None):
             NotAllowedException,
             NeedToSwitchException,
             error[0],
-            OpenAIError,
         ),
     ):
         return

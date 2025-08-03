@@ -2345,7 +2345,7 @@ async def _(event: MessageEvent):
 @playaudio.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext().strip()
-    match = re.fullmatch(r"(迪拉熊|dlx)点歌\s*(.+)", msg, re.I)
+    match = re.fullmatch(r"(?:迪拉熊|dlx)点歌\s*(.+)", msg, re.I)
     if not match:
         return
 

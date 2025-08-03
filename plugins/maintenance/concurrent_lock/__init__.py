@@ -8,6 +8,7 @@ from nonebot.adapters.onebot.v11 import (
 from nonebot.exception import IgnoredException
 from nonebot.internal.driver import Driver
 from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
+from typing import Optional
 from xxhash import xxh32_hexdigest
 
 from util.Config import config
@@ -47,7 +48,7 @@ async def _(
 @run_postprocessor
 async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
-    exception: Exception | None,
+    exception: Optional[Exception],
 ):
     key = xxh32_hexdigest(
         f"{event.time}_{event.group_id}_{event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id}"

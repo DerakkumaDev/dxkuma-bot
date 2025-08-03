@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from nonebot.adapters.onebot.v11 import (
     Bot,
@@ -75,7 +76,7 @@ async def gen_message(
 async def gen_message_segment(
     seg: MessageSegment | dict[str, dict[str, str]],
     bot: Bot,
-    group_id: int | None,
+    group_id: Optional[int],
     medias: list[dict[str, str | float]],
 ) -> str:
     if isinstance(seg, dict):

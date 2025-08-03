@@ -1,6 +1,6 @@
 import shelve
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 import nanoid
 from dill import Pickler, Unpickler
@@ -24,7 +24,7 @@ class ArcadeManager(object):
             if "bindings" not in data:
                 data.setdefault("bindings", dict())
 
-    def get_arcade(self, arcade_id: str) -> dict[str, Any] | None:
+    def get_arcade(self, arcade_id: str) -> Optional[dict[str, Any]]:
         with shelve.open(self.data_path) as data:
             if arcade_id not in data["arcades"]:
                 return
@@ -42,7 +42,7 @@ class ArcadeManager(object):
             arcade = self.reset(arcade_id, int(today.timestamp()))
             return arcade
 
-    def get_arcade_id(self, arcade_name: str) -> str | None:
+    def get_arcade_id(self, arcade_name: str) -> Optional[str]:
         with shelve.open(self.data_path) as data:
             if arcade_name not in data["names"]:
                 return
@@ -56,7 +56,7 @@ class ArcadeManager(object):
 
             return data["bindings"][group_id]
 
-    def create(self, arcade_name: str) -> str | None:
+    def create(self, arcade_name: str) -> Optional[str]:
         with shelve.open(self.data_path) as data:
             arcades = data["arcades"]
             names = data["names"]
