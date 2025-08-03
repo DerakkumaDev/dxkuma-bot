@@ -56,7 +56,7 @@ async def _(bot: Bot, event: MessageEvent):
 
     request_queue["texts"].append(message)
     times[chat_id] = event.time
-    asyncio.create_task(outtime_check(bot, chat_id, chat_type, qqid))
+    asyncio.create_task(outtime_check(bot, chat_type, qqid))
 
 
 @chat_mode_on.handle()

@@ -13,6 +13,6 @@ async def _(bot: Bot, event: GroupMessageEvent):
         return
 
     await clean_cache.send("开始清空缓存")
-    await bot.call_api("clean_cache")
+    await bot.clean_cache()
     await clean_cache.send("缓存清空完成")
     raise NotAllowedException

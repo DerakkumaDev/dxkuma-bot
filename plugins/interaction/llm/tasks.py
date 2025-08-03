@@ -20,8 +20,9 @@ response_queue_tasks: dict[str, Task] = dict()
 times: dict[str, int] = dict()
 
 
-async def outtime_check(bot: Bot, chat_id: str, chat_type: str, qq_id: int):
+async def outtime_check(bot: Bot, chat_type: str, qq_id: int):
     await anyio.sleep(OUTTIME)
+    chat_id = f"{qq_id}.{chat_type[0]}"
     if (
         chat_id not in times
         or (
@@ -37,19 +38,17 @@ async def outtime_check(bot: Bot, chat_id: str, chat_type: str, qq_id: int):
     content = request_queues[chat_id]
     del request_queues[chat_id]
     del times[chat_id]
-    task = asyncio.create_task(
-        request_queue_task(bot, chat_id, chat_type, qq_id, content)
-    )
+    task = asyncio.create_task(request_queue_task(bot, chat_type, qq_id, content))
     request_queue_tasks[chat_id] = task
 
 
 async def request_queue_task(
     bot: Bot,
-    chat_id: str,
     chat_type: str,
     qq_id: int,
     content: dict[str, list[str | dict[str, str | float]]],
 ):
+    chat_id = f"{qq_id}.{chat_type[0]}"
     context_id = contextManager.get_contextid(chat_id)
     input_content = list()
 
@@ -64,9 +63,9 @@ async def request_queue_task(
         input_content.append(media_info)
 
     message = "\n".join(content["texts"])
-    message = str.format(user_prompt, message)
+    input_message = str.format(user_prompt, message)
 
-    input_content.append({"type": "input_text", "text": message})
+    input_content.append({"type": "input_text", "text": input_message})
     input = [{"role": "user", "content": input_content}]
     prompt_hash = contextManager.get_prompthash(chat_id)
     if prompt_hash is None or prompt_hash != global_prompt_hash:
@@ -103,27 +102,27 @@ async def request_queue_task(
         if chunk.delta in "\r\n":
             if len(texts) > 0:
                 reply = str().join(texts)
-                await push_and_start_sending(bot, chat_id, reply, chat_type, qq_id)
+                await push_and_start_sending(bot, reply, chat_type, qq_id)
             texts = list()
         else:
             texts.append(chunk.delta)
 
     reply = str().join(texts)
-    await push_and_start_sending(bot, chat_id, reply, chat_type, qq_id)
+    await push_and_start_sending(bot, reply, chat_type, qq_id)
 
 
-async def push_and_start_sending(
-    bot: Bot, chat_id: str, reply: str, chat_type: str, qq_id: int
-):
+async def push_and_start_sending(bot: Bot, reply: str, chat_type: str, qq_id: int):
+    chat_id = f"{qq_id}.{chat_type[0]}"
     queue = response_queues.setdefault(chat_id, list())
     queue.append(reply)
     if chat_id not in response_queue_tasks or response_queue_tasks[chat_id].done():
-        task = asyncio.create_task(response_queue_task(bot, chat_id, chat_type, qq_id))
+        task = asyncio.create_task(response_queue_task(bot, chat_type, qq_id))
         response_queue_tasks[chat_id] = task
 
 
-async def response_queue_task(bot: Bot, chat_id: str, chat_type: str, qq_id: int):
+async def response_queue_task(bot: Bot, chat_type: str, qq_id: int):
     rng = np.random.default_rng()
+    chat_id = f"{qq_id}.{chat_type[0]}"
     while len(response_queues[chat_id]) > 0:
         message = response_queues[chat_id][0]
         response_queues[chat_id].pop(0)
