@@ -5,7 +5,7 @@ from datetime import datetime
 import anyio
 import numpy as np
 from nonebot.adapters.onebot.v11 import Bot
-from openai import NOT_GIVEN
+from openai import BadRequestError
 
 from util.Config import config
 from .database import contextManager
@@ -49,9 +49,23 @@ async def request_queue_task(
     content: dict[str, list[str | dict[str, str | float]]],
 ):
     chat_id = f"{qq_id}.{chat_type[0]}"
-    context_id = contextManager.get_contextid(chat_id)
-    input_content = list()
+    context_id = contextManager.get_latest_contextid(chat_id)
 
+    prompt_hash = contextManager.get_prompthash(chat_id)
+    if context_id is None or prompt_hash is None or prompt_hash != global_prompt_hash:
+        response = await client.responses.create(
+            input=[{"role": "system", "content": system_prompt}],
+            model=config.llm_model,
+            temperature=0,
+            top_p=0,
+            extra_body={
+                "caching": {"type": "enabled"},
+                "thinking": {"type": "disabled"},
+            },
+        )
+        context_id = response.id
+
+    input_content = list()
     for media in content["medias"]:
         media_info = {
             "type": f"input_{media['type']}",
@@ -64,26 +78,31 @@ async def request_queue_task(
 
     message = "\n".join(content["texts"])
     input_message = str.format(user_prompt, message)
-
     input_content.append({"type": "input_text", "text": input_message})
-    input = [{"role": "user", "content": input_content}]
-    prompt_hash = contextManager.get_prompthash(chat_id)
-    if prompt_hash is None or prompt_hash != global_prompt_hash:
-        context_id = NOT_GIVEN
-        input.insert(0, {"role": "system", "content": system_prompt})
 
-    stream = await client.responses.create(
-        input=input,
-        model=config.llm_model,
-        previous_response_id=context_id,
-        stream=True,
-        temperature=2 / 2,
-        top_p=2 / 3,
-        extra_body={
-            "caching": {"type": "enabled"},
-            "thinking": {"type": "disabled"},
-        },
-    )
+    while True:
+        try:
+            stream = await client.responses.create(
+                input=[{"role": "user", "content": input_content}],
+                model=config.llm_model,
+                previous_response_id=context_id,
+                stream=True,
+                temperature=2 / 2,
+                top_p=2 / 3,
+                extra_body={
+                    "caching": {"type": "enabled"},
+                    "thinking": {"type": "disabled"},
+                },
+            )
+            break
+        except BadRequestError as ex:
+            if not ex.message.startswith(
+                "Total tokens of image and text exceed max message tokens."
+            ):
+                raise
+
+            earliest_contextid = contextManager.delete_earliest_contextid(chat_id)
+            await client.responses.delete(earliest_contextid)
 
     contextManager.set_prompthash(chat_id, global_prompt_hash)
     texts = list()
@@ -94,7 +113,7 @@ async def request_queue_task(
             and chunk.response.id is not None
             and chunk.response.id != context_id
         ):
-            contextManager.set_contextid(chat_id, chunk.response.id)
+            contextManager.add_contextid(chat_id, chunk.response.id)
 
         if not hasattr(chunk, "delta") or not chunk.delta:
             continue
