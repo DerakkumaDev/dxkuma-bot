@@ -92,7 +92,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     async with aiofiles.open(pic_path, "rb") as fd:
         send_msg = await rand_pic.send(MessageSegment.image(await fd.read()))
     groups[group_id].append(now)
-    ranking.update_count(qq=qq, type=type)
+    await ranking.update_count(qq=qq, type=type)
     if type == "nsfw":
         msg_id = send_msg["message_id"]
 

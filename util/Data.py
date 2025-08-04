@@ -1,10 +1,10 @@
 import os
+from asyncio import Lock
 from datetime import date
 
 import aiofiles
 import orjson as json
 from aiohttp import ClientError, ClientSession
-from anyio import Lock
 
 music_data_lock = Lock()
 chart_stats_lock = Lock()

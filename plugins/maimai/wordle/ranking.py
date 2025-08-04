@@ -1,68 +1,27 @@
-import shelve
+from typing import List, Tuple
 
-import numpy as np
-from dill import Pickler, Unpickler
+from sqlalchemy import String, Integer, Boolean, Float, func
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import Mapped, mapped_column
 
-shelve.Pickler = Pickler
-shelve.Unpickler = Unpickler
+from util.database import Base, with_transaction
 
 
-class Ranking(object):
-    def __init__(self):
-        self.data_path = "./data/wordle_ranking.db"
+class WordleScore(Base):
+    __tablename__ = "wordle_scores"
 
-    def add_score(
-        self,
-        user_id: str,
-        oc_times: int,
-        it_times: int,
-        pt_times: int,
-        ad_times: int,
-        is_guesser: bool,
-    ) -> None:
-        obj = {
-            "oc_times": oc_times,
-            "it_times": it_times,
-            "pt_times": pt_times,
-            "ad_times": ad_times,
-            "is_guesser": is_guesser,
-        }
-        with shelve.open(self.data_path) as data:
-            if user_id in data:
-                rank_data = data[user_id]
-                rank_data.append(obj)
-                data[user_id] = rank_data
-                return
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
+    oc_times: Mapped[int] = mapped_column(Integer, default=1)
+    it_times: Mapped[int] = mapped_column(Integer, default=0)
+    pt_times: Mapped[int] = mapped_column(Integer, default=0)
+    ad_times: Mapped[int] = mapped_column(Integer, default=0)
+    is_guesser: Mapped[bool] = mapped_column(Boolean, default=False)
+    score: Mapped[float] = mapped_column(Float, nullable=False)
 
-            data.setdefault(user_id, [obj])
 
-    @property
-    def avg_scores(self) -> list[tuple[str, float, int]]:
-        achis = list()
-        with shelve.open(self.data_path) as data:
-            for user_id, scores in data.items():
-                l = len(scores)
-                if l <= 0:
-                    continue
-
-                scores = [self._compute_score(**d) for d in scores]
-                achi = np.sum(scores) / l
-                achis.append((user_id, achi, l))
-
-        achis.sort(key=lambda x: x[1], reverse=True)
-
-        return achis
-
-    def get_score(self, user_id: str) -> tuple[float, int]:
-        with shelve.open(self.data_path) as data:
-            if user_id in data:
-                l = len(data[user_id])
-                scores = [self._compute_score(**d) for d in data[user_id]]
-                achi = np.sum(scores) / l
-                return (achi, l)
-
-        return (0.0, 0)
-
+class Ranking:
     def _compute_score(
         self,
         oc_times: int = 1,
@@ -86,6 +45,67 @@ class Ranking(object):
             score *= 0.98
 
         return score
+
+    @with_transaction
+    async def add_score(
+        self,
+        user_id: str,
+        oc_times: int,
+        it_times: int,
+        pt_times: int,
+        ad_times: int,
+        is_guesser: bool,
+        session: AsyncSession,
+    ) -> None:
+        score = self._compute_score(oc_times, it_times, pt_times, ad_times, is_guesser)
+
+        new_record = WordleScore(
+            user_id=user_id,
+            oc_times=oc_times,
+            it_times=it_times,
+            pt_times=pt_times,
+            ad_times=ad_times,
+            is_guesser=is_guesser,
+            score=score,
+        )
+        session.add(new_record)
+
+    @with_transaction
+    async def avg_scores(self, session: AsyncSession) -> List[Tuple[str, float, int]]:
+        stmt = (
+            select(
+                WordleScore.user_id,
+                func.avg(WordleScore.score).label("avg_score"),
+                func.count(WordleScore.id).label("count"),
+            )
+            .group_by(WordleScore.user_id)
+            .order_by(func.avg(WordleScore.score).desc())
+        )
+
+        result = await session.execute(stmt)
+        records = result.fetchall()
+
+        achis = []
+        for record in records:
+            if record.count > 0:
+                achis.append((record.user_id, float(record.avg_score), record.count))
+
+        return achis
+
+    @with_transaction
+    async def get_score(self, user_id: str, session: AsyncSession) -> Tuple[float, int]:
+        stmt = select(
+            func.avg(WordleScore.score).label("avg_score"),
+            func.count(WordleScore.id).label("count"),
+        ).where(WordleScore.user_id == user_id)
+
+        result = await session.execute(stmt)
+        record = result.fetchone()
+
+        if record and record.count > 0:
+            return (float(record.avg_score), record.count)
+
+        return (0.0, 0)
 
 
 ranking = Ranking()

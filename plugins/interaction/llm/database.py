@@ -1,136 +1,126 @@
-from sqlalchemy import create_engine, Column, String, Boolean, Integer
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 from typing import Optional
 
-DATABASE_URL = "sqlite:///data/llm.db"
-engine = create_engine(DATABASE_URL, echo=False)
+from sqlalchemy import String, Boolean, DateTime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import Mapped, mapped_column
 
-Base = declarative_base()
+from util.database import Base, with_transaction
 
 
-class ContextId(Base):
-    __tablename__ = "contexts"
+class ChatContext(Base):
+    __tablename__ = "chat_contexts"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    chat_id = Column(String, nullable=False)
-    context_id = Column(String, nullable=False)
-    order_index = Column(Integer, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    chat_id: Mapped[str] = mapped_column(String(12), nullable=False, index=True)
+    context_id: Mapped[str] = mapped_column(String(58), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
 class ChatMode(Base):
     __tablename__ = "chat_modes"
 
-    chat_id = Column(String, primary_key=True)
-    chat_mode = Column(Boolean, default=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    chat_id: Mapped[str] = mapped_column(
+        String(12), unique=True, nullable=False, index=True
+    )
+    chat_mode: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class PromptHash(Base):
-    __tablename__ = "prompt_hashs"
+    __tablename__ = "prompt_hashes"
 
-    chat_id = Column(String, primary_key=True)
-    prompt_hash = Column(String, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    chat_id: Mapped[str] = mapped_column(
+        String(12), unique=True, nullable=False, index=True
+    )
+    prompt_hash: Mapped[str] = mapped_column(String(8), nullable=False)
 
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+class ContextManager:
+    @with_transaction
+    async def get_latest_contextid(
+        self, chat_id: str, session: AsyncSession
+    ) -> Optional[str]:
+        stmt = (
+            select(ChatContext.context_id)
+            .where(ChatContext.chat_id == chat_id)
+            .order_by(ChatContext.created_at.desc())
+            .limit(1)
+        )
 
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
 
-class ContextManager(object):
-    def __init__(self):
-        Base.metadata.create_all(engine)
+    @with_transaction
+    async def add_contextid(
+        self, chat_id: str, context_id: str, session: AsyncSession
+    ) -> None:
+        new_context = ChatContext(chat_id=chat_id, context_id=context_id)
+        session.add(new_context)
 
-    def get_latest_contextid(self, chat_id: str) -> Optional[str]:
-        with SessionLocal() as session:
-            latest_context = (
-                session.query(ContextId)
-                .filter(ContextId.chat_id == chat_id)
-                .order_by(ContextId.order_index.desc())
-                .first()
-            )
-            if latest_context is None:
-                return None
+    @with_transaction
+    async def delete_earliest_contextid(
+        self, chat_id: str, session: AsyncSession
+    ) -> Optional[str]:
+        stmt = (
+            select(ChatContext)
+            .where(ChatContext.chat_id == chat_id)
+            .order_by(ChatContext.created_at.asc())
+            .limit(1)
+        )
 
-            return latest_context.context_id
+        result = await session.execute(stmt)
+        record = result.scalar_one_or_none()
 
-    def add_contextid(self, chat_id: str, context_id: str) -> None:
-        with SessionLocal() as session:
-            max_order = (
-                session.query(ContextId)
-                .filter(ContextId.chat_id == chat_id)
-                .order_by(ContextId.order_index.desc())
-                .first()
-            )
-
-            next_order = 0 if max_order is None else max_order.order_index + 1
-
-            new_context = ContextId(
-                chat_id=chat_id, context_id=context_id, order_index=next_order
-            )
-            session.add(new_context)
-            session.commit()
-
-    def delete_earliest_contextid(self, chat_id: str) -> Optional[str]:
-        with SessionLocal() as session:
-            earliest_context = (
-                session.query(ContextId)
-                .filter(ContextId.chat_id == chat_id)
-                .order_by(ContextId.order_index.asc())
-                .first()
-            )
-
-            if earliest_context is None:
-                return None
-
-            context_id = earliest_context.context_id
-            session.delete(earliest_context)
-            session.commit()
+        if record:
+            context_id = record.context_id
+            await session.delete(record)
             return context_id
+        return None
 
-    def get_chatmode(self, chat_id: str) -> bool:
-        with SessionLocal() as session:
-            chat_mode = (
-                session.query(ChatMode).filter(ChatMode.chat_id == chat_id).first()
-            )
-            if chat_mode is None:
-                return False
+    @with_transaction
+    async def get_chatmode(self, chat_id: str, session: AsyncSession) -> bool:
+        stmt = select(ChatMode.chat_mode).where(ChatMode.chat_id == chat_id)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none() or False
 
-            return chat_mode.chat_mode
+    @with_transaction
+    async def set_chatmode(
+        self, chat_id: str, chat_mode: bool, session: AsyncSession
+    ) -> None:
+        stmt = select(ChatMode).where(ChatMode.chat_id == chat_id)
+        result = await session.execute(stmt)
+        record = result.scalar_one_or_none()
 
-    def set_chatmode(self, chat_id: str, chat_mode: bool) -> None:
-        with SessionLocal() as session:
-            existing = (
-                session.query(ChatMode).filter(ChatMode.chat_id == chat_id).first()
-            )
-            if existing:
-                existing.chat_mode = chat_mode
-            else:
-                new_chat_mode = ChatMode(chat_id=chat_id, chat_mode=chat_mode)
-                session.add(new_chat_mode)
+        if record:
+            record.chat_mode = chat_mode
+        else:
+            new_record = ChatMode(chat_id=chat_id, chat_mode=chat_mode)
+            session.add(new_record)
 
-            session.commit()
+    @with_transaction
+    async def get_prompthash(
+        self, chat_id: str, session: AsyncSession
+    ) -> Optional[str]:
+        stmt = select(PromptHash.prompt_hash).where(PromptHash.chat_id == chat_id)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
 
-    def get_prompthash(self, chat_id: str) -> Optional[str]:
-        with SessionLocal() as session:
-            prompt_hash = (
-                session.query(PromptHash).filter(PromptHash.chat_id == chat_id).first()
-            )
-            if prompt_hash is None:
-                return None
+    @with_transaction
+    async def set_prompthash(
+        self, chat_id: str, prompt_hash: str, session: AsyncSession
+    ) -> None:
+        stmt = select(PromptHash).where(PromptHash.chat_id == chat_id)
+        result = await session.execute(stmt)
+        record = result.scalar_one_or_none()
 
-            return prompt_hash.prompt_hash
-
-    def set_prompthash(self, chat_id: str, prompt_hash: str) -> None:
-        with SessionLocal() as session:
-            existing = (
-                session.query(PromptHash).filter(PromptHash.chat_id == chat_id).first()
-            )
-            if existing:
-                existing.prompt_hash = prompt_hash
-            else:
-                new_prompt_hash = PromptHash(chat_id=chat_id, prompt_hash=prompt_hash)
-                session.add(new_prompt_hash)
-
-            session.commit()
+        if record:
+            record.prompt_hash = prompt_hash
+        else:
+            new_record = PromptHash(chat_id=chat_id, prompt_hash=prompt_hash)
+            session.add(new_record)
 
 
 contextManager = ContextManager()

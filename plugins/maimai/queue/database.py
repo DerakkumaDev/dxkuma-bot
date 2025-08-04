@@ -1,229 +1,304 @@
-import shelve
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, List, Dict
 
 import nanoid
-from dill import Pickler, Unpickler
 from rapidfuzz import fuzz, process
+from sqlalchemy import String, Integer, ForeignKey, UniqueConstraint, BigInteger
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-shelve.Pickler = Pickler
-shelve.Unpickler = Unpickler
+from util.database import Base, with_transaction
 
 
-class ArcadeManager(object):
-    def __init__(self):
-        self.data_path = "./data/queue.db"
-        with shelve.open(self.data_path) as data:
-            if "arcades" not in data:
-                data.setdefault("arcades", dict())
-            if "names" not in data:
-                data.setdefault("names", dict())
-            if "aliases" not in data:
-                data.setdefault("aliases", dict())
-            if "bindings" not in data:
-                data.setdefault("bindings", dict())
+class Arcade(Base):
+    __tablename__ = "arcades"
 
-    def get_arcade(self, arcade_id: str) -> Optional[dict[str, Any]]:
-        with shelve.open(self.data_path) as data:
-            if arcade_id not in data["arcades"]:
-                return
+    id: Mapped[str] = mapped_column(String(21), primary_key=True)
+    name: Mapped[str] = mapped_column(
+        String(32), unique=True, nullable=False, index=True
+    )
+    count: Mapped[int] = mapped_column(Integer, default=0)
+    action_times: Mapped[int] = mapped_column(Integer, default=0)
 
-            arcade = data["arcades"][arcade_id]
-            if arcade["last_action"] is None:
-                return arcade
+    aliases: Mapped[List["ArcadeAlias"]] = relationship(
+        "ArcadeAlias", back_populates="arcade", cascade="all, delete-orphan"
+    )
+    bindings: Mapped[List["ArcadeBinding"]] = relationship(
+        "ArcadeBinding", back_populates="arcade", cascade="all, delete-orphan"
+    )
+    last_action: Mapped[Optional["ArcadeLastAction"]] = relationship(
+        "ArcadeLastAction",
+        back_populates="arcade",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
-            last_action_time = datetime.fromtimestamp(arcade["last_action"]["time"])
-            now = datetime.now()
-            today = datetime(now.year, now.month, now.day, 4, 0, 0, 0)
-            if last_action_time >= today or now.hour < 4:
-                return arcade
 
-            arcade = self.reset(arcade_id, int(today.timestamp()))
-            return arcade
+class ArcadeLastAction(Base):
+    __tablename__ = "arcade_last_actions"
 
-    def get_arcade_id(self, arcade_name: str) -> Optional[str]:
-        with shelve.open(self.data_path) as data:
-            if arcade_name not in data["names"]:
-                return
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    arcade_id: Mapped[str] = mapped_column(
+        String(21), ForeignKey("arcades.id"), nullable=False, unique=True, index=True
+    )
+    group_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    operator_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    action_time: Mapped[int] = mapped_column(Integer, nullable=False)
+    before_count: Mapped[int] = mapped_column(Integer, nullable=False)
 
-            return data["names"][arcade_name]
+    arcade: Mapped["Arcade"] = relationship("Arcade", back_populates="last_action")
 
-    def get_bounden_arcade_ids(self, group_id: int) -> list[str]:
-        with shelve.open(self.data_path) as data:
-            if group_id not in data["bindings"]:
-                return list()
 
-            return data["bindings"][group_id]
+class ArcadeAlias(Base):
+    __tablename__ = "arcade_aliases"
 
-    def create(self, arcade_name: str) -> Optional[str]:
-        with shelve.open(self.data_path) as data:
-            arcades = data["arcades"]
-            names = data["names"]
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    arcade_id: Mapped[str] = mapped_column(
+        String(21), ForeignKey("arcades.id"), nullable=False, index=True
+    )
+    alias: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
 
-            if arcade_name in names:
-                return
+    arcade: Mapped["Arcade"] = relationship("Arcade", back_populates="aliases")
 
-            arcade_id = nanoid.generate()
-            arcades[arcade_id] = {
-                "name": arcade_name,
-                "count": 0,
-                "action_times": 0,
-                "last_action": None,
-                "aliases": list(),
-                "bindings": list(),
-            }
-            names[arcade_name] = arcade_id
+    __table_args__ = (UniqueConstraint("arcade_id", "alias", name="uq_arcade_alias"),)
 
-            data["arcades"] = arcades
-            data["names"] = names
-            return arcade_id
 
-    def bind(self, group_id: int, arcade_id: str) -> bool:
-        with shelve.open(self.data_path) as data:
-            arcades = data["arcades"]
-            bindings = data["bindings"]
+class ArcadeBinding(Base):
+    __tablename__ = "arcade_bindings"
 
-            if group_id in arcades[arcade_id]["bindings"]:
-                return False
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    arcade_id: Mapped[str] = mapped_column(
+        String(21), ForeignKey("arcades.id"), nullable=False, index=True
+    )
+    group_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
 
-            bindings.setdefault(group_id, list())
-            if arcade_id in bindings[group_id]:
-                return False
+    arcade: Mapped["Arcade"] = relationship("Arcade", back_populates="bindings")
 
-            arcades[arcade_id]["bindings"].append(group_id)
-            bindings[group_id].append(arcade_id)
+    __table_args__ = (
+        UniqueConstraint("arcade_id", "group_id", name="uq_arcade_binding"),
+    )
 
-            data["arcades"] = arcades
-            data["bindings"] = bindings
-            return True
 
-    def unbind(self, group_id: int, arcade_id: str) -> bool:
-        with shelve.open(self.data_path) as data:
-            arcades = data["arcades"]
-            bindings = data["bindings"]
+class ArcadeManager:
+    @with_transaction
+    async def get_arcade(
+        self, arcade_id: str, session: AsyncSession
+    ) -> Optional[Dict[str, Any]]:
+        stmt = select(Arcade).where(Arcade.id == arcade_id)
+        result = await session.execute(stmt)
+        arcade_record = result.scalar_one_or_none()
 
-            if group_id not in arcades[arcade_id]["bindings"]:
-                return False
+        if not arcade_record:
+            return None
 
-            if group_id not in bindings:
-                return False
+        if arcade_record.last_action is None:
+            return self._arcade_to_dict(arcade_record)
 
-            if arcade_id not in bindings[group_id]:
-                return False
+        last_action_time = datetime.fromtimestamp(arcade_record.last_action.action_time)
+        now = datetime.now()
+        today = datetime(now.year, now.month, now.day, 4, 0, 0, 0)
 
-            arcades[arcade_id]["bindings"].remove(group_id)
-            bindings[group_id].remove(arcade_id)
-            if len(arcades[arcade_id]["bindings"]) < 1:
-                names = data["names"]
-                del names[arcades[arcade_id]["name"]]
-                data["names"] = names
-                if len(arcades[arcade_id]["aliases"]) > 0:
-                    aliases = data["aliases"]
-                    for alias in arcades[arcade_id]["aliases"]:
-                        aliases[alias].remove(arcade_id)
+        if last_action_time >= today or now.hour < 4:
+            return self._arcade_to_dict(arcade_record)
 
-                    data["aliases"] = aliases
+        await self.reset(arcade_id, int(today.timestamp()), session)
+        return self._arcade_to_dict(arcade_record)
 
-                del arcades[arcade_id]
+    @with_transaction
+    async def get_arcade_id(
+        self, arcade_name: str, session: AsyncSession
+    ) -> Optional[str]:
+        stmt = select(Arcade.id).where(Arcade.name == arcade_name)
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
 
-            data["arcades"] = arcades
-            data["bindings"] = bindings
-            return True
+    @with_transaction
+    async def get_bounden_arcade_ids(
+        self, group_id: int, session: AsyncSession
+    ) -> List[str]:
+        stmt = select(ArcadeBinding.arcade_id).where(ArcadeBinding.group_id == group_id)
+        result = await session.execute(stmt)
+        return [row[0] for row in result.fetchall()]
 
-    def search(self, group_id: int, word: str) -> list[str]:
-        bounden_arcade_ids = self.get_bounden_arcade_ids(group_id)
-        matched_ids = list()
-        for arcade_id in bounden_arcade_ids:
-            arcade = self.get_arcade(arcade_id)
-            if arcade is None:
-                continue
+    @with_transaction
+    async def create(self, arcade_name: str, session: AsyncSession) -> Optional[str]:
+        stmt = select(Arcade.id).where(Arcade.name == arcade_name)
+        result = await session.execute(stmt)
+        existing = result.scalar_one_or_none()
+        if existing:
+            return None
 
-            if word in arcade["aliases"]:
-                matched_ids.append(arcade_id)
+        arcade_id = nanoid.generate()
+        new_arcade = Arcade(id=arcade_id, name=arcade_name)
+        session.add(new_arcade)
 
-            if word == arcade["name"]:
-                matched_ids.append(arcade_id)
+        return arcade_id
 
-        return matched_ids
-
-    def _filter_arcade_ids(
-        self, word: str, names: list[str], scorer, score_cutoff: int
-    ) -> list[str]:
-        results = process.extract(word, names, scorer=scorer, score_cutoff=score_cutoff)
-        filtered = [
-            arcade_id
-            for arcade_id in [self.get_arcade_id(name) for name, _, _ in results]
-            if arcade_id is not None
-        ]
-        return list(dict.fromkeys(filtered))
-
-    def search_all(self, word: str) -> list[str]:
-        names = list()
-        with shelve.open(self.data_path) as data:
-            for arcade_id, arcade in data["arcades"].items():
-                if word in arcade["aliases"]:
-                    return [arcade_id]
-
-                names.append(arcade["name"])
-
-        matched_ids = self._filter_arcade_ids(
-            word, names, scorer=fuzz.QRatio, score_cutoff=100
+    @with_transaction
+    async def bind(self, group_id: int, arcade_id: str, session: AsyncSession) -> bool:
+        stmt = select(ArcadeBinding).where(
+            ArcadeBinding.group_id == group_id, ArcadeBinding.arcade_id == arcade_id
         )
-        if len(matched_ids) > 0:
-            return matched_ids
+        result = await session.execute(stmt)
+        if result.scalar_one_or_none():
+            return False
 
-        matched_ids = self._filter_arcade_ids(
-            word, names, scorer=fuzz.WRatio, score_cutoff=80
+        new_binding = ArcadeBinding(group_id=group_id, arcade_id=arcade_id)
+        session.add(new_binding)
+        return True
+
+    @with_transaction
+    async def unbind(
+        self, group_id: int, arcade_id: str, session: AsyncSession
+    ) -> bool:
+        stmt = select(ArcadeBinding).where(
+            ArcadeBinding.group_id == group_id, ArcadeBinding.arcade_id == arcade_id
+        )
+        result = await session.execute(stmt)
+        binding = result.scalar_one_or_none()
+
+        if not binding:
+            return False
+
+        await session.delete(binding)
+
+        stmt = select(ArcadeBinding).where(ArcadeBinding.arcade_id == arcade_id)
+        result = await session.execute(stmt)
+        remaining_bindings = result.scalars().all()
+
+        if not remaining_bindings:
+            stmt = select(Arcade).where(Arcade.id == arcade_id)
+            result = await session.execute(stmt)
+            arcade = result.scalar_one_or_none()
+            if arcade:
+                await session.delete(arcade)
+
+        return True
+
+    @with_transaction
+    async def search(
+        self, group_id: int, word: str, session: AsyncSession
+    ) -> List[str]:
+        stmt = select(ArcadeBinding.arcade_id).where(ArcadeBinding.group_id == group_id)
+        result = await session.execute(stmt)
+        bound_arcade_ids = [row[0] for row in result.fetchall()]
+        if not bound_arcade_ids:
+            return []
+
+        stmt = select(Arcade.name).where(Arcade.id.in_(bound_arcade_ids))
+        result = await session.execute(stmt)
+        names = [row[0] for row in result.fetchall()]
+
+        stmt = select(ArcadeAlias.alias, ArcadeAlias.arcade_id).where(
+            ArcadeAlias.arcade_id.in_(bound_arcade_ids)
+        )
+        result = await session.execute(stmt)
+        aliases = {row[0]: row[1] for row in result.fetchall()}
+
+        all_names = names + list(aliases.keys())
+
+        matched_arcade_ids = await self._filter_arcade_ids(
+            word, all_names, fuzz.ratio, 60, session
         )
 
-        return matched_ids
+        return matched_arcade_ids
 
-    @property
-    def all_arcade_ids(self) -> list[str]:
-        with shelve.open(self.data_path) as data:
-            return data["arcades"].keys()
+    async def _filter_arcade_ids(
+        self,
+        word: str,
+        names: List[str],
+        scorer,
+        score_cutoff: int,
+        session: AsyncSession,
+    ) -> List[str]:
+        matches = process.extract(
+            word, names, scorer=scorer, score_cutoff=score_cutoff, limit=10
+        )
 
-    def add_alias(self, arcade_id: str, alias: str) -> bool:
-        with shelve.open(self.data_path) as data:
-            arcades = data["arcades"]
-            aliases = data["aliases"]
+        matched_names = [match[0] for match in matches]
 
-            if alias in arcades[arcade_id]["aliases"]:
-                return False
+        arcade_ids = set()
 
-            aliases.setdefault(alias, list())
-            if arcade_id in aliases[alias]:
-                return False
+        stmt = select(Arcade.id).where(Arcade.name.in_(matched_names))
+        result = await session.execute(stmt)
+        arcade_ids.update([row[0] for row in result.fetchall()])
 
-            arcades[arcade_id]["aliases"].append(alias)
-            aliases[alias].append(arcade_id)
+        stmt = select(ArcadeAlias.arcade_id).where(ArcadeAlias.alias.in_(matched_names))
+        result = await session.execute(stmt)
+        arcade_ids.update([row[0] for row in result.fetchall()])
 
-            data["arcades"] = arcades
-            data["aliases"] = aliases
-            return True
+        return list(arcade_ids)
 
-    def remove_alias(self, arcade_id: str, alias: str) -> bool:
-        with shelve.open(self.data_path) as data:
-            arcades = data["arcades"]
-            aliases = data["aliases"]
+    @with_transaction
+    async def search_all(self, word: str, session: AsyncSession) -> List[str]:
+        stmt = select(Arcade.name)
+        result = await session.execute(stmt)
+        names = [row[0] for row in result.fetchall()]
 
-            if alias not in arcades[arcade_id]["aliases"]:
-                return False
+        stmt = select(ArcadeAlias.alias)
+        result = await session.execute(stmt)
+        aliases = [row[0] for row in result.fetchall()]
 
-            if alias not in aliases:
-                return False
+        all_names = names + aliases
 
-            if arcade_id not in aliases[alias]:
-                return False
+        matches = process.extract(
+            word, all_names, scorer=fuzz.ratio, score_cutoff=60, limit=10
+        )
 
-            arcades[arcade_id]["aliases"].remove(alias)
-            aliases[alias].remove(arcade_id)
+        matched_names = [match[0] for match in matches]
 
-            data["arcades"] = arcades
-            data["aliases"] = aliases
-            return True
+        arcade_ids = set()
 
-    def do_action(
+        stmt = select(Arcade.id).where(Arcade.name.in_(matched_names))
+        result = await session.execute(stmt)
+        arcade_ids.update([row[0] for row in result.fetchall()])
+
+        stmt = select(ArcadeAlias.arcade_id).where(ArcadeAlias.alias.in_(matched_names))
+        result = await session.execute(stmt)
+        arcade_ids.update([row[0] for row in result.fetchall()])
+
+        return list(arcade_ids)
+
+    @with_transaction
+    async def all_arcade_ids(self, session: AsyncSession) -> List[str]:
+        stmt = select(Arcade.id)
+        result = await session.execute(stmt)
+        return [row[0] for row in result.fetchall()]
+
+    @with_transaction
+    async def add_alias(
+        self, arcade_id: str, alias: str, session: AsyncSession
+    ) -> bool:
+        stmt = select(ArcadeAlias).where(
+            ArcadeAlias.arcade_id == arcade_id, ArcadeAlias.alias == alias
+        )
+        result = await session.execute(stmt)
+        if result.scalar_one_or_none():
+            return False
+
+        new_alias = ArcadeAlias(arcade_id=arcade_id, alias=alias)
+        session.add(new_alias)
+        return True
+
+    @with_transaction
+    async def remove_alias(
+        self, arcade_id: str, alias: str, session: AsyncSession
+    ) -> bool:
+        stmt = select(ArcadeAlias).where(
+            ArcadeAlias.arcade_id == arcade_id, ArcadeAlias.alias == alias
+        )
+        result = await session.execute(stmt)
+        alias_record = result.scalar_one_or_none()
+
+        if not alias_record:
+            return False
+
+        await session.delete(alias_record)
+        return True
+
+    @with_transaction
+    async def do_action(
         self,
         arcade_id: str,
         type: str,
@@ -231,63 +306,101 @@ class ArcadeManager(object):
         operator: int,
         time: int,
         num: int,
-    ) -> dict[str, Any]:
-        with shelve.open(self.data_path) as data:
-            arcades = data["arcades"]
+        session: AsyncSession,
+    ) -> Dict[str, Any]:
+        stmt = select(Arcade).where(Arcade.id == arcade_id)
+        result = await session.execute(stmt)
+        arcade = result.scalar_one_or_none()
 
-            arcade = arcades[arcade_id]
-            before = arcade["count"]
-            match type:
-                case "add":
-                    new_count = arcade["count"] + num
-                    if new_count > 50:
-                        return arcade
+        if not arcade:
+            return {}
 
-                    arcade["count"] = new_count
-                case "remove":
-                    new_count = arcade["count"] - num
-                    if new_count < 0:
-                        return arcade
+        before = arcade.count
 
-                    arcade["count"] = new_count
-                case "set":
-                    if num < 0 or num > 50 or arcade["count"] == num:
-                        return arcade
+        match type:
+            case "add":
+                new_count = arcade.count + num
+                if new_count > 50:
+                    return self._arcade_to_dict(arcade)
+                arcade.count = new_count
+            case "remove":
+                new_count = arcade.count - num
+                if new_count < 0:
+                    return self._arcade_to_dict(arcade)
+                arcade.count = new_count
+            case "set":
+                if num < 0 or num > 50 or arcade.count == num:
+                    return self._arcade_to_dict(arcade)
+                arcade.count = num
+            case _:
+                return self._arcade_to_dict(arcade)
 
-                    arcade["count"] = num
+        arcade.action_times += 1
 
-            arcade["action_times"] += 1
+        if arcade.last_action:
+            arcade.last_action.group_id = group_id
+            arcade.last_action.operator_id = operator
+            arcade.last_action.action_time = time
+            arcade.last_action.before_count = before
+        else:
+            new_last_action = ArcadeLastAction(
+                arcade_id=arcade_id,
+                group_id=group_id,
+                operator_id=operator,
+                action_time=time,
+                before_count=before,
+            )
+            session.add(new_last_action)
 
-            arcade["last_action"] = {
-                "group": group_id,
-                "operator": operator,
-                "time": time,
-                "before": before,
+        return self._arcade_to_dict(arcade)
+
+    async def reset(
+        self, arcade_id: str, time: int, session: AsyncSession
+    ) -> Dict[str, Any]:
+        stmt = select(Arcade).where(Arcade.id == arcade_id)
+        result = await session.execute(stmt)
+        arcade = result.scalar_one_or_none()
+
+        if not arcade:
+            return {}
+
+        arcade.action_times = 0
+        if arcade.count > 0:
+            if arcade.last_action:
+                arcade.last_action.group_id = -1
+                arcade.last_action.operator_id = -1
+                arcade.last_action.action_time = time
+                arcade.last_action.before_count = arcade.count
+            else:
+                new_last_action = ArcadeLastAction(
+                    arcade_id=arcade_id,
+                    group_id=-1,
+                    operator_id=-1,
+                    action_time=time,
+                    before_count=arcade.count,
+                )
+                session.add(new_last_action)
+            arcade.count = 0
+
+        return self._arcade_to_dict(arcade)
+
+    def _arcade_to_dict(self, arcade: Arcade) -> Dict[str, Any]:
+        last_action_dict = None
+        if arcade.last_action:
+            last_action_dict = {
+                "group": arcade.last_action.group_id,
+                "operator": arcade.last_action.operator_id,
+                "time": arcade.last_action.action_time,
+                "before": arcade.last_action.before_count,
             }
-            arcades[arcade_id] = arcade
 
-            data["arcades"] = arcades
-            return arcade
-
-    def reset(self, arcade_id: str, time: int) -> dict[str, Any]:
-        with shelve.open(self.data_path) as data:
-            arcades = data["arcades"]
-
-            arcade = arcades[arcade_id]
-            arcade["action_times"] = 0
-            if arcade["count"] > 0:
-                arcade["last_action"] = {
-                    "group": -1,
-                    "operator": -1,
-                    "time": time,
-                    "before": arcade["count"],
-                }
-                arcade["count"] = 0
-
-            arcades[arcade_id] = arcade
-
-            data["arcades"] = arcades
-            return arcade
+        return {
+            "id": arcade.id,
+            "name": arcade.name,
+            "count": arcade.count,
+            "action_times": arcade.action_times,
+            "last_action": last_action_dict,
+        }
 
 
 arcadeManager = ArcadeManager()

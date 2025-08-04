@@ -1,20 +1,35 @@
 import datetime
-import shelve
+from typing import List, Tuple
 
-from dill import Pickler, Unpickler
+from sqlalchemy import String, Integer, Date, UniqueConstraint
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import Mapped, mapped_column
 
-shelve.Pickler = Pickler
-shelve.Unpickler = Unpickler
+from util.database import Base, with_transaction
 
 
-class Ranking(object):
+class RankingRecord(Base):
+    __tablename__ = "ranking_records"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    qq: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
+    week_key: Mapped[str] = mapped_column(String(6), nullable=False, index=True)
+    sfw_count: Mapped[int] = mapped_column(Integer, default=0)
+    nsfw_count: Mapped[int] = mapped_column(Integer, default=0)
+    video_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime.date] = mapped_column(Date, default=datetime.date.today)
+
+    __table_args__ = (UniqueConstraint("qq", "week_key", name="uq_qq_week_key"),)
+
+
+class Ranking:
     def __init__(self):
-        self.data_path = "./data/gallery_ranking/"
         self.pic_path = "./Static/Gallery/SFW/"
         self.nsfw_pic_path = "./Static/Gallery/NSFW/"
 
     @property
-    def now(self):
+    def now(self) -> str:
         today = datetime.date.today()
 
         # 获取当前年份
@@ -24,32 +39,48 @@ class Ranking(object):
         week_number = today.isocalendar()[1]
 
         # 将年份和周数拼接成字符串
-        result = str(year) + str(week_number)
-        return result
+        return f"{year}{week_number:02d}"
 
-    def gen_rank(self, time):
-        leaderboard = list()
+    @with_transaction
+    async def gen_rank(self, time: str, session: AsyncSession) -> List[Tuple[str, int]]:
+        stmt = select(
+            RankingRecord.qq,
+            (
+                RankingRecord.sfw_count
+                + RankingRecord.nsfw_count
+                + RankingRecord.video_count
+            ).label("total_count"),
+        ).where(RankingRecord.week_key == time)
 
-        with shelve.open(f"{self.data_path}{time}.db") as data:
-            for qq, qq_data in data.items():
-                total_count = qq_data["sfw"] + qq_data["nsfw"] + qq_data["video"]
-                leaderboard.append((qq, total_count))
+        result = await session.execute(stmt)
+        leaderboard = [(row[0], row[1]) for row in result.fetchall()]
 
         leaderboard.sort(key=lambda x: x[1], reverse=True)
 
         return leaderboard[:5]
 
-    def update_count(self, qq: str, type: str):
+    @with_transaction
+    async def update_count(self, qq: str, type: str, session: AsyncSession):
         time = self.now
 
-        with shelve.open(f"{self.data_path}{time}.db") as count_data:
-            if qq not in count_data:
-                count = count_data.setdefault(qq, {"sfw": 0, "nsfw": 0, "video": 0})
-            else:
-                count = count_data[qq]
+        stmt = select(RankingRecord).where(
+            RankingRecord.qq == qq, RankingRecord.week_key == time
+        )
+        result = await session.execute(stmt)
+        record = result.scalar_one_or_none()
 
-            count[type] += 1
-            count_data[qq] = count
+        if record is None:
+            record = RankingRecord(
+                qq=qq, week_key=time, sfw_count=0, nsfw_count=0, video_count=0
+            )
+            session.add(record)
+
+        if type == "sfw":
+            record.sfw_count += 1
+        elif type == "nsfw":
+            record.nsfw_count += 1
+        elif type == "video":
+            record.video_count += 1
 
 
 ranking = Ranking()

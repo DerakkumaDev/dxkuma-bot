@@ -12,7 +12,6 @@ from xxhash import xxh32_hexdigest
 
 from util.Config import config
 
-
 client = AsyncOpenAI(
     base_url=config.llm_base_url,
     api_key=config.llm_api_key,

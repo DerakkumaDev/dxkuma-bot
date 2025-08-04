@@ -1,14 +1,14 @@
+import asyncio
 import math
 import os
 import re
-import shelve
 import time
 from pathlib import Path
+from typing import Dict, List
 
 import aiofiles
 import numpy as np
 from aiohttp import ClientSession
-from dill import Pickler, Unpickler
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 from numpy import random
@@ -36,9 +36,7 @@ from .GenBests import (
     get_fit_diff,
 )
 from .MusicInfo import music_info, play_info, utage_music_info, score_info
-
-shelve.Pickler = Pickler
-shelve.Unpickler = Unpickler
+from .database import user_config_manager
 
 best50 = on_message(regex(r"^dlxb?50$", re.I))
 ani50 = on_message(regex(r"^dlxani(50)?$", re.I))
@@ -112,32 +110,39 @@ async def find_songid_by_alias(name, song_list):
 
     alias_map = dict()
 
-    alias_list = await get_alias_list_lxns()
-    for info in alias_list["aliases"]:
-        song_id = str(info["song_id"])
-        for alias in info["aliases"]:
-            alias_map.setdefault(alias, list())
-            if song_id in alias_map[alias]:
-                continue
-            alias_map[alias].append(song_id)
+    async def process_lxns(alias_map: Dict[str, List[str]]):
+        alias_list = await get_alias_list_lxns()
+        for info in alias_list["aliases"]:
+            song_id = str(info["song_id"])
+            for alias in info["aliases"]:
+                alias_map.setdefault(alias, list())
+                if song_id in alias_map[alias]:
+                    continue
+                alias_map[alias].append(song_id)
 
-    alias_list = await get_alias_list_xray()
-    for id, info in alias_list.items():
-        song_id = str(id)
-        for alias in info:
-            alias_map.setdefault(alias, list())
-            if song_id in alias_map[alias]:
-                continue
-            alias_map[alias].append(song_id)
+    async def process_xray(alias_map: Dict[str, List[str]]):
+        alias_list = await get_alias_list_xray()
+        for id, info in alias_list.items():
+            song_id = str(id)
+            for alias in info:
+                alias_map.setdefault(alias, list())
+                if song_id in alias_map[alias]:
+                    continue
+                alias_map[alias].append(song_id)
 
-    alias_list = await get_alias_list_ycn()
-    for info in alias_list["content"]:
-        song_id = str(info["SongID"])
-        for alias in info["Alias"]:
-            alias_map.setdefault(alias, list())
-            if song_id in alias_map[alias]:
-                continue
-            alias_map[alias].append(song_id)
+    async def process_ycn(alias_map: Dict[str, List[str]]):
+        alias_list = await get_alias_list_ycn()
+        for info in alias_list["content"]:
+            song_id = str(info["SongID"])
+            for alias in info["Alias"]:
+                alias_map.setdefault(alias, list())
+                if song_id in alias_map[alias]:
+                    continue
+                alias_map[alias].append(song_id)
+
+    await asyncio.gather(
+        process_lxns(alias_map), process_xray(alias_map), process_ycn(alias_map)
+    )
 
     results = process.extract(
         name, alias_map.keys(), scorer=fuzz.QRatio, score_cutoff=100
@@ -486,13 +491,10 @@ async def _(bot: Bot, event: MessageEvent):
             sender_qq = target_qq
             break
         else:
-            with shelve.open("./data/user_config.db") as cfg:
-                if (
-                    target_qq not in cfg
-                    or "allow_other" not in cfg[target_qq]
-                    or cfg[target_qq]["allow_other"]
-                ):
-                    break
+            if await user_config_manager.get_config_value(
+                target_qq, "allow_other", True
+            ):
+                break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -502,45 +504,19 @@ async def _(bot: Bot, event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
             await best50.finish(msg)
-    with shelve.open("./data/user_config.db") as cfg:
-        if target_qq not in cfg:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-            source = "lxns"
-            lx_personal_token = None
-        else:
-            if "frame" not in cfg[target_qq]:
-                frame = "200502"
-            else:
-                frame = cfg[target_qq]["frame"]
-            if "plate" not in cfg[target_qq]:
-                plate = "101"
-            else:
-                plate = cfg[target_qq]["plate"].lstrip("0")
-            if "icon" not in cfg[target_qq]:
-                icon = "101"
-            else:
-                icon = cfg[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in cfg[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = cfg[target_qq]["rating_tj"]
-            if "source" not in cfg[target_qq]:
-                source = "lxns"
-            else:
-                source = cfg[target_qq]["source"]
-            if "lx_personal_token" not in cfg[target_qq]:
-                lx_personal_token = None
-            else:
-                lx_personal_token = cfg[target_qq]["lx_personal_token"]
-        if source == "lxns":
-            source_name = "落雪"
-            another_source_name = "水鱼"
-        elif source == "diving-fish":
-            source_name = "水鱼"
-            another_source_name = "落雪"
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
+    source = user_config["source"]
+    lx_personal_token = user_config["lx_personal_token"]
+    if source == "lxns":
+        source_name = "落雪"
+        another_source_name = "水鱼"
+    elif source == "diving-fish":
+        source_name = "水鱼"
+        another_source_name = "落雪"
     await best50.send(
         (
             MessageSegment.at(sender_qq),
@@ -590,13 +566,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as cfg:
-            if (
-                target_qq not in cfg
-                or "allow_other" not in cfg[target_qq]
-                or cfg[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -604,41 +575,19 @@ async def _(bot: Bot, event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
             await ani50.finish(msg, at_sender=True)
-    with shelve.open("./data/user_config.db") as cfg:
-        if target_qq not in cfg:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-            source = "lxns"
-            lx_personal_token = None
-        else:
-            if "frame" not in cfg[target_qq]:
-                frame = "200502"
-            else:
-                frame = cfg[target_qq]["frame"]
-            if "plate" not in cfg[target_qq]:
-                plate = "101"
-            else:
-                plate = cfg[target_qq]["plate"].lstrip("0")
-            if "icon" not in cfg[target_qq]:
-                icon = "101"
-            else:
-                icon = cfg[target_qq]["icon"].lstrip("0")
-            if "source" not in cfg[target_qq]:
-                source = "lxns"
-            else:
-                source = cfg[target_qq]["source"]
-            if "lx_personal_token" not in cfg[target_qq]:
-                lx_personal_token = None
-            else:
-                lx_personal_token = cfg[target_qq]["lx_personal_token"]
-        if source == "lxns":
-            source_name = "落雪"
-            another_source_name = "水鱼"
-        elif source == "diving-fish":
-            source_name = "水鱼"
-            another_source_name = "落雪"
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
+    source = user_config["source"]
+    lx_personal_token = user_config["lx_personal_token"]
+    if source == "lxns":
+        source_name = "落雪"
+        another_source_name = "水鱼"
+    elif source == "diving-fish":
+        source_name = "水鱼"
+        another_source_name = "落雪"
     await ani50.send(
         (
             MessageSegment.at(target_qq),
@@ -686,13 +635,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -741,29 +685,11 @@ async def _(bot: Bot, event: MessageEvent):
     await ap50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=ap35,
@@ -794,13 +720,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -849,29 +770,11 @@ async def _(bot: Bot, event: MessageEvent):
     await fc50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=fc35,
@@ -902,13 +805,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -959,29 +857,11 @@ async def _(bot: Bot, event: MessageEvent):
     await fit50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
@@ -1012,13 +892,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -1057,29 +932,11 @@ async def _(bot: Bot, event: MessageEvent):
     await best40.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=b25,
@@ -1110,13 +967,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -1167,29 +1019,11 @@ async def _(bot: Bot, event: MessageEvent):
     await rate50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=rate35,
@@ -1220,13 +1054,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -1277,29 +1106,11 @@ async def _(bot: Bot, event: MessageEvent):
     await dxs50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=dxs35,
@@ -1330,13 +1141,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -1390,29 +1196,11 @@ async def _(bot: Bot, event: MessageEvent):
     await star50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=star35,
@@ -1444,13 +1232,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == sender_qq:
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != sender_qq:
             msg = (
@@ -1546,29 +1329,11 @@ async def _(bot: Bot, event: MessageEvent):
     await cf50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = target_data["nickname"]
     dani = target_data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
@@ -1599,13 +1364,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -1654,29 +1414,11 @@ async def _(bot: Bot, event: MessageEvent):
     await sd50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
@@ -1707,13 +1449,8 @@ async def _(bot: Bot, event: MessageEvent):
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
-        with shelve.open("./data/user_config.db") as config:
-            if (
-                target_qq not in config
-                or "allow_other" not in config[target_qq]
-                or config[target_qq]["allow_other"]
-            ):
-                break
+        if await user_config_manager.get_config_value(target_qq, "allow_other", True):
+            break
     else:
         if target_qq != event.get_user_id():
             msg = (
@@ -1752,29 +1489,11 @@ async def _(bot: Bot, event: MessageEvent):
     await all50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = data["nickname"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if target_qq not in config:
-            frame = "200502"
-            plate = "101"
-            icon = "101"
-            is_rating_tj = True
-        else:
-            if "frame" not in config[target_qq]:
-                frame = "200502"
-            else:
-                frame = config[target_qq]["frame"]
-            if "plate" not in config[target_qq]:
-                plate = "101"
-            else:
-                plate = config[target_qq]["plate"].lstrip("0")
-            if "icon" not in config[target_qq]:
-                icon = "101"
-            else:
-                icon = config[target_qq]["icon"].lstrip("0")
-            if "rating_tj" not in config[target_qq]:
-                is_rating_tj = True
-            else:
-                is_rating_tj = config[target_qq]["rating_tj"]
+    user_config = await user_config_manager.get_user_config(target_qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    is_rating_tj = user_config["rating_tj"]
     start_time = time.perf_counter()
     img = await generatebests(
         b35=all35,
@@ -1911,19 +1630,10 @@ async def _(event: MessageEvent):
     nickname = data["nickname"]
     rating = data["rating"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config or "plate" not in config[qq]:
-            plate = "101"
-        else:
-            plate = config[qq]["plate"].lstrip("0")
-        if qq not in config or "frame" not in config[qq]:
-            frame = "200502"
-        else:
-            frame = config[qq]["frame"]
-        if qq not in config or "icon" not in config[qq]:
-            icon = "101"
-        else:
-            icon = config[qq]["icon"].lstrip("0")
+    user_config = await user_config_manager.get_user_config(qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
     start_time = time.perf_counter()
     img = await generate_wcb(
         page=page,
@@ -2004,19 +1714,10 @@ async def _(event: MessageEvent):
     nickname = data["nickname"]
     rating = data["rating"]
     dani = data["additional_rating"]
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config or "plate" not in config[qq]:
-            plate = "101"
-        else:
-            plate = config[qq]["plate"].lstrip("0")
-        if qq not in config or "frame" not in config[qq]:
-            frame = "200502"
-        else:
-            frame = config[qq]["frame"]
-        if qq not in config or "icon" not in config[qq]:
-            icon = "101"
-        else:
-            icon = config[qq]["icon"].lstrip("0")
+    user_config = await user_config_manager.get_user_config(qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
     start_time = time.perf_counter()
     img = await generate_wcb(
         page=page,
@@ -2053,27 +1754,12 @@ async def _(event: MessageEvent):
             page = 1
     else:
         page = 1
-    with shelve.open("./data/user_config.db") as cfg:
-        if qq not in cfg or "plate" not in cfg[qq]:
-            plate = "101"
-        else:
-            plate = cfg[qq]["plate"].lstrip("0")
-        if qq not in cfg or "frame" not in cfg[qq]:
-            frame = "200502"
-        else:
-            frame = cfg[qq]["frame"]
-        if qq not in cfg or "icon" not in cfg[qq]:
-            icon = "101"
-        else:
-            icon = cfg[qq]["icon"].lstrip("0")
-        if qq not in cfg or "source" not in cfg[qq]:
-            source = "lxns"
-        else:
-            source = cfg[qq]["source"]
-        if qq not in cfg or "lx_personal_token" not in cfg[qq]:
-            lx_personal_token = None
-        else:
-            lx_personal_token = cfg[qq]["lx_personal_token"]
+    user_config = await user_config_manager.get_user_config(qq)
+    frame = user_config["frame"]
+    plate = user_config["plate"]
+    icon = user_config["icon"]
+    source = user_config["source"]
+    lx_personal_token = user_config["lx_personal_token"]
     if source == "lxns":
         source_name = "落雪"
         another_source_name = "水鱼"
@@ -2552,17 +2238,7 @@ async def _(event: MessageEvent):
                 async with aiofiles.open(file_path, "wb") as fd:
                     await fd.write(await resp.read())
 
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config:
-            config.setdefault(qq, {"plate": id})
-        else:
-            cfg = config[qq]
-            if "plate" not in config[qq]:
-                cfg.setdefault("plate", id)
-            else:
-                cfg["plate"] = id
-            config[qq] = cfg
-
+    await user_config_manager.set_config_value(qq, "plate", id)
     msg = "迪拉熊帮你换好啦~"
     await set_plate.send(MessageSegment.text(msg), at_sender=True)
 
@@ -2588,17 +2264,7 @@ async def _(event: MessageEvent):
                 async with aiofiles.open(file_path, "wb") as fd:
                     await fd.write(await resp.read())
 
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config:
-            config.setdefault(qq, {"frame": id})
-        else:
-            cfg = config[qq]
-            if "frame" not in config[qq]:
-                cfg.setdefault("frame", id)
-            else:
-                cfg["frame"] = id
-            config[qq] = cfg
-
+    await user_config_manager.set_config_value(qq, "frame", id)
     msg = "迪拉熊帮你换好啦~"
     await set_frame.send(msg, at_sender=True)
 
@@ -2624,17 +2290,7 @@ async def _(event: MessageEvent):
                 async with aiofiles.open(file_path, "wb") as fd:
                     await fd.write(await resp.read())
 
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config:
-            config.setdefault(qq, {"icon": id})
-        else:
-            cfg = config[qq]
-            if "icon" not in config[qq]:
-                cfg.setdefault("icon", id)
-            else:
-                cfg["icon"] = id
-            config[qq] = cfg
-
+    await user_config_manager.set_config_value(qq, "icon", id)
     msg = "迪拉熊帮你换好啦~"
     await set_icon.send(msg, at_sender=True)
 
@@ -2642,17 +2298,7 @@ async def _(event: MessageEvent):
 @ratj_on.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config:
-            config.setdefault(qq, {"rating_tj": True})
-        else:
-            cfg = config[qq]
-            if "rating_tj" not in config[qq]:
-                cfg.setdefault("rating_tj", True)
-            else:
-                cfg["rating_tj"] = True
-            config[qq] = cfg
-
+    await user_config_manager.set_config_value(qq, "rating_tj", True)
     msg = "迪拉熊帮你换好啦~"
     await ratj_on.send(MessageSegment.text(msg), at_sender=True)
 
@@ -2660,17 +2306,7 @@ async def _(event: MessageEvent):
 @ratj_off.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config:
-            config.setdefault(qq, {"rating_tj": False})
-        else:
-            cfg = config[qq]
-            if "rating_tj" not in config[qq]:
-                cfg.setdefault("rating_tj", False)
-            else:
-                cfg["rating_tj"] = False
-            config[qq] = cfg
-
+    await user_config_manager.set_config_value(qq, "rating_tj", False)
     msg = "迪拉熊帮你换好啦~"
     await ratj_off.send(MessageSegment.text(msg), at_sender=True)
 
@@ -2678,17 +2314,7 @@ async def _(event: MessageEvent):
 @allow_other_on.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config:
-            config.setdefault(qq, {"allow_other": True})
-        else:
-            cfg = config[qq]
-            if "allow_other" not in config[qq]:
-                cfg.setdefault("allow_other", True)
-            else:
-                cfg["allow_other"] = True
-            config[qq] = cfg
-
+    await user_config_manager.set_config_value(qq, "allow_other", True)
     msg = "迪拉熊帮你换好啦~"
     await allow_other_on.send(MessageSegment.text(msg), at_sender=True)
 
@@ -2696,17 +2322,7 @@ async def _(event: MessageEvent):
 @allow_other_off.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config:
-            config.setdefault(qq, {"allow_other": False})
-        else:
-            cfg = config[qq]
-            if "allow_other" not in config[qq]:
-                cfg.setdefault("allow_other", False)
-            else:
-                cfg["allow_other"] = False
-            config[qq] = cfg
-
+    await user_config_manager.set_config_value(qq, "allow_other", False)
     msg = "迪拉熊帮你换好啦~"
     await allow_other_off.send(MessageSegment.text(msg), at_sender=True)
 
@@ -2721,22 +2337,12 @@ async def _(event: MessageEvent):
     elif "水鱼" in msg:
         source = "diving-fish"
         source_name = "水鱼"
-    with shelve.open("./data/user_config.db") as config:
-        if qq not in config:
-            config.setdefault(qq, {"source": source})
-            msg = "迪拉熊帮你改好啦~"
-        else:
-            cfg = config[qq]
-            if "source" not in config[qq]:
-                cfg.setdefault("source", source)
-                config[qq] = cfg
-                msg = "迪拉熊帮你改好啦~"
-            elif cfg["source"] != source:
-                cfg["source"] = source
-                config[qq] = cfg
-                msg = "迪拉熊帮你换好啦~"
-            else:
-                msg = f"你已经在使用{source_name}作为数据源了哦~"
+
+    if await user_config_manager.set_config_value(qq, "source", source):
+        msg = "迪拉熊帮你改好啦~"
+    else:
+        msg = f"你已经在使用{source_name}作为数据源了哦~"
+
     await set_source.send(MessageSegment.text(msg), at_sender=True)
 
 
@@ -2750,17 +2356,8 @@ async def _(event: MessageEvent):
         if len(token) != 44:
             msg = "你的密钥好像不太对哦，再试一下吧~"
             await set_token.finish(MessageSegment.text(msg), at_sender=True)
-        with shelve.open("./data/user_config.db") as config:
-            if qq not in config:
-                config.setdefault(qq, {"lx_personal_token": token})
-            else:
-                cfg = config[qq]
-                if "lx_personal_token" not in config[qq]:
-                    cfg.setdefault("lx_personal_token", token)
-                else:
-                    cfg["lx_personal_token"] = token
-                config[qq] = cfg
 
+        await user_config_manager.set_config_value(qq, "lx_personal_token", token)
         msg = "迪拉熊帮你换好啦~"
     else:
         return

@@ -39,6 +39,6 @@ async def _(event: Event, matcher: Matcher, exception: Optional[Exception]):
             event.get_message().to_rich_text()
             if isinstance(event, MessageEvent)
             else event.get_type()
-        }\r\n{event.get_session_id()}"
+        }"
     )
     await bot.send_msg(group_id=config.dev_group, message=msg)

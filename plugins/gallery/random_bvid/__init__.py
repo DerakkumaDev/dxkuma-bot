@@ -40,7 +40,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
             await rand_bv.finish(msg)
 
     while True:
-        bvid = bvidList.random_bvid
+        bvid = await bvidList.random_bvid()
         headers = {"User-Agent": f"kumabot/{config.version[0]}.{config.version[1]}"}
         async with ClientSession(conn_timeout=3, headers=headers) as session:
             async with session.get(
@@ -49,7 +49,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
             ) as resp:
                 video_info = await resp.json(loads=json.loads)
         if video_info["code"] != 0:
-            bvidList.remove(bvid)
+            await bvidList.remove(bvid)
             continue
 
         break
@@ -65,7 +65,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     )
     await rand_bv.send(MessageSegment.json(json.dumps(mini_app_ark["data"]).decode()))
     groups[group_id].append(now)
-    ranking.update_count(qq=qq, type="video")
+    await ranking.update_count(qq=qq, type="video")
 
 
 @add_bv.handle()
@@ -76,7 +76,7 @@ async def _(event: GroupMessageEvent):
     msg = event.get_plaintext()
     bvids = re.findall(r"BV[A-Za-z0-9]{10}", msg)
     for bvid in bvids:
-        bvidList.add(bvid)
+        await bvidList.add(bvid)
     await add_bv.finish(MessageSegment.text("已添加"))
 
 
@@ -88,5 +88,5 @@ async def _(event: GroupMessageEvent):
     msg = event.get_plaintext()
     bvids = re.findall(r"BV[A-Za-z0-9]{10}", msg)
     for bvid in bvids:
-        bvidList.remove(bvid)
+        await bvidList.remove(bvid)
     await remove_bv.finish(MessageSegment.text("已删除"))

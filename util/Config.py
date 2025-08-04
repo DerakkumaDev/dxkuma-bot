@@ -19,6 +19,8 @@ class Config:
         self.listen_host = None
         self.listen_port = None
         self.token = None
+        # database
+        self.database_url = None
         # group
         self.dev_group = None
         self.special_group = None
@@ -48,6 +50,7 @@ class Config:
         self.listen_host = data["nonebot"]["listen_host"]
         self.listen_port = data["nonebot"]["listen_port"]
         self.token = data["nonebot"]["token"]
+        self.database_url = data["database"]["url"]
         self.dev_group = data["group"]["dev"]
         self.special_group = data["group"]["special"]
         self.nsfw_allowed = data["bots"]["nsfw_allowed"]

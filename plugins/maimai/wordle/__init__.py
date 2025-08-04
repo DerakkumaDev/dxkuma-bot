@@ -1,15 +1,16 @@
+import asyncio
 import math
 import os
 import re
 from io import BytesIO
 from pathlib import Path
+from typing import Dict, List
 
 import aiofiles
 import numpy as np
 import soundfile
 from PIL import Image
 from aiohttp import ClientSession
-from anyio import Lock
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 from rapidfuzz import fuzz, process
@@ -30,7 +31,7 @@ from .utils import (
     get_version_info,
 )
 
-locks: dict[str, Lock] = dict()
+locks: dict[str, asyncio.Lock] = dict()
 
 start_open_chars = on_regex(r"^(迪拉熊|dlx)猜歌$", re.I)
 open_chars = on_regex(r"^开\s*(.|[a-zA-Z]+)$")
@@ -58,32 +59,39 @@ async def find_songid_by_alias(name, song_list):
 
     alias_map = dict()
 
-    alias_list = await get_alias_list_lxns()
-    for info in alias_list["aliases"]:
-        song_id = str(info["song_id"])
-        for alias in info["aliases"]:
-            alias_map.setdefault(alias, list())
-            if song_id in alias_map[alias]:
-                continue
-            alias_map[alias].append(song_id)
+    async def process_lxns(alias_map: Dict[str, List[str]]):
+        alias_list = await get_alias_list_lxns()
+        for info in alias_list["aliases"]:
+            song_id = str(info["song_id"])
+            for alias in info["aliases"]:
+                alias_map.setdefault(alias, list())
+                if song_id in alias_map[alias]:
+                    continue
+                alias_map[alias].append(song_id)
 
-    alias_list = await get_alias_list_xray()
-    for id, info in alias_list.items():
-        song_id = str(id)
-        for alias in info:
-            alias_map.setdefault(alias, list())
-            if song_id in alias_map[alias]:
-                continue
-            alias_map[alias].append(song_id)
+    async def process_xray(alias_map: Dict[str, List[str]]):
+        alias_list = await get_alias_list_xray()
+        for id, info in alias_list.items():
+            song_id = str(id)
+            for alias in info:
+                alias_map.setdefault(alias, list())
+                if song_id in alias_map[alias]:
+                    continue
+                alias_map[alias].append(song_id)
 
-    alias_list = await get_alias_list_ycn()
-    for info in alias_list["content"]:
-        song_id = str(info["SongID"])
-        for alias in info["Alias"]:
-            alias_map.setdefault(alias, list())
-            if song_id in alias_map[alias]:
-                continue
-            alias_map[alias].append(song_id)
+    async def process_ycn(alias_map: Dict[str, List[str]]):
+        alias_list = await get_alias_list_ycn()
+        for info in alias_list["content"]:
+            song_id = str(info["SongID"])
+            for alias in info["Alias"]:
+                alias_map.setdefault(alias, list())
+                if song_id in alias_map[alias]:
+                    continue
+                alias_map[alias].append(song_id)
+
+    await asyncio.gather(
+        process_lxns(alias_map), process_xray(alias_map), process_ycn(alias_map)
+    )
 
     results = process.extract(
         name, alias_map.keys(), scorer=fuzz.QRatio, score_cutoff=100
@@ -114,9 +122,9 @@ async def find_songid_by_alias(name, song_list):
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
     user_id = event.get_user_id()
-    async with locks.setdefault(group_id, Lock()):
+    async with locks.setdefault(group_id, asyncio.Lock()):
         game_data = await openchars.start(group_id)
-        _, game_state, _, game_data = generate_message_state(
+        _, game_state, _, game_data = await generate_message_state(
             game_data, user_id, event.time
         )
 
@@ -136,8 +144,8 @@ async def _(event: GroupMessageEvent):
         return
 
     char = match.group(1)
-    async with locks.setdefault(group_id, Lock()):
-        not_opened, game_data = openchars.open_char(group_id, char, user_id)
+    async with locks.setdefault(group_id, asyncio.Lock()):
+        not_opened, game_data = await openchars.open_char(group_id, char, user_id)
         if not_opened is None:
             return
 
@@ -151,9 +159,12 @@ async def _(event: GroupMessageEvent):
             )
             return
 
-        is_game_over, game_state, char_all_open, game_data = generate_message_state(
-            game_data, user_id, event.time
-        )
+        (
+            is_game_over,
+            game_state,
+            char_all_open,
+            game_data,
+        ) = await generate_message_state(game_data, user_id, event.time)
         await openchars.update_game_data(group_id, game_data)
         if char_all_open:
             for i, title, id in char_all_open:
@@ -177,7 +188,7 @@ async def _(event: GroupMessageEvent):
 
         await open_chars.send(game_state)
         if is_game_over:
-            openchars.game_over(group_id)
+            await openchars.game_over(group_id)
             await open_chars.send(
                 "全部答对啦，恭喜各位🎉\r\n可以发送“dlx猜歌”再次游玩mai~"
             )
@@ -190,11 +201,11 @@ async def _(event: GroupMessageEvent):
         return
 
     group_id = str(event.group_id)
-    game_data = openchars.get_game_data(group_id)
-    if not game_data:
-        return
-
     try:
+        game_data = await openchars.get_game_data(group_id)
+        if not game_data:
+            return
+
         songList = await get_music_data_lxns()
         music_ids = await find_songid_by_alias(msg_content, songList)
     except Exception:
@@ -204,7 +215,9 @@ async def _(event: GroupMessageEvent):
         return
 
     user_id = event.get_user_id()
-    guess_success, game_data = check_music_id(game_data, music_ids, user_id, event.time)
+    guess_success, game_data = await check_music_id(
+        game_data, music_ids, user_id, event.time
+    )
     if not guess_success:
         return
 
@@ -226,12 +239,12 @@ async def _(event: GroupMessageEvent):
             ),
             at_sender=True,
         )
-    is_game_over, game_state, _, game_data = generate_message_state(
+    is_game_over, game_state, _, game_data = await generate_message_state(
         game_data, user_id, event.time
     )
     await all_message_handle.send(game_state)
     if is_game_over:
-        openchars.game_over(group_id)
+        await openchars.game_over(group_id)
         await all_message_handle.send(
             "全部答对啦，恭喜各位🎉\r\n可以发送“dlx猜歌”再次游玩mai~"
         )
@@ -242,12 +255,12 @@ async def _(event: GroupMessageEvent):
 @pass_game.handle()
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
-    async with locks.setdefault(group_id, Lock()):
-        game_data = openchars.get_game_data(group_id)
+    async with locks.setdefault(group_id, asyncio.Lock()):
+        game_data = await openchars.get_game_data(group_id)
         if not game_data:
             return
 
-        openchars.game_over(group_id)
+        await openchars.game_over(group_id)
 
     await pass_game.send(generate_success_state(game_data))
     await pass_game.send("本轮猜歌结束了，可以发送“dlx猜歌”再次游玩mai~")
@@ -260,8 +273,8 @@ async def _(event: GroupMessageEvent):
     user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
-    async with locks.setdefault(group_id, Lock()):
-        game_data = openchars.get_game_data(group_id)
+    async with locks.setdefault(group_id, asyncio.Lock()):
+        game_data = await openchars.get_game_data(group_id)
         if not game_data:
             return
 
@@ -362,8 +375,8 @@ async def _(event: GroupMessageEvent):
     user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
-    async with locks.setdefault(group_id, Lock()):
-        game_data = openchars.get_game_data(group_id)
+    async with locks.setdefault(group_id, asyncio.Lock()):
+        game_data = await openchars.get_game_data(group_id)
         if not game_data:
             return
 
@@ -450,8 +463,8 @@ async def _(event: GroupMessageEvent):
     user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
-    async with locks.setdefault(group_id, Lock()):
-        game_data = openchars.get_game_data(group_id)
+    async with locks.setdefault(group_id, asyncio.Lock()):
+        game_data = await openchars.get_game_data(group_id)
         if not game_data:
             return
 
@@ -525,9 +538,11 @@ async def _(event: GroupMessageEvent):
 
 @rank.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
-    scores = ranking.avg_scores
+    scores = await ranking.avg_scores()
     leaderboard = [
-        (qq, achi, _times) for qq, achi, _times in scores if times.check_available(qq)
+        (qq, achi, _times)
+        for qq, achi, _times in scores
+        if await times.check_available(qq)
     ]
     leaderboard_output = list()
     current_score, current_index = 0, 0
@@ -551,9 +566,11 @@ async def _(bot: Bot, event: GroupMessageEvent):
 @rank_i.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
     user_id = event.get_user_id()
-    scores = ranking.avg_scores
+    scores = await ranking.avg_scores()
     leaderboard = [
-        (qq, achi, _times) for qq, achi, _times in scores if times.check_available(qq)
+        (qq, achi, _times)
+        for qq, achi, _times in scores
+        if await times.check_available(qq)
     ]
     leaderboard_output = list()
     index = -1
@@ -591,7 +608,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         leaderboard_output.append(f"\r\n游玩次数：{leaderboard[index][2]}")
     else:
         leaderboard_output.append("你现在还不在排行榜上哦~")
-        achi, _times = ranking.get_score(user_id)
+        achi, _times = await ranking.get_score(user_id)
         leaderboard_output.append(f"\r\n游玩次数：{_times}")
 
     msg = "\r\n".join(leaderboard_output)

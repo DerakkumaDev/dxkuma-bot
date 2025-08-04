@@ -1,54 +1,51 @@
-import shelve
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
-from dill import Pickler, Unpickler
+from sqlalchemy import String, Integer, DateTime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy.orm import Mapped, mapped_column
 
-shelve.Pickler = Pickler
-shelve.Unpickler = Unpickler
+from util.database import Base, with_transaction
 
 
-class Times(object):
-    def __init__(self):
-        self.data_path = "./data/wordle_times.db"
+class WordleTimes(Base):
+    __tablename__ = "wordle_times"
 
-    def add(
-        self,
-        user_id: str,
-        year: int,
-        month: int,
-        day: int,
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
+    year: Mapped[int] = mapped_column(Integer, nullable=False)
+    month: Mapped[int] = mapped_column(Integer, nullable=False)
+    day: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    @property
+    def game_date(self) -> date:
+        return date(self.year, self.month, self.day)
+
+
+class Times:
+    @with_transaction
+    async def add(
+        self, user_id: str, year: int, month: int, day: int, session: AsyncSession
     ) -> None:
-        obj = {
-            "year": year,
-            "month": month,
-            "day": day,
-        }
-        with shelve.open(self.data_path) as data:
-            if user_id in data:
-                times_data = data[user_id]
-                times_data.insert(0, obj)
-                data[user_id] = times_data
-                return
+        new_record = WordleTimes(user_id=user_id, year=year, month=month, day=day)
+        session.add(new_record)
 
-            data.setdefault(user_id, [obj])
+    @with_transaction
+    async def check_available(self, user_id: str, session: AsyncSession) -> bool:
+        today = date.today()
+        week_ago = today - timedelta(days=7)
 
-    def check_available(self, user_id: str) -> bool:
-        with shelve.open(self.data_path) as data:
-            if user_id not in data:
-                return False
+        stmt = (
+            select(WordleTimes)
+            .where(WordleTimes.user_id == user_id, WordleTimes.created_at >= week_ago)
+            .order_by(WordleTimes.created_at.desc())
+        )
 
-            today = date.today()
-            times = 0
+        result = await session.execute(stmt)
+        records = result.scalars().all()
 
-            for times_data in data[user_id]:
-                _date = date(**times_data)
-                if today - date(**times_data) < timedelta(days=7):
-                    today = _date
-                    times += 1
-                    if times > 9:
-                        return True
-
-        return False
+        return len(records) > 9
 
 
 times = Times()

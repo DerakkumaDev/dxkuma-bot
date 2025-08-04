@@ -5,8 +5,8 @@ from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
 
 from .database import contextManager
-from .utils import escape, gen_message
 from .tasks import times, request_queues, outtime_check
+from .utils import escape, gen_message
 
 handler = on_message(priority=10000, block=False)
 
@@ -25,7 +25,7 @@ async def _(bot: Bot, event: MessageEvent):
         qqid = event.group_id
         chat_type = "group"
         chat_id = f"{qqid}.{chat_type[0]}"
-        chat_mode = contextManager.get_chatmode(chat_id)
+        chat_mode = await contextManager.get_chatmode(chat_id)
         if not chat_mode and not event.is_tome():
             return
 
@@ -65,7 +65,7 @@ async def _(event: GroupMessageEvent):
         return
 
     chat_id = f"{event.group_id}.g"
-    contextManager.set_chatmode(chat_id, True)
+    await contextManager.set_chatmode(chat_id, True)
     await chat_mode_on.send("迪拉熊可以直接看到消息啦~", at_sender=True)
 
 
@@ -75,5 +75,5 @@ async def _(event: GroupMessageEvent):
         return
 
     chat_id = f"{event.group_id}.g"
-    contextManager.set_chatmode(chat_id, False)
+    await contextManager.set_chatmode(chat_id, False)
     await chat_mode_off.send("迪拉熊只能看到被at的消息啦~", at_sender=True)

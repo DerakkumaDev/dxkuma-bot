@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 
 from nonebot import on_fullmatch, on_regex
-from nonebot.adapters.onebot.v11 import Bot, MessageSegment, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import MessageSegment, GroupMessageEvent
 from nonebot.rule import to_me
 from numpy import random
 from xxhash import xxh32_hexdigest

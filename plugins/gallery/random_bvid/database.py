@@ -1,49 +1,53 @@
-import shelve
-
-from dill import Pickler, Unpickler
 from numpy import random
+from sqlalchemy import Column, String, Integer
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
-shelve.Pickler = Pickler
-shelve.Unpickler = Unpickler
+from util.database import Base, with_transaction
 
 
-class BvidList(object):
-    def __init__(self):
-        self.data_path = "./data/bvid.db"
-        with shelve.open(self.data_path) as data:
-            if "bvid" not in data:
-                data.setdefault("bvid", list())
+class BvidRecord(Base):
+    __tablename__ = "bvid_records"
 
-    @property
-    def random_bvid(self) -> str:
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    bvid = Column(String(12), unique=True, nullable=False, index=True)
+
+
+class BvidList:
+    @with_transaction
+    async def random_bvid(self, session: AsyncSession) -> str:
         rng = random.default_rng()
-        with shelve.open(self.data_path) as data:
-            bvids = data["bvid"]
-            bvids.sort()
-            return rng.choice(bvids)
+        stmt = select(BvidRecord.bvid)
+        result = await session.execute(stmt)
+        bvids = [row[0] for row in result.fetchall()]
+        return rng.choice(bvids)
 
-    def add(self, bvid: str) -> bool:
-        with shelve.open(self.data_path) as data:
-            bvids = data["bvid"]
-            if bvid in bvids:
-                return False
+    @with_transaction
+    async def add(self, bvid: str, session: AsyncSession) -> bool:
+        stmt = select(BvidRecord).where(BvidRecord.bvid == bvid)
+        result = await session.execute(stmt)
+        if result.scalar_one_or_none():
+            return False
 
-            bvids.append(bvid)
-            data["bvid"] = bvids
+        new_record = BvidRecord(bvid=bvid)
+        session.add(new_record)
 
         return True
 
-    def remove(self, bvid: str) -> None:
-        with shelve.open(self.data_path) as data:
-            bvids = data["bvid"]
-            bvids.remove(bvid)
-            data["bvid"] = bvids
+    @with_transaction
+    async def remove(self, bvid: str, session: AsyncSession) -> None:
+        stmt = select(BvidRecord).where(BvidRecord.bvid == bvid)
+        result = await session.execute(stmt)
+        record = result.scalar_one_or_none()
 
-    @property
-    def count(self) -> int:
-        with shelve.open(self.data_path) as data:
-            bvids = data["bvid"]
-            return len(bvids)
+        if record:
+            await session.delete(record)
+
+    @with_transaction
+    async def count(self, session: AsyncSession) -> int:
+        stmt = select(BvidRecord)
+        result = await session.execute(stmt)
+        return len(result.fetchall())
 
 
 bvidList = BvidList()

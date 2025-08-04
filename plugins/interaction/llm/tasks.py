@@ -49,9 +49,9 @@ async def request_queue_task(
     content: dict[str, list[str | dict[str, str | float]]],
 ):
     chat_id = f"{qq_id}.{chat_type[0]}"
-    context_id = contextManager.get_latest_contextid(chat_id)
+    context_id = await contextManager.get_latest_contextid(chat_id)
 
-    prompt_hash = contextManager.get_prompthash(chat_id)
+    prompt_hash = await contextManager.get_prompthash(chat_id)
     if context_id is None or prompt_hash is None or prompt_hash != global_prompt_hash:
         response = await client.responses.create(
             input=[{"role": "system", "content": system_prompt}],
@@ -101,10 +101,10 @@ async def request_queue_task(
             ):
                 raise
 
-            earliest_contextid = contextManager.delete_earliest_contextid(chat_id)
+            earliest_contextid = await contextManager.delete_earliest_contextid(chat_id)
             await client.responses.delete(earliest_contextid)
 
-    contextManager.set_prompthash(chat_id, global_prompt_hash)
+    await contextManager.set_prompthash(chat_id, global_prompt_hash)
     texts = list()
     async for chunk in stream:
         if (
@@ -113,7 +113,7 @@ async def request_queue_task(
             and chunk.response.id is not None
             and chunk.response.id != context_id
         ):
-            contextManager.add_contextid(chat_id, chunk.response.id)
+            await contextManager.add_contextid(chat_id, chunk.response.id)
 
         if not hasattr(chunk, "delta") or not chunk.delta:
             continue

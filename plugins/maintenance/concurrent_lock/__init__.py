@@ -1,3 +1,5 @@
+from typing import Optional
+
 from nonebot.adapters.onebot.v11 import (
     Bot,
     Event,
@@ -8,7 +10,6 @@ from nonebot.adapters.onebot.v11 import (
 from nonebot.exception import IgnoredException
 from nonebot.internal.driver import Driver
 from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
-from typing import Optional
 from xxhash import xxh32_hexdigest
 
 from util.Config import config

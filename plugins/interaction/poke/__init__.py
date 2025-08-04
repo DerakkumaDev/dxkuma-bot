@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from nonebot import on_type
-from nonebot.adapters.onebot.v11 import Bot, MessageSegment, PokeNotifyEvent
+from nonebot.adapters.onebot.v11 import MessageSegment, PokeNotifyEvent
 from nonebot.rule import to_me
 from numpy import random
 
