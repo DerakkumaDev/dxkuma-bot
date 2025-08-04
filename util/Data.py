@@ -32,12 +32,16 @@ async def get_music_data_df():
                     if files:
                         async with aiofiles.open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(await fd.read())
-                    return list()
+                    return await get_music_data_df()
             if files:
                 for file in files:
                     os.remove(f"{cache_dir}{file}")
-    async with aiofiles.open(cache_path) as fd:
-        return json.loads(await fd.read())
+        async with aiofiles.open(cache_path) as fd:
+            try:
+                return json.loads(await fd.read())
+            except json.JSONDecodeError:
+                os.remove(cache_path)
+                return await get_music_data_df()
 
 
 async def get_music_data_lxns():
@@ -60,12 +64,16 @@ async def get_music_data_lxns():
                     if files:
                         async with aiofiles.open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(await fd.read())
-                    return list()
+                    return await get_music_data_lxns()
             if files:
                 for file in files:
                     os.remove(f"{cache_dir}{file}")
-    async with aiofiles.open(cache_path) as fd:
-        return json.loads(await fd.read())
+        async with aiofiles.open(cache_path) as fd:
+            try:
+                return json.loads(await fd.read())
+            except json.JSONDecodeError:
+                os.remove(cache_path)
+                return await get_music_data_lxns()
 
 
 async def get_chart_stats():
@@ -87,12 +95,16 @@ async def get_chart_stats():
                     if files:
                         async with aiofiles.open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(await fd.read())
-                    return {"charts": dict(), "diff_data": dict()}
+                    return await get_chart_stats()
             if files:
                 for file in files:
                     os.remove(f"{cache_dir}{file}")
-    async with aiofiles.open(cache_path) as fd:
-        return json.loads(await fd.read())
+        async with aiofiles.open(cache_path) as fd:
+            try:
+                return json.loads(await fd.read())
+            except json.JSONDecodeError:
+                os.remove(cache_path)
+                return await get_chart_stats()
 
 
 async def get_alias_list_lxns():
@@ -114,12 +126,16 @@ async def get_alias_list_lxns():
                     if files:
                         async with aiofiles.open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(await fd.read())
-                    return {"aliases": list()}
+                    return await get_alias_list_lxns()
             if files:
                 for file in files:
                     os.remove(f"{cache_dir}{file}")
-    async with aiofiles.open(cache_path) as fd:
-        return json.loads(await fd.read())
+        async with aiofiles.open(cache_path) as fd:
+            try:
+                return json.loads(await fd.read())
+            except json.JSONDecodeError:
+                os.remove(cache_path)
+                return await get_alias_list_lxns()
 
 
 async def get_alias_list_ycn():
@@ -141,12 +157,16 @@ async def get_alias_list_ycn():
                     if files:
                         async with aiofiles.open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(await fd.read())
-                    return {"status_code": 504, "content": list()}
+                    return await get_alias_list_ycn()
             if files:
                 for file in files:
                     os.remove(f"{cache_dir}{file}")
-    async with aiofiles.open(cache_path) as fd:
-        return json.loads(await fd.read())
+        async with aiofiles.open(cache_path) as fd:
+            try:
+                return json.loads(await fd.read())
+            except json.JSONDecodeError:
+                os.remove(cache_path)
+                return await get_alias_list_ycn()
 
 
 async def get_alias_list_xray():
@@ -168,9 +188,13 @@ async def get_alias_list_xray():
                     if files:
                         async with aiofiles.open(f"{cache_dir}{files[-1]}") as fd:
                             return json.loads(await fd.read())
-                    return dict()
+                    return await get_alias_list_xray()
             if files:
                 for file in files:
                     os.remove(f"{cache_dir}{file}")
-    async with aiofiles.open(cache_path) as fd:
-        return json.loads(await fd.read())
+        async with aiofiles.open(cache_path) as fd:
+            try:
+                return json.loads(await fd.read())
+            except json.JSONDecodeError:
+                os.remove(cache_path)
+                return await get_alias_list_xray()

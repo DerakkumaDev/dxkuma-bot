@@ -12,8 +12,7 @@ from dill import Pickler, Unpickler
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 from numpy import random
-from rapidfuzz import fuzz
-from rapidfuzz import process
+from rapidfuzz import fuzz, process
 
 from util.Config import config
 from util.Data import (

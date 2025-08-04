@@ -4,8 +4,7 @@ from typing import Any, Optional
 
 import nanoid
 from dill import Pickler, Unpickler
-from rapidfuzz import fuzz
-from rapidfuzz import process
+from rapidfuzz import fuzz, process
 
 shelve.Pickler = Pickler
 shelve.Unpickler = Unpickler

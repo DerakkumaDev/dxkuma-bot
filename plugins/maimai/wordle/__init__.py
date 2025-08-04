@@ -12,8 +12,7 @@ from aiohttp import ClientSession
 from anyio import Lock
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
-from rapidfuzz import fuzz
-from rapidfuzz import process
+from rapidfuzz import fuzz, process
 
 from util.Data import (
     get_alias_list_lxns,
