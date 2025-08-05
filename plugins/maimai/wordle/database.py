@@ -15,7 +15,7 @@ class WordleGame(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     group_id: Mapped[str] = mapped_column(
-        String(9), unique=True, nullable=False, index=True
+        String(10), unique=True, nullable=False, index=True
     )
 
     open_chars: Mapped[list["WordleOpenChar"]] = relationship(
