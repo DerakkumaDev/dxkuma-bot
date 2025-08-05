@@ -136,7 +136,7 @@ class OpenChars:
 
                 content.opc_times += 1
 
-        game_data = await self._build_game_data(record)
+        game_data = await self._build_game_data(record, session)
         return True, game_data
 
     @with_transaction
@@ -148,7 +148,7 @@ class OpenChars:
         record = result.scalar_one_or_none()
 
         if record:
-            return await self._build_game_data(record)
+            return await self._build_game_data(record, session)
         return None
 
     @with_transaction
@@ -186,11 +186,17 @@ class OpenChars:
             )
             session.add(game_content)
 
-    async def _build_game_data(self, game_record: WordleGame) -> Dict[str, Any]:
-        open_chars = [char.char for char in game_record.open_chars]
+    async def _build_game_data(self, game_record: WordleGame, session: AsyncSession) -> Dict[str, Any]:
+        open_chars_stmt = select(WordleOpenChar.char).where(WordleOpenChar.game_id == game_record.id)
+        open_chars_result = await session.execute(open_chars_stmt)
+        open_chars = [row[0] for row in open_chars_result.fetchall()]
+
+        game_contents_stmt = select(WordleGameContent).where(WordleGameContent.game_id == game_record.id)
+        game_contents_result = await session.execute(game_contents_stmt)
+        game_contents_records = game_contents_result.scalars().all()
 
         game_contents = []
-        for content in game_record.game_contents:
+        for content in game_contents_records:
             game_content = {
                 "index": content.index,
                 "title": content.title,

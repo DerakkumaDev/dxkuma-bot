@@ -92,18 +92,24 @@ class ArcadeManager:
         if not arcade_record:
             return None
 
-        if arcade_record.last_action is None:
-            return self._arcade_to_dict(arcade_record)
+        last_action_stmt = select(ArcadeLastAction).where(
+            ArcadeLastAction.arcade_id == arcade_id
+        )
+        last_action_result = await session.execute(last_action_stmt)
+        last_action = last_action_result.scalar_one_or_none()
 
-        last_action_time = datetime.fromtimestamp(arcade_record.last_action.action_time)
+        if last_action is None:
+            return await self._arcade_to_dict(arcade_record, session)
+
+        last_action_time = datetime.fromtimestamp(last_action.action_time)
         now = datetime.now()
         today = datetime(now.year, now.month, now.day, 4, 0, 0, 0)
 
         if last_action_time >= today or now.hour < 4:
-            return self._arcade_to_dict(arcade_record)
+            return await self._arcade_to_dict(arcade_record, session)
 
         await self.reset(arcade_id, int(today.timestamp()), session)
-        return self._arcade_to_dict(arcade_record)
+        return await self._arcade_to_dict(arcade_record, session)
 
     @with_transaction
     async def get_arcade_id(
@@ -321,27 +327,33 @@ class ArcadeManager:
             case "add":
                 new_count = arcade.count + num
                 if new_count > 50:
-                    return self._arcade_to_dict(arcade)
+                    return await self._arcade_to_dict(arcade, session)
                 arcade.count = new_count
             case "remove":
                 new_count = arcade.count - num
                 if new_count < 0:
-                    return self._arcade_to_dict(arcade)
+                    return await self._arcade_to_dict(arcade, session)
                 arcade.count = new_count
             case "set":
                 if num < 0 or num > 50 or arcade.count == num:
-                    return self._arcade_to_dict(arcade)
+                    return await self._arcade_to_dict(arcade, session)
                 arcade.count = num
             case _:
-                return self._arcade_to_dict(arcade)
+                return await self._arcade_to_dict(arcade, session)
 
         arcade.action_times += 1
 
-        if arcade.last_action:
-            arcade.last_action.group_id = group_id
-            arcade.last_action.operator_id = operator
-            arcade.last_action.action_time = time
-            arcade.last_action.before_count = before
+        last_action_stmt = select(ArcadeLastAction).where(
+            ArcadeLastAction.arcade_id == arcade_id
+        )
+        last_action_result = await session.execute(last_action_stmt)
+        last_action = last_action_result.scalar_one_or_none()
+
+        if last_action:
+            last_action.group_id = group_id
+            last_action.operator_id = operator
+            last_action.action_time = time
+            last_action.before_count = before
         else:
             new_last_action = ArcadeLastAction(
                 arcade_id=arcade_id,
@@ -352,7 +364,7 @@ class ArcadeManager:
             )
             session.add(new_last_action)
 
-        return self._arcade_to_dict(arcade)
+        return await self._arcade_to_dict(arcade, session)
 
     async def reset(
         self, arcade_id: str, time: int, session: AsyncSession
@@ -366,11 +378,17 @@ class ArcadeManager:
 
         arcade.action_times = 0
         if arcade.count > 0:
-            if arcade.last_action:
-                arcade.last_action.group_id = -1
-                arcade.last_action.operator_id = -1
-                arcade.last_action.action_time = time
-                arcade.last_action.before_count = arcade.count
+            last_action_stmt = select(ArcadeLastAction).where(
+                ArcadeLastAction.arcade_id == arcade_id
+            )
+            last_action_result = await session.execute(last_action_stmt)
+            last_action = last_action_result.scalar_one_or_none()
+
+            if last_action:
+                last_action.group_id = -1
+                last_action.operator_id = -1
+                last_action.action_time = time
+                last_action.before_count = arcade.count
             else:
                 new_last_action = ArcadeLastAction(
                     arcade_id=arcade_id,
@@ -382,16 +400,24 @@ class ArcadeManager:
                 session.add(new_last_action)
             arcade.count = 0
 
-        return self._arcade_to_dict(arcade)
+        return await self._arcade_to_dict(arcade, session)
 
-    def _arcade_to_dict(self, arcade: Arcade) -> Dict[str, Any]:
+    async def _arcade_to_dict(
+        self, arcade: Arcade, session: AsyncSession
+    ) -> Dict[str, Any]:
+        last_action_stmt = select(ArcadeLastAction).where(
+            ArcadeLastAction.arcade_id == arcade.id
+        )
+        last_action_result = await session.execute(last_action_stmt)
+        last_action = last_action_result.scalar_one_or_none()
+
         last_action_dict = None
-        if arcade.last_action:
+        if last_action:
             last_action_dict = {
-                "group": arcade.last_action.group_id,
-                "operator": arcade.last_action.operator_id,
-                "time": arcade.last_action.action_time,
-                "before": arcade.last_action.before_count,
+                "group": last_action.group_id,
+                "operator": last_action.operator_id,
+                "time": last_action.action_time,
+                "before": last_action.before_count,
             }
 
         return {
