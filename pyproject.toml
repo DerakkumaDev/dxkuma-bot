@@ -18,6 +18,6 @@ dependencies = [
     "pykakasi>=2.3.0",
     "rapidfuzz>=3.13.0",
     "soundfile>=0.13.1",
-    "sqlalchemy[postgresql-asyncpg]>=2.0.41",
+    "sqlalchemy[postgresql-psycopgbinary]>=2.0.41",
     "xxhash>=3.5.0",
 ]
