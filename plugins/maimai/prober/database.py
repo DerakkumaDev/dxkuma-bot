@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any
 
 from sqlalchemy import String, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,9 +26,9 @@ class UserConfig(Base):
 
 class UserConfigManager:
     @with_transaction
-    async def get_user_config(
-        self, user_id: str, session: AsyncSession
-    ) -> Dict[str, Any]:
+    async def get_user_config(self, user_id: str, **kwargs) -> dict:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(UserConfig).where(UserConfig.user_id == user_id)
         result = await session.execute(stmt)
         config = result.scalar_one_or_none()
@@ -55,9 +55,9 @@ class UserConfigManager:
         }
 
     @with_transaction
-    async def set_user_config(
-        self, user_id: str, config_data: Dict[str, Any], session: AsyncSession
-    ) -> None:
+    async def set_user_config(self, user_id: str, config_data: dict, **kwargs) -> None:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(UserConfig).where(UserConfig.user_id == user_id)
         result = await session.execute(stmt)
         config = result.scalar_one_or_none()
@@ -72,8 +72,10 @@ class UserConfigManager:
 
     @with_transaction
     async def get_config_value(
-        self, user_id: str, key: str, session: AsyncSession, default=None
+        self, user_id: str, key: str, default=None, **kwargs
     ) -> Any:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(UserConfig).where(UserConfig.user_id == user_id)
         result = await session.execute(stmt)
         config = result.scalar_one_or_none()
@@ -85,8 +87,10 @@ class UserConfigManager:
 
     @with_transaction
     async def set_config_value(
-        self, user_id: str, key: str, value: Any, session: AsyncSession
+        self, user_id: str, key: str, value: Any, **kwargs
     ) -> None:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(UserConfig).where(UserConfig.user_id == user_id)
         result = await session.execute(stmt)
         config = result.scalar_one_or_none()

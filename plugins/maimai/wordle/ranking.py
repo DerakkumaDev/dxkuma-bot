@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 from sqlalchemy import String, Integer, Boolean, Float, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -55,10 +53,11 @@ class Ranking:
         pt_times: int,
         ad_times: int,
         is_guesser: bool,
-        session: AsyncSession,
+        **kwargs,
     ) -> None:
-        score = self._compute_score(oc_times, it_times, pt_times, ad_times, is_guesser)
+        session: AsyncSession = kwargs["session"]
 
+        score = self._compute_score(oc_times, it_times, pt_times, ad_times, is_guesser)
         new_record = WordleScore(
             user_id=user_id,
             oc_times=oc_times,
@@ -71,7 +70,9 @@ class Ranking:
         session.add(new_record)
 
     @with_transaction
-    async def avg_scores(self, session: AsyncSession) -> List[Tuple[str, float, int]]:
+    async def avg_scores(self, **kwargs) -> list[tuple[str, float, int]]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = (
             select(
                 WordleScore.user_id,
@@ -93,7 +94,9 @@ class Ranking:
         return achis
 
     @with_transaction
-    async def get_score(self, user_id: str, session: AsyncSession) -> Tuple[float, int]:
+    async def get_score(self, user_id: str, **kwargs) -> tuple[float, int]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(
             func.avg(WordleScore.score).label("avg_score"),
             func.count(WordleScore.id).label("count"),

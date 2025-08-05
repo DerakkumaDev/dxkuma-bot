@@ -1,5 +1,4 @@
 import re
-from typing import Union
 
 from nonebot.adapters import Event
 from nonebot.consts import REGEX_MATCHED
@@ -48,7 +47,7 @@ class RegexRule:
             return False
 
 
-def regex(regex: str, flags: Union[int, re.RegexFlag] = 0) -> Rule:
+def regex(regex: str, flags: int | re.RegexFlag = 0) -> Rule:
     """匹配符合正则表达式的消息字符串。
 
     可以通过 {ref}`nonebot.params.RegexStr` 获取匹配成功的字符串，

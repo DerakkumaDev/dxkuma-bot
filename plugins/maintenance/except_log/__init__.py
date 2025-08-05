@@ -3,11 +3,7 @@ from typing import Optional
 
 from aiohttp import ClientError
 from nonebot import get_bot
-from nonebot.adapters.onebot.v11 import (
-    MessageSegment,
-    Event,
-    MessageEvent,
-)
+from nonebot.adapters.onebot.v11 import MessageSegment, Event, MessageEvent
 from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
 from nonebot.internal.matcher import Matcher
 from nonebot.message import run_postprocessor

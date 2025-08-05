@@ -28,7 +28,9 @@ async def _(
     check_event(event)
 
     key = xxh32_hexdigest(
-        f"{event.time}_{event.group_id}_{event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id}"
+        f"{event.time}_{event.group_id}_{
+            event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id
+        }"
     )
     if key not in locks:
         locks[key] = Lock()
@@ -52,7 +54,9 @@ async def _(
     exception: Optional[Exception],
 ):
     key = xxh32_hexdigest(
-        f"{event.time}_{event.group_id}_{event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id}"
+        f"{event.time}_{event.group_id}_{
+            event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id
+        }"
     )
     if isinstance(exception, NotAllowedException):
         locks[key].state = States.SKIPED
@@ -71,7 +75,9 @@ async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
     key = xxh32_hexdigest(
-        f"{event.time}_{event.group_id}_{event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id}"
+        f"{event.time}_{event.group_id}_{
+            event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id
+        }"
     )
     locks[key].bots.append(bot.self_id)
     if locks[key].state == States.PROCESSED:

@@ -26,13 +26,17 @@ class WordleTimes(Base):
 class Times:
     @with_transaction
     async def add(
-        self, user_id: str, year: int, month: int, day: int, session: AsyncSession
+        self, user_id: str, year: int, month: int, day: int, **kwargs
     ) -> None:
+        session: AsyncSession = kwargs["session"]
+
         new_record = WordleTimes(user_id=user_id, year=year, month=month, day=day)
         session.add(new_record)
 
     @with_transaction
-    async def check_available(self, user_id: str, session: AsyncSession) -> bool:
+    async def check_available(self, user_id: str, **kwargs) -> bool:
+        session: AsyncSession = kwargs["session"]
+
         today = date.today()
         week_ago = today - timedelta(days=7)
 

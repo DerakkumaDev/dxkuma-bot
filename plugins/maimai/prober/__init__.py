@@ -4,7 +4,6 @@ import os
 import re
 import time
 from pathlib import Path
-from typing import Dict, List
 
 import aiofiles
 import numpy as np
@@ -55,7 +54,8 @@ sunlist = on_regex(r"^dlx(sunn?|cun|寸|🤏)(\s*\d+?)?$", re.I)
 locklist = on_regex(r"^dlx(suo|锁|🔒)(\s*\d+?)?$", re.I)
 
 songinfo = on_regex(
-    r"^((chart|id|search|查歌)\s*((dx|sd|标准?)\s*)?.+|((dx|sd|标准?)\s*)?.+是什么歌？?)$",
+    r"^((chart|id|search|查歌)\s*((dx|sd|标准?)\s*)?.+|"
+    r"((dx|sd|标准?)\s*)?.+是什么歌？?)$",
     re.I,
 )
 playinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?)\s*)?.+$", re.I)
@@ -110,7 +110,7 @@ async def find_songid_by_alias(name, song_list):
 
     alias_map = dict()
 
-    async def process_lxns(alias_map: Dict[str, List[str]]):
+    async def process_lxns(alias_map: dict[str, list[str]]):
         alias_list = await get_alias_list_lxns()
         for info in alias_list["aliases"]:
             song_id = str(info["song_id"])
@@ -120,7 +120,7 @@ async def find_songid_by_alias(name, song_list):
                     continue
                 alias_map[alias].append(song_id)
 
-    async def process_xray(alias_map: Dict[str, List[str]]):
+    async def process_xray(alias_map: dict[str, list[str]]):
         alias_list = await get_alias_list_xray()
         for id, info in alias_list.items():
             song_id = str(id)
@@ -130,7 +130,7 @@ async def find_songid_by_alias(name, song_list):
                     continue
                 alias_map[alias].append(song_id)
 
-    async def process_ycn(alias_map: Dict[str, List[str]]):
+    async def process_ycn(alias_map: dict[str, list[str]]):
         alias_list = await get_alias_list_ycn()
         for info in alias_list["content"]:
             song_id = str(info["SongID"])
@@ -2195,7 +2195,12 @@ async def _(event: MessageEvent):
         await aliasSearch.send(MessageSegment.text(msg), at_sender=True)
     else:
         song_alias = "\r\n".join(sorted(alias))
-        msg = f"迪拉熊找到啦~别名有：\r\n{song_alias}\r\n\r\n感谢落雪查分器、X-ray Bot及YuzuChaN Bot提供数据支持"
+        msg = (
+            "迪拉熊找到啦~别名有：\r\n"
+            f"{song_alias}\r\n"
+            "\r\n"
+            "感谢落雪查分器、X-ray Bot及YuzuChaN Bot提供数据支持"
+        )
         await aliasSearch.send(MessageSegment.text(msg))
 
 

@@ -1,5 +1,4 @@
 import datetime
-from typing import List, Tuple
 
 from sqlalchemy import String, Integer, Date, UniqueConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,7 +41,9 @@ class Ranking:
         return f"{year}{week_number:02d}"
 
     @with_transaction
-    async def gen_rank(self, time: str, session: AsyncSession) -> List[Tuple[str, int]]:
+    async def gen_rank(self, time: str, **kwargs) -> list[tuple[str, int]]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(
             RankingRecord.qq,
             (
@@ -60,9 +61,10 @@ class Ranking:
         return leaderboard[:5]
 
     @with_transaction
-    async def update_count(self, qq: str, type: str, session: AsyncSession):
-        time = self.now
+    async def update_count(self, qq: str, type: str, **kwargs) -> None:
+        session: AsyncSession = kwargs["session"]
 
+        time = self.now
         stmt = select(RankingRecord).where(
             RankingRecord.qq == qq, RankingRecord.week_key == time
         )

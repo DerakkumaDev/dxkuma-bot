@@ -25,7 +25,17 @@ change_count = on_regex(r"^.+?\s*(加|减|为|＋|－|＝|\+|-|=)?\s*\d+(人|卡
 @all_help.handle()
 async def _(event: GroupMessageEvent):
     await all_help.send(
-        "排卡指令\r\n\r\n注册机厅+机厅全称\r\n绑定机厅+机厅全称\r\n解绑机厅+别名\r\n搜索机厅+关键词\r\n添加别名+机厅全称+机厅别名\r\n删除别名+机厅全称+机厅别名\r\n机厅几卡\r\n别名+几卡\r\n别名+(+/-/=)+整数"
+        "排卡指令\r\n"
+        "\r\n"
+        "注册机厅+机厅全称\r\n"
+        "绑定机厅+机厅全称\r\n"
+        "解绑机厅+别名\r\n"
+        "搜索机厅+关键词\r\n"
+        "添加别名+机厅全称+机厅别名\r\n"
+        "删除别名+机厅全称+机厅别名\r\n"
+        "机厅几卡\r\n"
+        "别名+几卡\r\n"
+        "别名+(+/-/=)+整数"
     )
 
 
@@ -112,7 +122,12 @@ async def _(bot: Bot, event: GroupMessageEvent):
             await list_all.finish("找不到机厅", at_sender=True)
 
         arcade_names = [
-            f"{arcade['name']}{f'\r\n别名：{"、".join(arcade["aliases"])}' if len(arcade['aliases']) > 0 else str()}\r\n{await gen_message(bot, arcade)}"
+            f"{arcade['name']}{
+                f'\r\n别名：{"、".join(arcade["aliases"])}'
+                if len(arcade['aliases']) > 0
+                else str()
+            }\r\n"
+            f"{await gen_message(bot, arcade)}"
             for arcade in arcades
             if arcade is not None
         ]
@@ -150,7 +165,11 @@ async def _(event: GroupMessageEvent):
             await search.finish("找不到机厅", at_sender=True)
 
         arcade_names = [
-            f"{arcade['name']}{f'\r\n别名：{"、".join(arcade["aliases"])}' if len(arcade['aliases']) > 0 else str()}"
+            f"{arcade['name']}{
+                f'\r\n别名：{"、".join(arcade["aliases"])}'
+                if len(arcade['aliases']) > 0
+                else str()
+            }"
             for arcade in arcades
             if arcade is not None
         ]

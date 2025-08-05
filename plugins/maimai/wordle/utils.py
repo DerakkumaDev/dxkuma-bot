@@ -12,13 +12,13 @@ from .times import times
 kks = kakasi()
 
 
-def check_game_over(game_data):
+def check_game_over(game_data: dict) -> bool:
     return all(
         [game_content["is_correct"] for game_content in game_data["game_contents"]]
     )
 
 
-async def generate_game_data():
+async def generate_game_data() -> dict:
     rng = random.default_rng()
     game_data = {"open_chars": list()}
     game_contents = list()
@@ -41,7 +41,9 @@ async def generate_game_data():
     return game_data
 
 
-async def generate_message_state(game_data, user_id, time: int):
+async def generate_message_state(
+    game_data: dict, user_id: str, time: int
+) -> tuple[bool, str, list, dict]:
     now = datetime.fromtimestamp(time)
     game_state = list()
     char_all_open = list()
@@ -124,7 +126,9 @@ async def generate_message_state(game_data, user_id, time: int):
     return is_game_over, "\r\n".join(game_state), char_all_open, game_data
 
 
-async def check_music_id(game_data, music_ids: list, user_id, time: int):
+async def check_music_id(
+    game_data: dict, music_ids: list[str], user_id: str, time: int
+) -> tuple[list, dict]:
     now = datetime.fromtimestamp(time)
     guess_success = list()
     for music_id in music_ids:
@@ -167,14 +171,14 @@ async def check_music_id(game_data, music_ids: list, user_id, time: int):
     return guess_success, game_data
 
 
-def generate_success_state(game_data):
+def generate_success_state(game_data: dict) -> str:
     game_state = list()
     for game_content in game_data["game_contents"]:
         game_state.append(f"{game_content['index']}. {game_content['title']}")
     return "\r\n".join(game_state)
 
 
-def check_char_in_text(text: str, char: str):
+def check_char_in_text(text: str, char: str) -> bool:
     text = text.casefold()
     if char.casefold() in text:
         return True
@@ -187,7 +191,7 @@ def check_char_in_text(text: str, char: str):
     return False
 
 
-def get_version_info(s, song_list):
+def get_version_info(s: dict, song_list: dict) -> dict:
     versions = song_list["versions"]
     versions.append(sys.maxsize)
     for i in range(len(versions) - 1):

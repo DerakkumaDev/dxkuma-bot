@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, List
+from typing import Optional
 
 import orjson
 from sqlalchemy import String, Integer, Boolean, ForeignKey, Text
@@ -18,10 +18,10 @@ class WordleGame(Base):
         String(9), unique=True, nullable=False, index=True
     )
 
-    open_chars: Mapped[List["WordleOpenChar"]] = relationship(
+    open_chars: Mapped[list["WordleOpenChar"]] = relationship(
         "WordleOpenChar", back_populates="game", cascade="all, delete-orphan"
     )
-    game_contents: Mapped[List["WordleGameContent"]] = relationship(
+    game_contents: Mapped[list["WordleGameContent"]] = relationship(
         "WordleGameContent", back_populates="game", cascade="all, delete-orphan"
     )
 
@@ -58,13 +58,15 @@ class WordleGameContent(Base):
 
 class OpenChars:
     @with_transaction
-    async def start(self, group_id: str, session: AsyncSession) -> Dict[str, Any]:
+    async def start(self, group_id: str, **kwargs) -> dict:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(WordleGame).where(WordleGame.group_id == group_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
 
         if record:
-            return await self._build_game_data(record)
+            return await self._build_game_data(record, session)
 
         game_data = await generate_game_data()
 
@@ -90,7 +92,9 @@ class OpenChars:
         return game_data
 
     @with_transaction
-    async def game_over(self, group_id: str, session: AsyncSession) -> bool:
+    async def game_over(self, group_id: str, **kwargs) -> bool:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(WordleGame).where(WordleGame.group_id == group_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
@@ -102,8 +106,10 @@ class OpenChars:
 
     @with_transaction
     async def open_char(
-        self, group_id: str, chars: str, user_id: str, session: AsyncSession
-    ) -> tuple[bool, Optional[Dict[str, Any]]]:
+        self, group_id: str, chars: str, user_id: str, **kwargs
+    ) -> tuple[bool, Optional[dict]]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(WordleGame).where(WordleGame.group_id == group_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
@@ -140,9 +146,9 @@ class OpenChars:
         return True, game_data
 
     @with_transaction
-    async def get_game_data(
-        self, group_id: str, session: AsyncSession
-    ) -> Optional[Dict[str, Any]]:
+    async def get_game_data(self, group_id: str, **kwargs) -> Optional[dict]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(WordleGame).where(WordleGame.group_id == group_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
@@ -152,9 +158,9 @@ class OpenChars:
         return None
 
     @with_transaction
-    async def update_game_data(
-        self, group_id: str, game_data: Dict[str, Any], session: AsyncSession
-    ) -> None:
+    async def update_game_data(self, group_id: str, game_data: dict, **kwargs) -> None:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(WordleGame).where(WordleGame.group_id == group_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
@@ -186,12 +192,18 @@ class OpenChars:
             )
             session.add(game_content)
 
-    async def _build_game_data(self, game_record: WordleGame, session: AsyncSession) -> Dict[str, Any]:
-        open_chars_stmt = select(WordleOpenChar.char).where(WordleOpenChar.game_id == game_record.id)
+    async def _build_game_data(
+        self, game_record: WordleGame, session: AsyncSession
+    ) -> dict:
+        open_chars_stmt = select(WordleOpenChar.char).where(
+            WordleOpenChar.game_id == game_record.id
+        )
         open_chars_result = await session.execute(open_chars_stmt)
         open_chars = [row[0] for row in open_chars_result.fetchall()]
 
-        game_contents_stmt = select(WordleGameContent).where(WordleGameContent.game_id == game_record.id)
+        game_contents_stmt = select(WordleGameContent).where(
+            WordleGameContent.game_id == game_record.id
+        )
         game_contents_result = await session.execute(game_contents_stmt)
         game_contents_records = game_contents_result.scalars().all()
 

@@ -40,9 +40,9 @@ class PromptHash(Base):
 
 class ContextManager:
     @with_transaction
-    async def get_latest_contextid(
-        self, chat_id: str, session: AsyncSession
-    ) -> Optional[str]:
+    async def get_latest_contextid(self, chat_id: str, **kwargs) -> Optional[str]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = (
             select(ChatContext.context_id)
             .where(ChatContext.chat_id == chat_id)
@@ -54,16 +54,16 @@ class ContextManager:
         return result.scalar_one_or_none()
 
     @with_transaction
-    async def add_contextid(
-        self, chat_id: str, context_id: str, session: AsyncSession
-    ) -> None:
+    async def add_contextid(self, chat_id: str, context_id: str, **kwargs) -> None:
+        session: AsyncSession = kwargs["session"]
+
         new_context = ChatContext(chat_id=chat_id, context_id=context_id)
         session.add(new_context)
 
     @with_transaction
-    async def delete_earliest_contextid(
-        self, chat_id: str, session: AsyncSession
-    ) -> Optional[str]:
+    async def delete_earliest_contextid(self, chat_id: str, **kwargs) -> Optional[str]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = (
             select(ChatContext)
             .where(ChatContext.chat_id == chat_id)
@@ -81,15 +81,17 @@ class ContextManager:
         return None
 
     @with_transaction
-    async def get_chatmode(self, chat_id: str, session: AsyncSession) -> bool:
+    async def get_chatmode(self, chat_id: str, **kwargs) -> bool:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(ChatMode.chat_mode).where(ChatMode.chat_id == chat_id)
         result = await session.execute(stmt)
         return result.scalar_one_or_none() or False
 
     @with_transaction
-    async def set_chatmode(
-        self, chat_id: str, chat_mode: bool, session: AsyncSession
-    ) -> None:
+    async def set_chatmode(self, chat_id: str, chat_mode: bool, **kwargs) -> None:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(ChatMode).where(ChatMode.chat_id == chat_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
@@ -101,17 +103,17 @@ class ContextManager:
             session.add(new_record)
 
     @with_transaction
-    async def get_prompthash(
-        self, chat_id: str, session: AsyncSession
-    ) -> Optional[str]:
+    async def get_prompthash(self, chat_id: str, **kwargs) -> Optional[str]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(PromptHash.prompt_hash).where(PromptHash.chat_id == chat_id)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
     @with_transaction
-    async def set_prompthash(
-        self, chat_id: str, prompt_hash: str, session: AsyncSession
-    ) -> None:
+    async def set_prompthash(self, chat_id: str, prompt_hash: str, **kwargs) -> None:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(PromptHash).where(PromptHash.chat_id == chat_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()

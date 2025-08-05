@@ -11,10 +11,14 @@ from .utils import escape, gen_message
 handler = on_message(priority=10000, block=False)
 
 chat_mode_on = on_regex(
-    r"^((开启|开始|启用|启动|打开|切换)主动(模式)?|(关闭|禁用|结束)被动(模式)?|(迪拉熊|dlx)说话?)$"
+    r"^((开启|开始|启用|启动|打开|切换)主动(模式)?|"
+    r"(关闭|禁用|结束)被动(模式)?|"
+    r"(迪拉熊|dlx)说话?)$"
 )
 chat_mode_off = on_regex(
-    r"^((关闭|禁用|结束)主动(模式)?|(开启|开始|启用|启动|打开|切换)被动(模式)?|(迪拉熊|dlx)闭嘴?)$"
+    r"^((关闭|禁用|结束)主动(模式)?|"
+    r"(开启|开始|启用|启动|打开|切换)被动(模式)?|"
+    r"(迪拉熊|dlx)闭嘴?)$"
 )
 
 
@@ -34,11 +38,15 @@ async def _(bot: Bot, event: MessageEvent):
         )
         msg_text = await gen_message(event, bot, chat_mode, request_queue["medias"])
         group_info = await bot.get_group_info(group_id=event.group_id)
-        message = f'<message time="{now.isoformat()}" chatroom_name="{
-            escape(group_info.get("group_name", str()))
-        }" sender_id="{event.user_id}" sender_name="{
-            escape(event.sender.card or event.sender.nickname or str())
-        }">\n{msg_text}\n</message>'
+        message = (
+            f'<message time="{now.isoformat()}" chatroom_name="{
+                escape(group_info.get("group_name", str()))
+            }" sender_id="{event.user_id}" sender_name="{
+                escape(event.sender.card or event.sender.nickname or str())
+            }">\n'
+            f"{msg_text}\n"
+            "</message>"
+        )
     else:
         qqid = event.user_id
         chat_type = "private"
@@ -47,9 +55,13 @@ async def _(bot: Bot, event: MessageEvent):
             chat_id, {"texts": list(), "medias": list()}
         )
         msg_text = await gen_message(event, bot, False, request_queue["medias"])
-        message = f'<message time="{now.isoformat()}" sender_id="{qqid}" sender_name="{
-            escape(event.sender.nickname)
-        }">\n{msg_text}\n</message>'
+        message = (
+            f'<message time="{now.isoformat()}" sender_id="{qqid}" sender_name="{
+                escape(event.sender.nickname)
+            }">\n'
+            f"{msg_text}\n"
+            "</message>"
+        )
 
     if not msg_text:
         return

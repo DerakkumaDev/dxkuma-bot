@@ -4,7 +4,6 @@ import os
 import re
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, List
 
 import aiofiles
 import numpy as np
@@ -33,15 +32,15 @@ from .utils import (
 
 locks: dict[str, asyncio.Lock] = dict()
 
-start_open_chars = on_regex(r"^(迪拉熊|dlx)猜歌$", re.I)
+start_open_chars = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母)$", re.I)
 open_chars = on_regex(r"^开\s*(.|[a-zA-Z]+)$")
 all_message_handle = on_message(priority=1000, block=False)
-pass_game = on_regex(r"^(结束猜歌|将大局逆转吧)$")
+pass_game = on_regex(r"^(结束(猜歌|开字母)|将大局逆转吧)$")
 info_tip = on_regex(r"^(提示|提醒|信息)\s*[1-5]?$")
 pic_tip = on_regex(r"^(封面|曲绘|图片?)\s*[1-5]?$")
 aud_tip = on_regex(r"^(音(乐|频)|(乐|歌)曲|片段)\s*[1-5]?$")
-rank = on_regex(r"^(迪拉熊|dlx)猜歌(排行榜?|榜)$", re.I)
-rank_i = on_regex(r"^(迪拉熊|dlx)猜歌(个人)?排名$", re.I)
+rank = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母)(排行榜?|榜)$", re.I)
+rank_i = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母)(个人)?排名$", re.I)
 
 
 # 根据乐曲别名查询乐曲id列表
@@ -59,7 +58,7 @@ async def find_songid_by_alias(name, song_list):
 
     alias_map = dict()
 
-    async def process_lxns(alias_map: Dict[str, List[str]]):
+    async def process_lxns(alias_map: dict[str, list[str]]):
         alias_list = await get_alias_list_lxns()
         for info in alias_list["aliases"]:
             song_id = str(info["song_id"])
@@ -69,7 +68,7 @@ async def find_songid_by_alias(name, song_list):
                     continue
                 alias_map[alias].append(song_id)
 
-    async def process_xray(alias_map: Dict[str, List[str]]):
+    async def process_xray(alias_map: dict[str, list[str]]):
         alias_list = await get_alias_list_xray()
         for id, info in alias_list.items():
             song_id = str(id)
@@ -79,7 +78,7 @@ async def find_songid_by_alias(name, song_list):
                     continue
                 alias_map[alias].append(song_id)
 
-    async def process_ycn(alias_map: Dict[str, List[str]]):
+    async def process_ycn(alias_map: dict[str, list[str]]):
         alias_list = await get_alias_list_ycn()
         for info in alias_list["content"]:
             song_id = str(info["SongID"])
@@ -129,7 +128,17 @@ async def _(event: GroupMessageEvent):
         )
 
     await start_open_chars.send(
-        "本轮开字母游戏要开始了哟~\r\n□：字母或数字\r\n◎：假名或汉字\r\n◇：符号\r\n\r\n发送“开+文字”开出字母\r\n发送“提示（+行号）”获取提示（每首5次机会）\r\n发送“封面（+行号）”获取部分封面（每首2次机会）\r\n发送“歌曲（+行号）”获取1秒歌曲片段（每首1次机会）\r\n发送“结束猜歌”结束\r\n发送歌名或别名即可尝试猜歌"
+        "本轮开字母游戏要开始了哟~\r\n"
+        "□：字母或数字\r\n"
+        "◎：假名或汉字\r\n"
+        "◇：符号\r\n"
+        "\r\n"
+        "发送“开+文字”开出字母\r\n"
+        "发送“提示（+行号）”获取提示（每首5次机会）\r\n"
+        "发送“封面（+行号）”获取部分封面（每首2次机会）\r\n"
+        "发送“歌曲（+行号）”获取1秒歌曲片段（每首1次机会）\r\n"
+        "发送“结束猜歌”结束\r\n"
+        "发送歌名或别名即可尝试猜歌"
     )
     await start_open_chars.send(game_state)
 
@@ -263,7 +272,7 @@ async def _(event: GroupMessageEvent):
         await openchars.game_over(group_id)
 
     await pass_game.send(generate_success_state(game_data))
-    await pass_game.send("本轮猜歌结束了，可以发送“dlx猜歌”再次游玩mai~")
+    await pass_game.send("本轮开字母结束了，可以发送“dlx猜歌”再次游玩mai~")
 
 
 @info_tip.handle()
@@ -559,7 +568,15 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
     avg = np.sum(d[1] for d in scores) / len(scores) if len(scores) > 0 else 0
     msg = "\r\n".join(leaderboard_output)
-    msg = f"猜歌准确率排行榜Top10：\r\n{msg}\r\n\r\n上榜人数：{len(leaderboard)}/{len(scores)}\r\n平均达成率：{math.trunc(avg * 1000000) / 1000000:.4%}\r\n\r\n迪拉熊提醒你：长时间未参与将暂时不计入排行榜，重新参与十首歌即可重新上榜哦~"
+    msg = (
+        "猜歌准确率排行榜Top10：\r\n"
+        f"{msg}\r\n"
+        "\r\n"
+        f"上榜人数：{len(leaderboard)}/{len(scores)}\r\n"
+        f"平均达成率：{math.trunc(avg * 1000000) / 1000000:.4%}\r\n"
+        "\r\n"
+        "迪拉熊提醒你：长时间未参与将暂时不计入排行榜，重新参与十首歌即可重新上榜哦~"
+    )
     await rank.send(msg)
 
 
@@ -612,5 +629,10 @@ async def _(bot: Bot, event: GroupMessageEvent):
         leaderboard_output.append(f"\r\n游玩次数：{_times}")
 
     msg = "\r\n".join(leaderboard_output)
-    msg = f"你在排行榜上的位置：\r\n{msg}\r\n\r\n迪拉熊提醒你：长时间未参与将暂时不计入排行榜，重新参与十首歌即可重新上榜哦~"
+    msg = (
+        "你在排行榜上的位置：\r\n"
+        f"{msg}\r\n"
+        "\r\n"
+        "迪拉熊提醒你：长时间未参与将暂时不计入排行榜，重新参与十首歌即可重新上榜哦~"
+    )
     await rank_i.send(MessageSegment.text(msg), at_sender=True)

@@ -1,10 +1,9 @@
 from datetime import datetime
-from typing import Any
 
 from nonebot.adapters.onebot.v11 import Bot
 
 
-async def gen_message(bot: Bot, arcade: dict[str, Any]) -> str:
+async def gen_message(bot: Bot, arcade: dict) -> str:
     if arcade["last_action"] is None:
         return "从未更新过"
 
@@ -15,7 +14,12 @@ async def gen_message(bot: Bot, arcade: dict[str, Any]) -> str:
         messages.append("当前无人排卡")
 
     messages.append(
-        f"最后在{datetime.strftime(datetime.fromtimestamp(arcade['last_action']['time']), '%Y年%m月%d日 %H:%M')}（UTC+8）"
+        f"最后在{
+            datetime.strftime(
+                datetime.fromtimestamp(arcade['last_action']['time']),
+                '%Y年%m月%d日 %H:%M',
+            )
+        }（UTC+8）"
     )
     action, delta = num2action(arcade["count"], arcade["last_action"]["before"])
     if arcade["last_action"]["group"] < 0 and arcade["last_action"]["operator"] < 0:
@@ -25,7 +29,9 @@ async def gen_message(bot: Bot, arcade: dict[str, Any]) -> str:
             user_id=arcade["last_action"]["operator"]
         )
         messages.append(
-            f"由{arcade['last_action']['group']}::{operator['nickname']}（{arcade['last_action']['operator']}）{action}{delta}卡"
+            f"由{arcade['last_action']['group']}::{operator['nickname']}（{
+                arcade['last_action']['operator']
+            }）{action}{delta}卡"
         )
     if arcade["action_times"] > 0:
         messages.append(f"为今日（UTC+4）第{arcade['action_times']}次更新")
@@ -35,7 +41,7 @@ async def gen_message(bot: Bot, arcade: dict[str, Any]) -> str:
     return "\r\n".join(messages)
 
 
-def num2action(now: int, before: int) -> tuple[str, int | str]:
+def num2action(now: int, before: int) -> tuple[str, int]:
     if now > before:
         return "增加", now - before
     elif now < before:

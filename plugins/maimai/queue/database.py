@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Optional, List, Dict
+from typing import Optional
 
 import nanoid
 from rapidfuzz import fuzz, process
@@ -21,10 +21,10 @@ class Arcade(Base):
     count: Mapped[int] = mapped_column(Integer, default=0)
     action_times: Mapped[int] = mapped_column(Integer, default=0)
 
-    aliases: Mapped[List["ArcadeAlias"]] = relationship(
+    aliases: Mapped[list["ArcadeAlias"]] = relationship(
         "ArcadeAlias", back_populates="arcade", cascade="all, delete-orphan"
     )
-    bindings: Mapped[List["ArcadeBinding"]] = relationship(
+    bindings: Mapped[list["ArcadeBinding"]] = relationship(
         "ArcadeBinding", back_populates="arcade", cascade="all, delete-orphan"
     )
     last_action: Mapped[Optional["ArcadeLastAction"]] = relationship(
@@ -82,9 +82,9 @@ class ArcadeBinding(Base):
 
 class ArcadeManager:
     @with_transaction
-    async def get_arcade(
-        self, arcade_id: str, session: AsyncSession
-    ) -> Optional[Dict[str, Any]]:
+    async def get_arcade(self, arcade_id: str, **kwargs) -> Optional[dict]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(Arcade).where(Arcade.id == arcade_id)
         result = await session.execute(stmt)
         arcade_record = result.scalar_one_or_none()
@@ -112,23 +112,25 @@ class ArcadeManager:
         return await self._arcade_to_dict(arcade_record, session)
 
     @with_transaction
-    async def get_arcade_id(
-        self, arcade_name: str, session: AsyncSession
-    ) -> Optional[str]:
+    async def get_arcade_id(self, arcade_name: str, **kwargs) -> Optional[str]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(Arcade.id).where(Arcade.name == arcade_name)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
     @with_transaction
-    async def get_bounden_arcade_ids(
-        self, group_id: int, session: AsyncSession
-    ) -> List[str]:
+    async def get_bounden_arcade_ids(self, group_id: int, **kwargs) -> list[str]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(ArcadeBinding.arcade_id).where(ArcadeBinding.group_id == group_id)
         result = await session.execute(stmt)
         return [row[0] for row in result.fetchall()]
 
     @with_transaction
-    async def create(self, arcade_name: str, session: AsyncSession) -> Optional[str]:
+    async def create(self, arcade_name: str, **kwargs) -> Optional[str]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(Arcade.id).where(Arcade.name == arcade_name)
         result = await session.execute(stmt)
         existing = result.scalar_one_or_none()
@@ -142,7 +144,9 @@ class ArcadeManager:
         return arcade_id
 
     @with_transaction
-    async def bind(self, group_id: int, arcade_id: str, session: AsyncSession) -> bool:
+    async def bind(self, group_id: int, arcade_id: str, **kwargs) -> bool:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(ArcadeBinding).where(
             ArcadeBinding.group_id == group_id, ArcadeBinding.arcade_id == arcade_id
         )
@@ -155,9 +159,9 @@ class ArcadeManager:
         return True
 
     @with_transaction
-    async def unbind(
-        self, group_id: int, arcade_id: str, session: AsyncSession
-    ) -> bool:
+    async def unbind(self, group_id: int, arcade_id: str, **kwargs) -> bool:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(ArcadeBinding).where(
             ArcadeBinding.group_id == group_id, ArcadeBinding.arcade_id == arcade_id
         )
@@ -183,9 +187,9 @@ class ArcadeManager:
         return True
 
     @with_transaction
-    async def search(
-        self, group_id: int, word: str, session: AsyncSession
-    ) -> List[str]:
+    async def search(self, group_id: int, word: str, **kwargs) -> list[str]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(ArcadeBinding.arcade_id).where(ArcadeBinding.group_id == group_id)
         result = await session.execute(stmt)
         bound_arcade_ids = [row[0] for row in result.fetchall()]
@@ -213,11 +217,11 @@ class ArcadeManager:
     async def _filter_arcade_ids(
         self,
         word: str,
-        names: List[str],
+        names: list[str],
         scorer,
         score_cutoff: int,
         session: AsyncSession,
-    ) -> List[str]:
+    ) -> list[str]:
         matches = process.extract(
             word, names, scorer=scorer, score_cutoff=score_cutoff, limit=10
         )
@@ -237,7 +241,9 @@ class ArcadeManager:
         return list(arcade_ids)
 
     @with_transaction
-    async def search_all(self, word: str, session: AsyncSession) -> List[str]:
+    async def search_all(self, word: str, **kwargs) -> list[str]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(Arcade.name)
         result = await session.execute(stmt)
         names = [row[0] for row in result.fetchall()]
@@ -267,15 +273,17 @@ class ArcadeManager:
         return list(arcade_ids)
 
     @with_transaction
-    async def all_arcade_ids(self, session: AsyncSession) -> List[str]:
+    async def all_arcade_ids(self, **kwargs) -> list[str]:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(Arcade.id)
         result = await session.execute(stmt)
         return [row[0] for row in result.fetchall()]
 
     @with_transaction
-    async def add_alias(
-        self, arcade_id: str, alias: str, session: AsyncSession
-    ) -> bool:
+    async def add_alias(self, arcade_id: str, alias: str, **kwargs) -> bool:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(ArcadeAlias).where(
             ArcadeAlias.arcade_id == arcade_id, ArcadeAlias.alias == alias
         )
@@ -288,9 +296,9 @@ class ArcadeManager:
         return True
 
     @with_transaction
-    async def remove_alias(
-        self, arcade_id: str, alias: str, session: AsyncSession
-    ) -> bool:
+    async def remove_alias(self, arcade_id: str, alias: str, **kwargs) -> bool:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(ArcadeAlias).where(
             ArcadeAlias.arcade_id == arcade_id, ArcadeAlias.alias == alias
         )
@@ -312,8 +320,10 @@ class ArcadeManager:
         operator: int,
         time: int,
         num: int,
-        session: AsyncSession,
-    ) -> Dict[str, Any]:
+        **kwargs,
+    ) -> dict:
+        session: AsyncSession = kwargs["session"]
+
         stmt = select(Arcade).where(Arcade.id == arcade_id)
         result = await session.execute(stmt)
         arcade = result.scalar_one_or_none()
@@ -366,9 +376,7 @@ class ArcadeManager:
 
         return await self._arcade_to_dict(arcade, session)
 
-    async def reset(
-        self, arcade_id: str, time: int, session: AsyncSession
-    ) -> Dict[str, Any]:
+    async def reset(self, arcade_id: str, time: int, session: AsyncSession) -> dict:
         stmt = select(Arcade).where(Arcade.id == arcade_id)
         result = await session.execute(stmt)
         arcade = result.scalar_one_or_none()
@@ -402,9 +410,7 @@ class ArcadeManager:
 
         return await self._arcade_to_dict(arcade, session)
 
-    async def _arcade_to_dict(
-        self, arcade: Arcade, session: AsyncSession
-    ) -> Dict[str, Any]:
+    async def _arcade_to_dict(self, arcade: Arcade, session: AsyncSession) -> dict:
         last_action_stmt = select(ArcadeLastAction).where(
             ArcadeLastAction.arcade_id == arcade.id
         )

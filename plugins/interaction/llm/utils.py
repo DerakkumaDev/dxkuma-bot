@@ -175,9 +175,9 @@ async def gen_message_segment(
                 messages.append(
                     f'<message time="{now.isoformat()}" sender_id="{
                         sender.get("user_id", str())
-                    }" sender_name="{escape(sender.get("nickname", str()))}">\n{
-                        msg_text
-                    }\n</message>'
+                    }" sender_name="{escape(sender.get("nickname", str()))}">\n'
+                    f"{msg_text}\n"
+                    "</message>"
                 )
                 continue
 
@@ -193,7 +193,9 @@ async def gen_message_segment(
                     escape(group_name)
                 }" sender_id="{sender.get("user_id", str())}" sender_name="{
                     escape(sender.get("nickname", str()))
-                }">\n{msg_text}\n</message>'
+                }">\n'
+                f"{msg_text}\n"
+                "</message>"
             )
         return f"<forward>{str().join(messages)}</forward>"
     elif seg.type == "image":
@@ -230,7 +232,7 @@ async def gen_message_segment(
         return f"<{seg.type}>{seg.data}<{seg.type}/>"
 
 
-def gen_name_field(key: str, user_id: str, name: str, name_value: bool = False):
+def gen_name_field(key: str, user_id: str, name: str, name_value: bool = False) -> str:
     name = escape(name)
     if name_value:
         if user_id in config.bots:

@@ -24,9 +24,15 @@ async def _(bot: Bot):
         leaderboard_output.append(rank_str)
 
     msg = "\r\n".join(leaderboard_output)
-    msg = f"本周迪拉熊厨力最高的人是……\r\n{msg}\r\n迪拉熊给上面{
-        count
-    }个宝宝一个大大的拥抱~\r\n（积分每周重算）\r\n\r\n图库：{
-        len(os.listdir(ranking.pic_path))
-    }:{len(os.listdir(ranking.nsfw_pic_path))}\r\n视频库：{await bvidList.count()}"
+    msg = (
+        "本周迪拉熊厨力最高的人是……\r\n"
+        f"{msg}\r\n"
+        f"迪拉熊给上面{count}个宝宝一个大大的拥抱~\r\n"
+        "（积分每周重置）\r\n"
+        "\r\n"
+        f"图库：{len(os.listdir(ranking.pic_path))}:{
+            len(os.listdir(ranking.nsfw_pic_path))
+        }\r\n"
+        f"视频库：{await bvidList.count()}"
+    )
     await rank.finish(msg)
