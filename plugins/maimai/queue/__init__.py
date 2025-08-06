@@ -3,20 +3,22 @@ import re
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
 
-from util.Config import config
+from util.permission import ADMIN
 from .database import arcadeManager
 from .utils import gen_message
 
 all_help = on_regex(r"^(迪拉熊|dlx)([cp]k|[查排]卡)$", re.I)
-registering = on_regex(r"^注册机厅\s*.+$", re.I)
-binding = on_regex(r"^绑定机厅\s*.+$", re.I)
-unbinding = on_regex(r"^解绑机厅\s*.+$", re.I)
-search = on_regex(r"^搜索机厅\s*.+$", re.I)
-list_all = on_regex(r"^(所有|全部)机厅$", re.I)
-add_alias = on_regex(r"^添加别(名|称)\s*.+?\s+.+$", re.I)
-remove_alias = on_regex(r"^删除别(名|称)\s*.+?\s+.+$", re.I)
+registering = on_regex(r"^注册机厅\s*.+$")
+binding = on_regex(r"^绑定机厅\s*.+$")
+unbinding = on_regex(r"^解绑机厅\s*.+$")
+search = on_regex(r"^搜索机厅\s*.+$")
+list_all = on_regex(r"^(所有|全部)机厅$", permission=ADMIN)
+add_alias = on_regex(r"^添加别(名|称)\s*.+?\s+.+$")
+remove_alias = on_regex(r"^删除别(名|称)\s*.+?\s+.+$")
 list_count = on_regex(r"^(机厅|jt|看看|.+\s*)?有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
-change_count = on_regex(r"^.+?\s*(加|减|为|＋|－|＝|\+|-|=)?\s*\d+(人|卡)?$", re.I)
+change_count = on_regex(
+    r"^.+?\s*(加|减|为|＋|－|＝|\+|-|=)?\s*\d+(人|卡)?$", block=False
+)
 
 
 @all_help.handle()
@@ -100,9 +102,6 @@ async def _(event: GroupMessageEvent):
 
 @list_all.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
-    if event.user_id not in config.admin_accounts:
-        return
-
     all_arcade_ids = await arcadeManager.all_arcade_ids()
     all_arcade_count = len(all_arcade_ids)
     if all_arcade_count < 1:

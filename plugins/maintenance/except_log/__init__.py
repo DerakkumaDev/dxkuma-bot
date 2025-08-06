@@ -1,11 +1,10 @@
 import traceback
 from typing import Optional
 
-from aiohttp import ClientError
+from aiohttp import ConnectionTimeoutError
 from nonebot import get_bot
 from nonebot.adapters.onebot.v11 import MessageSegment, Event, MessageEvent
 from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
-from nonebot.internal.matcher import Matcher
 from nonebot.message import run_postprocessor
 from starlette.websockets import WebSocketDisconnect
 
@@ -16,13 +15,13 @@ PICPATH = "./Static/Gallery/SFW/"
 
 
 @run_postprocessor
-async def _(event: Event, matcher: Matcher, exception: Optional[Exception]):
+async def _(event: Event, exception: Optional[Exception]):
     if not exception or isinstance(
         exception,
         (
             OneBotV11AdapterException,
             WebSocketDisconnect,
-            ClientError,
+            ConnectionTimeoutError,
             NotAllowedException,
             NeedToSwitchException,
         ),

@@ -592,7 +592,7 @@ async def _(bot: Bot, event: MessageEvent):
         (
             MessageSegment.at(target_qq),
             MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊绘制中，时间较长请耐心等待mai~"),
+            MessageSegment.text("迪拉熊绘制中，时间较长需要耐心等待mai~"),
         )
     )
     async with ClientSession() as session:
@@ -1522,14 +1522,13 @@ async def _(event: MessageEvent):
     if match:
         rating = int(match.group(1))
         if rating < 0:
-            await rr50.send(
+            await rr50.finish(
                 (
                     MessageSegment.text("没有任何匹配的成绩哦~"),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 ),
                 at_sender=True,
             )
-            return
 
     songList = await get_music_data_df()
     rr35, rr15, _ = await records_to_bests(
@@ -1538,14 +1537,13 @@ async def _(event: MessageEvent):
         rating=rating,
     )
     if not rr35 and not rr15:
-        await rr50.send(
+        await rr50.finish(
             (
                 MessageSegment.text("没有任何匹配的成绩哦~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
             at_sender=True,
         )
-        return
 
     await rr50.send(MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True)
     nickname = "ｍａｉｍａｉ"

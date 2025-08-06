@@ -43,7 +43,7 @@ async def generate_game_data() -> dict:
 
 async def generate_message_state(
     game_data: dict, user_id: str, time: int
-) -> tuple[bool, str, list, dict]:
+) -> tuple[bool, str, list]:
     now = datetime.fromtimestamp(time)
     game_state = list()
     char_all_open = list()
@@ -123,12 +123,12 @@ async def generate_message_state(
     is_game_over = check_game_over(game_data)
     # if is_game_over:
     #     game_state.append("所有歌曲已全部被开出来啦,游戏结束。")
-    return is_game_over, "\r\n".join(game_state), char_all_open, game_data
+    return is_game_over, "\r\n".join(game_state), char_all_open
 
 
 async def check_music_id(
     game_data: dict, music_ids: list[str], user_id: str, time: int
-) -> tuple[list, dict]:
+) -> list:
     now = datetime.fromtimestamp(time)
     guess_success = list()
     for music_id in music_ids:
@@ -168,7 +168,7 @@ async def check_music_id(
                         game_content["music_id"],
                     )
                 )
-    return guess_success, game_data
+    return guess_success
 
 
 def generate_success_state(game_data: dict) -> str:
@@ -191,10 +191,10 @@ def check_char_in_text(text: str, char: str) -> bool:
     return False
 
 
-def get_version_info(s: dict, song_list: dict) -> dict:
+def get_version_name(s: int, song_list: dict) -> str:
     versions = song_list["versions"]
-    versions.append(sys.maxsize)
+    versions.append({"version": sys.maxsize})
     for i in range(len(versions) - 1):
         v = versions[i]
-        if v["version"] <= s["version"] < versions[i + 1]["version"]:
-            return v
+        if v["version"] <= s < versions[i + 1]["version"]:
+            return v["title"]

@@ -7,12 +7,13 @@ from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 
 from util.Config import config
+from util.permission import ADMIN
 from .database import bvidList
 from ..rank.database import ranking
 
 rand_bv = on_regex(r"^(随机)?(迪拉熊|dlx)(视频|sp|v)$", re.I)
-add_bv = on_regex(r"^(加视频|jsp)(\s*BV[A-Za-z0-9]{10})+$", re.I)
-remove_bv = on_regex(r"^(删视频|jsp)(\s*BV[A-Za-z0-9]{10})+$", re.I)
+add_bv = on_regex(r"^(加视频|jsp)(\s*BV[A-Za-z0-9]{10})+$", re.I, permission=ADMIN)
+remove_bv = on_regex(r"^(删视频|jsp)(\s*BV[A-Za-z0-9]{10})+$", re.I, permission=ADMIN)
 
 LIMIT_MINUTES = 1
 LIMIT_TIMES = 5
@@ -70,9 +71,6 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
 @add_bv.handle()
 async def _(event: GroupMessageEvent):
-    if event.user_id not in config.admin_accounts:
-        return
-
     msg = event.get_plaintext()
     bvids = re.findall(r"BV[A-Za-z0-9]{10}", msg)
     for bvid in bvids:
@@ -82,9 +80,6 @@ async def _(event: GroupMessageEvent):
 
 @remove_bv.handle()
 async def _(event: GroupMessageEvent):
-    if event.user_id not in config.admin_accounts:
-        return
-
     msg = event.get_plaintext()
     bvids = re.findall(r"BV[A-Za-z0-9]{10}", msg)
     for bvid in bvids:

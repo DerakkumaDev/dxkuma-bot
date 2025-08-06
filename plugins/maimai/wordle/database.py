@@ -1,7 +1,16 @@
 from typing import Optional
 
 import orjson
-from sqlalchemy import String, Integer, Boolean, ForeignKey, Text
+from sqlalchemy import (
+    String,
+    Integer,
+    Boolean,
+    ForeignKey,
+    Text,
+    UniqueConstraint,
+    delete,
+)
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -30,21 +39,27 @@ class WordleOpenChar(Base):
     __tablename__ = "wordle_open_chars"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    game_id: Mapped[int] = mapped_column(ForeignKey("wordle_games.id"), nullable=False)
+    game_id: Mapped[int] = mapped_column(
+        ForeignKey("wordle_games.id", ondelete="CASCADE"), nullable=False
+    )
     char: Mapped[str] = mapped_column(String(16), nullable=False)
 
     game: Mapped["WordleGame"] = relationship("WordleGame", back_populates="open_chars")
+
+    __table_args__ = (UniqueConstraint("game_id", "char", name="uq_game_char"),)
 
 
 class WordleGameContent(Base):
     __tablename__ = "wordle_game_contents"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    game_id: Mapped[int] = mapped_column(ForeignKey("wordle_games.id"), nullable=False)
+    game_id: Mapped[int] = mapped_column(
+        ForeignKey("wordle_games.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     index: Mapped[int] = mapped_column(Integer, nullable=False)
     title: Mapped[str] = mapped_column(String(64), nullable=False)
     music_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    is_correct: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     tips: Mapped[str] = mapped_column(Text, nullable=True)
     pic_times: Mapped[int] = mapped_column(Integer, default=0)
     aud_times: Mapped[int] = mapped_column(Integer, default=0)
@@ -54,6 +69,8 @@ class WordleGameContent(Base):
     game: Mapped["WordleGame"] = relationship(
         "WordleGame", back_populates="game_contents"
     )
+
+    __table_args__ = (UniqueConstraint("game_id", "index", name="uq_game_index"),)
 
 
 class OpenChars:
@@ -95,7 +112,9 @@ class OpenChars:
     async def game_over(self, group_id: str, **kwargs) -> bool:
         session: AsyncSession = kwargs["session"]
 
-        stmt = select(WordleGame).where(WordleGame.group_id == group_id)
+        stmt = (
+            select(WordleGame).where(WordleGame.group_id == group_id).with_for_update()
+        )
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
 
@@ -115,21 +134,22 @@ class OpenChars:
         record = result.scalar_one_or_none()
 
         if not record:
-            return None, None
-
-        stmt = select(WordleOpenChar).where(
-            WordleOpenChar.game_id == record.id, WordleOpenChar.char == chars.casefold()
-        )
-        result = await session.execute(stmt)
-        existing_char = result.scalar_one_or_none()
-
-        if existing_char:
             return False, None
 
         new_char = WordleOpenChar(game_id=record.id, char=chars.casefold())
         session.add(new_char)
 
-        stmt = select(WordleGameContent).where(WordleGameContent.game_id == record.id)
+        try:
+            await session.flush()
+        except IntegrityError:
+            return False, None
+
+        stmt = (
+            select(WordleGameContent)
+            .where(WordleGameContent.game_id == record.id)
+            .order_by(WordleGameContent.id)
+            .with_for_update()
+        )
         result = await session.execute(stmt)
         game_contents = result.scalars().all()
 
@@ -142,7 +162,10 @@ class OpenChars:
 
                 content.opc_times += 1
 
-        game_data = await self._build_game_data(record, session)
+        await session.flush()
+        with session.no_autoflush:
+            game_data = await self._build_game_data(record, session)
+
         return True, game_data
 
     @with_transaction
@@ -161,25 +184,32 @@ class OpenChars:
     async def update_game_data(self, group_id: str, game_data: dict, **kwargs) -> None:
         session: AsyncSession = kwargs["session"]
 
-        stmt = select(WordleGame).where(WordleGame.group_id == group_id)
+        stmt = (
+            select(WordleGame).where(WordleGame.group_id == group_id).with_for_update()
+        )
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
 
-        if record:
-            await session.delete(record)
+        if not record:
+            record = WordleGame(group_id=group_id)
+            session.add(record)
+            await session.flush()
+        else:
+            await session.execute(
+                delete(WordleOpenChar).where(WordleOpenChar.game_id == record.id)
+            )
+            await session.execute(
+                delete(WordleGameContent).where(WordleGameContent.game_id == record.id)
+            )
             await session.flush()
 
-        new_game = WordleGame(group_id=group_id)
-        session.add(new_game)
-        await session.flush()
-
         for char in game_data.get("open_chars", []):
-            open_char = WordleOpenChar(game_id=new_game.id, char=char)
+            open_char = WordleOpenChar(game_id=record.id, char=char)
             session.add(open_char)
 
         for content in game_data.get("game_contents", []):
             game_content = WordleGameContent(
-                game_id=new_game.id,
+                game_id=record.id,
                 index=content["index"],
                 title=content["title"],
                 music_id=content["music_id"],
@@ -192,6 +222,8 @@ class OpenChars:
             )
             session.add(game_content)
 
+        await session.flush()
+
     async def _build_game_data(
         self, game_record: WordleGame, session: AsyncSession
     ) -> dict:
@@ -201,8 +233,10 @@ class OpenChars:
         open_chars_result = await session.execute(open_chars_stmt)
         open_chars = [row[0] for row in open_chars_result.fetchall()]
 
-        game_contents_stmt = select(WordleGameContent).where(
-            WordleGameContent.game_id == game_record.id
+        game_contents_stmt = (
+            select(WordleGameContent)
+            .where(WordleGameContent.game_id == game_record.id)
+            .order_by(WordleGameContent.index)
         )
         game_contents_result = await session.execute(game_contents_stmt)
         game_contents_records = game_contents_result.scalars().all()

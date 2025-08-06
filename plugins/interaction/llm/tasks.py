@@ -96,13 +96,33 @@ async def request_queue_task(
             )
             break
         except BadRequestError as ex:
-            if not ex.message.startswith(
+            if ex.code == "InvalidParameter.PreviousResponseNotFound":
+                await contextManager.delete_latest_contextid(chat_id)
+                context_id = await contextManager.get_latest_contextid(chat_id)
+                if context_id is None:
+                    response = await client.responses.create(
+                        input=[{"role": "system", "content": system_prompt}],
+                        model=config.llm_model,
+                        temperature=0,
+                        top_p=0,
+                        extra_body={
+                            "caching": {"type": "enabled"},
+                            "thinking": {"type": "disabled"},
+                        },
+                    )
+                    context_id = response.id
+                continue
+
+            if not ex.body.get("message", str()).startswith(
                 "Total tokens of image and text exceed max message tokens."
             ):
                 raise
 
             earliest_contextid = await contextManager.delete_earliest_contextid(chat_id)
-            await client.responses.delete(earliest_contextid)
+            try:
+                await client.responses.delete(earliest_contextid)
+            except Exception:
+                pass
 
     await contextManager.set_prompthash(chat_id, global_prompt_hash)
     texts = list()

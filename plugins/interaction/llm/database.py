@@ -81,6 +81,23 @@ class ContextManager:
         return None
 
     @with_transaction
+    async def delete_latest_contextid(self, chat_id: str, **kwargs) -> None:
+        session: AsyncSession = kwargs["session"]
+
+        stmt = (
+            select(ChatContext)
+            .where(ChatContext.chat_id == chat_id)
+            .order_by(ChatContext.created_at.desc())
+            .limit(1)
+        )
+
+        result = await session.execute(stmt)
+        record = result.scalar_one_or_none()
+
+        if record:
+            await session.delete(record)
+
+    @with_transaction
     async def get_chatmode(self, chat_id: str, **kwargs) -> bool:
         session: AsyncSession = kwargs["session"]
 

@@ -27,10 +27,8 @@ from .utils import (
     generate_message_state,
     check_music_id,
     generate_success_state,
-    get_version_info,
+    get_version_name,
 )
-
-locks: dict[str, asyncio.Lock] = dict()
 
 start_open_chars = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母)$", re.I)
 open_chars = on_regex(r"^开\s*(.|[a-zA-Z]+)$")
@@ -121,11 +119,8 @@ async def find_songid_by_alias(name, song_list):
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
     user_id = event.get_user_id()
-    async with locks.setdefault(group_id, asyncio.Lock()):
-        game_data = await openchars.start(group_id)
-        _, game_state, _, game_data = await generate_message_state(
-            game_data, user_id, event.time
-        )
+    game_data = await openchars.start(group_id)
+    _, game_state, _ = await generate_message_state(game_data, user_id, event.time)
 
     await start_open_chars.send(
         "本轮开字母游戏要开始了哟~\r\n"
@@ -153,54 +148,47 @@ async def _(event: GroupMessageEvent):
         return
 
     char = match.group(1)
-    async with locks.setdefault(group_id, asyncio.Lock()):
-        not_opened, game_data = await openchars.open_char(group_id, char, user_id)
-        if not_opened is None:
-            return
+    not_opened, game_data = await openchars.open_char(group_id, char, user_id)
+    if not_opened is None:
+        return
 
-        if not not_opened:
+    if not not_opened:
+        await open_chars.finish(
+            (
+                MessageSegment.text("这个字已经开过了哦，换一个吧~"),
+                MessageSegment.image(Path("./Static/Wordle/1.png")),
+            ),
+            at_sender=True,
+        )
+
+    is_game_over, game_state, char_all_open = await generate_message_state(
+        game_data, user_id, event.time
+    )
+    await openchars.update_game_data(group_id, game_data)
+    if char_all_open:
+        for i, title, id in char_all_open:
+            cover_path = f"./Cache/Jacket/{id % 10000}.png"
+            if not os.path.exists(cover_path):
+                async with ClientSession(conn_timeout=3) as session:
+                    async with session.get(
+                        f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
+                    ) as resp:
+                        async with aiofiles.open(cover_path, "wb") as fd:
+                            await fd.write(await resp.read())
+
             await open_chars.send(
                 (
-                    MessageSegment.text("这个字已经开过了哦，换一个吧~"),
-                    MessageSegment.image(Path("./Static/Wordle/1.png")),
+                    MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
+                    MessageSegment.image(Path(cover_path)),
+                    MessageSegment.text(title),
                 ),
                 at_sender=True,
             )
-            return
 
-        (
-            is_game_over,
-            game_state,
-            char_all_open,
-            game_data,
-        ) = await generate_message_state(game_data, user_id, event.time)
-        await openchars.update_game_data(group_id, game_data)
-        if char_all_open:
-            for i, title, id in char_all_open:
-                cover_path = f"./Cache/Jacket/{id % 10000}.png"
-                if not os.path.exists(cover_path):
-                    async with ClientSession(conn_timeout=3) as session:
-                        async with session.get(
-                            f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
-                        ) as resp:
-                            async with aiofiles.open(cover_path, "wb") as fd:
-                                await fd.write(await resp.read())
-
-                await open_chars.send(
-                    (
-                        MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
-                        MessageSegment.image(Path(cover_path)),
-                        MessageSegment.text(title),
-                    ),
-                    at_sender=True,
-                )
-
-        await open_chars.send(game_state)
-        if is_game_over:
-            await openchars.game_over(group_id)
-            await open_chars.send(
-                "全部答对啦，恭喜各位🎉\r\n可以发送“dlx猜歌”再次游玩mai~"
-            )
+    await open_chars.send(game_state)
+    if is_game_over:
+        await openchars.game_over(group_id)
+        await open_chars.send("全部答对啦，恭喜各位🎉\r\n可以发送“dlx猜歌”再次游玩mai~")
 
 
 @all_message_handle.handle()
@@ -210,23 +198,17 @@ async def _(event: GroupMessageEvent):
         return
 
     group_id = str(event.group_id)
-    try:
-        game_data = await openchars.get_game_data(group_id)
-        if not game_data:
-            return
-
-        songList = await get_music_data_lxns()
-        music_ids = await find_songid_by_alias(msg_content, songList)
-    except Exception:
+    game_data = await openchars.get_game_data(group_id)
+    if not game_data:
         return
 
+    songList = await get_music_data_lxns()
+    music_ids = await find_songid_by_alias(msg_content, songList)
     if not music_ids:
         return
 
     user_id = event.get_user_id()
-    guess_success, game_data = await check_music_id(
-        game_data, music_ids, user_id, event.time
-    )
+    guess_success = await check_music_id(game_data, music_ids, user_id, event.time)
     if not guess_success:
         return
 
@@ -248,7 +230,7 @@ async def _(event: GroupMessageEvent):
             ),
             at_sender=True,
         )
-    is_game_over, game_state, _, game_data = await generate_message_state(
+    is_game_over, game_state, _ = await generate_message_state(
         game_data, user_id, event.time
     )
     await all_message_handle.send(game_state)
@@ -264,12 +246,11 @@ async def _(event: GroupMessageEvent):
 @pass_game.handle()
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
-    async with locks.setdefault(group_id, asyncio.Lock()):
-        game_data = await openchars.get_game_data(group_id)
-        if not game_data:
-            return
+    game_data = await openchars.get_game_data(group_id)
+    if not game_data:
+        return
 
-        await openchars.game_over(group_id)
+    await openchars.game_over(group_id)
 
     await pass_game.send(generate_success_state(game_data))
     await pass_game.send("本轮开字母结束了，可以发送“dlx猜歌”再次游玩mai~")
@@ -282,96 +263,85 @@ async def _(event: GroupMessageEvent):
     user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
-    async with locks.setdefault(group_id, asyncio.Lock()):
-        game_data = await openchars.get_game_data(group_id)
-        if not game_data:
-            return
+    game_data = await openchars.get_game_data(group_id)
+    if not game_data:
+        return
 
-        if index:
-            index = int(index.group()) - 1
-            data = game_data["game_contents"][index]
-        else:
-            game_contents = [
-                d
-                for d in game_data["game_contents"]
-                if not d["is_correct"] and d["tips"]
-            ]
-            if not game_contents:
-                await info_tip.send(
-                    (
-                        MessageSegment.text("所有歌曲的信息提示次数都已经用完了mai~"),
-                        MessageSegment.image(Path("./Static/Wordle/1.png")),
-                    )
-                )
-                return
-
-            data = rng.choice(game_contents)
-
-        if data["is_correct"]:
-            await info_tip.send(
+    if index:
+        index = int(index.group()) - 1
+        data = game_data["game_contents"][index]
+    else:
+        game_contents = [
+            d for d in game_data["game_contents"] if not d["is_correct"] and d["tips"]
+        ]
+        if not game_contents:
+            await info_tip.finish(
                 (
-                    MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
+                    MessageSegment.text("所有歌曲的信息提示次数都已经用完了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
-            return
 
-        songList = await get_music_data_lxns()
-        tips = {
-            "最高等级": lambda s: sorted(
-                (chart for charts in s["difficulties"].values() for chart in charts),
-                key=lambda x: x["level_value"],
-                reverse=True,
-            )[0]["level"],
-            "谱师": lambda s: sorted(
-                (chart for charts in s["difficulties"].values() for chart in charts),
-                key=lambda x: x["level_value"],
-                reverse=True,
-            )[0]["note_designer"],
-            # "类型": lambda s: "、".join(
-            #     {"dx": "DX", "standard": "标准", "utage": "宴会场"}[k]
-            #     for k in [k for k, v in s["difficulties"].items() if len(v) > 0]
-            # ),
-            "曲师": lambda s: s["artist"],
-            "分类": lambda s: [
-                genre["title"]
-                for genre in songList["genres"]
-                if genre["genre"] == s["genre"]
-            ][0],
-            "BPM": lambda s: s["bpm"],
-            "初出版本": lambda s: get_version_info(s, songList),
-        }
+        data = rng.choice(game_contents)
 
-        tip_keys = [d for d in tips.keys() if d not in data["tips"]]
-        if not tip_keys:
-            await info_tip.send(
-                (
-                    MessageSegment.text(
-                        f"第{data['index']}行的歌曲信息提示次数用完了mai~"
-                    ),
-                    MessageSegment.image(Path("./Static/Wordle/1.png")),
-                )
+    if data["is_correct"]:
+        await info_tip.finish(
+            (
+                MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
+                MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
-            return
+        )
 
-        songList = await get_music_data_lxns()
-        song = [d for d in songList["songs"] if d["id"] == data["music_id"]]
-        if len(song) != 1:
-            await info_tip.send(
-                (
-                    MessageSegment.text(
-                        f"第{data['index']}行的歌曲信息提示次数用完了mai~"
-                    ),
-                    MessageSegment.image(Path("./Static/Wordle/1.png")),
-                )
+    songList = await get_music_data_lxns()
+    tips = {
+        "最高等级": lambda s: sorted(
+            (chart for charts in s["difficulties"].values() for chart in charts),
+            key=lambda x: x["level_value"],
+            reverse=True,
+        )[0]["level"],
+        "谱师": lambda s: sorted(
+            (chart for charts in s["difficulties"].values() for chart in charts),
+            key=lambda x: x["level_value"],
+            reverse=True,
+        )[0]["note_designer"],
+        # "类型": lambda s: "、".join(
+        #     {"dx": "DX", "standard": "标准", "utage": "宴会场"}[k]
+        #     for k in [k for k, v in s["difficulties"].items() if len(v) > 0]
+        # ),
+        "曲师": lambda s: s["artist"],
+        "分类": lambda s: [
+            genre["title"]
+            for genre in songList["genres"]
+            if genre["genre"] == s["genre"]
+        ][0],
+        "BPM": lambda s: s["bpm"],
+        "初出版本": lambda s: get_version_name(s["version"], songList),
+    }
+
+    tip_keys = [d for d in tips.keys() if d not in data["tips"]]
+    if not tip_keys:
+        await info_tip.finish(
+            (
+                MessageSegment.text(f"第{data['index']}行的歌曲信息提示次数用完了mai~"),
+                MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
-            return
+        )
 
-        if user_id not in data["part"]:
-            data["part"].append(user_id)
-        tip_key = rng.choice(tip_keys)
-        data["tips"].append(tip_key)
-        await openchars.update_game_data(group_id, game_data)
+    songList = await get_music_data_lxns()
+    song = [d for d in songList["songs"] if d["id"] == data["music_id"]]
+    if len(song) != 1:
+        await info_tip.finish(
+            (
+                MessageSegment.text(f"第{data['index']}行的歌曲信息提示次数用完了mai~"),
+                MessageSegment.image(Path("./Static/Wordle/1.png")),
+            )
+        )
+
+    if user_id not in data["part"]:
+        data["part"].append(user_id)
+    tip_key = rng.choice(tip_keys)
+    data["tips"].append(tip_key)
+    await openchars.update_game_data(group_id, game_data)
 
     tip_info = tips[tip_key](song[0])
     await info_tip.send(f"第{data['index']}行的歌曲{tip_key}是 {tip_info} mai~")
@@ -384,57 +354,50 @@ async def _(event: GroupMessageEvent):
     user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
-    async with locks.setdefault(group_id, asyncio.Lock()):
-        game_data = await openchars.get_game_data(group_id)
-        if not game_data:
-            return
+    game_data = await openchars.get_game_data(group_id)
+    if not game_data:
+        return
 
-        if index:
-            index = int(index.group()) - 1
-            data = game_data["game_contents"][index]
-        else:
-            game_contents = [
-                d
-                for d in game_data["game_contents"]
-                if not d["is_correct"] and d["pic_times"] < 2
-            ]
-            if not game_contents:
-                await pic_tip.send(
-                    (
-                        MessageSegment.text("所有歌曲的封面提示次数都已经用完了mai~"),
-                        MessageSegment.image(Path("./Static/Wordle/1.png")),
-                    )
-                )
-                return
-
-            data = rng.choice(game_contents)
-
-        if data["is_correct"]:
-            await pic_tip.send(
+    if index:
+        index = int(index.group()) - 1
+        data = game_data["game_contents"][index]
+    else:
+        game_contents = [
+            d
+            for d in game_data["game_contents"]
+            if not d["is_correct"] and d["pic_times"] < 2
+        ]
+        if not game_contents:
+            await pic_tip.finish(
                 (
-                    MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
+                    MessageSegment.text("所有歌曲的封面提示次数都已经用完了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
-            return
 
-        if data["pic_times"] >= 2:
-            await pic_tip.send(
-                (
-                    MessageSegment.text(f"第{data['index']}行的封面提示次数用完了mai~"),
-                    MessageSegment.image(Path("./Static/Wordle/1.png")),
-                )
+        data = rng.choice(game_contents)
+
+    if data["is_correct"]:
+        await pic_tip.finish(
+            (
+                MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
+                MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
-            return
+        )
 
-        if user_id not in data["part"]:
-            data["part"].append(user_id)
-        data["pic_times"] += 1
-        await openchars.update_game_data(group_id, game_data)
+    if data["pic_times"] >= 2:
+        await pic_tip.finish(
+            (
+                MessageSegment.text(f"第{data['index']}行的封面提示次数用完了mai~"),
+                MessageSegment.image(Path("./Static/Wordle/1.png")),
+            )
+        )
 
-    await pic_tip.send(
-        MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
-    )
+    if user_id not in data["part"]:
+        data["part"].append(user_id)
+    data["pic_times"] += 1
+    await openchars.update_game_data(group_id, game_data)
+
     cover_path = f"./Cache/Jacket/{data['music_id'] % 10000}.png"
     if not os.path.exists(cover_path):
         async with ClientSession(conn_timeout=3) as session:
@@ -472,53 +435,49 @@ async def _(event: GroupMessageEvent):
     user_id = event.get_user_id()
     msg = event.get_plaintext()
     index = re.search(r"\d+", msg)
-    async with locks.setdefault(group_id, asyncio.Lock()):
-        game_data = await openchars.get_game_data(group_id)
-        if not game_data:
-            return
+    game_data = await openchars.get_game_data(group_id)
+    if not game_data:
+        return
 
-        if index:
-            index = int(index.group()) - 1
-            data = game_data["game_contents"][index]
-        else:
-            game_contents = [
-                d
-                for d in game_data["game_contents"]
-                if not d["is_correct"] and d["aud_times"] < 1
-            ]
-            if not game_contents:
-                await aud_tip.send(
-                    (
-                        MessageSegment.text("所有歌曲的歌曲提示次数都已经用完了mai~"),
-                        MessageSegment.image(Path("./Static/Wordle/1.png")),
-                    )
-                )
-                return
-
-            data = rng.choice(game_contents)
-
-        if data["is_correct"]:
-            await aud_tip.send(
+    if index:
+        index = int(index.group()) - 1
+        data = game_data["game_contents"][index]
+    else:
+        game_contents = [
+            d
+            for d in game_data["game_contents"]
+            if not d["is_correct"] and d["aud_times"] < 1
+        ]
+        if not game_contents:
+            await aud_tip.finish(
                 (
-                    MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
+                    MessageSegment.text("所有歌曲的歌曲提示次数都已经用完了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
-            return
 
-        if data["aud_times"] >= 1:
-            await aud_tip.send(
-                (
-                    MessageSegment.text(f"第{data['index']}行的歌曲提示次数用完了mai~"),
-                    MessageSegment.image(Path("./Static/Wordle/1.png")),
-                )
+        data = rng.choice(game_contents)
+
+    if data["is_correct"]:
+        await aud_tip.finish(
+            (
+                MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
+                MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
-            return
+        )
 
-        if user_id not in data["part"]:
-            data["part"].append(user_id)
-        data["aud_times"] += 1
-        await openchars.update_game_data(group_id, game_data)
+    if data["aud_times"] >= 1:
+        await aud_tip.finish(
+            (
+                MessageSegment.text(f"第{data['index']}行的歌曲提示次数用完了mai~"),
+                MessageSegment.image(Path("./Static/Wordle/1.png")),
+            )
+        )
+
+    if user_id not in data["part"]:
+        data["part"].append(user_id)
+    data["aud_times"] += 1
+    await openchars.update_game_data(group_id, game_data)
 
     await aud_tip.send(
         MessageSegment.text(
