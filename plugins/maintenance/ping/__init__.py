@@ -1,6 +1,5 @@
-from nonebot import on_fullmatch, get_bot
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent
-from nonebot.internal.driver import Driver
+from nonebot import on_fullmatch
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 
 from util.Config import config
 from util.exceptions import NotAllowedException
@@ -18,14 +17,3 @@ async def _(event: GroupMessageEvent):
     msg = msg.replace("I", "O")
     await ping.send(msg)
     raise NotAllowedException
-
-
-@Driver.on_bot_disconnect
-async def _(bot: Bot):
-    try:
-        sender = get_bot()
-    except Exception:
-        return
-    await sender.send_group_msg(
-        group_id=config.dev_group, message=f"{bot.self_id} is DOWN"
-    )
