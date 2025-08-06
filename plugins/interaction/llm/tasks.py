@@ -1,5 +1,6 @@
 import asyncio
-from asyncio import Task
+import time
+from asyncio import Task, Lock
 from datetime import datetime
 
 import anyio
@@ -11,13 +12,37 @@ from util.Config import config
 from .database import contextManager
 from .utils import client, system_prompt, user_prompt, prompt_hash as global_prompt_hash
 
-OUTTIME = 10 / 3
+OUTTIME = 10 / 2
+RATE_LIMIT = 10 / 3
 
 request_queues: dict[str, dict[str, list[str | dict[str, str | float]]]] = dict()
 response_queues: dict[str, list[str]] = dict()
 request_queue_tasks: dict[str, Task] = dict()
 response_queue_tasks: dict[str, Task] = dict()
 times: dict[str, int] = dict()
+
+
+class RateLimiter:
+    def __init__(self, max_requests_per_second: float = 1.0):
+        self.max_requests_per_second = max_requests_per_second
+        self.min_interval = 1.0 / max_requests_per_second
+        self.last_request_time = 0.0
+        self.lock = Lock()
+
+    async def acquire(self):
+        async with self.lock:
+            current_time = time.time()
+            time_since_last_request = current_time - self.last_request_time
+
+            if time_since_last_request < self.min_interval:
+                wait_time = self.min_interval - time_since_last_request
+                await asyncio.sleep(wait_time)
+                current_time = time.time()
+
+            self.last_request_time = current_time
+
+
+api_rate_limiter = RateLimiter(max_requests_per_second=RATE_LIMIT)
 
 
 async def outtime_check(bot: Bot, chat_type: str, qq_id: int):
@@ -53,6 +78,7 @@ async def request_queue_task(
 
     prompt_hash = await contextManager.get_prompthash(chat_id)
     if context_id is None or prompt_hash is None or prompt_hash != global_prompt_hash:
+        await api_rate_limiter.acquire()
         response = await client.responses.create(
             input=[{"role": "system", "content": system_prompt}],
             model=config.llm_model,
@@ -82,6 +108,7 @@ async def request_queue_task(
 
     while True:
         try:
+            await api_rate_limiter.acquire()
             stream = await client.responses.create(
                 input=[{"role": "user", "content": input_content}],
                 model=config.llm_model,
@@ -100,6 +127,7 @@ async def request_queue_task(
                 await contextManager.delete_latest_contextid(chat_id)
                 context_id = await contextManager.get_latest_contextid(chat_id)
                 if context_id is None:
+                    await api_rate_limiter.acquire()
                     response = await client.responses.create(
                         input=[{"role": "system", "content": system_prompt}],
                         model=config.llm_model,
