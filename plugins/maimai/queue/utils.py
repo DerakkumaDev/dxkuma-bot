@@ -25,13 +25,31 @@ async def gen_message(bot: Bot, arcade: dict) -> str:
     if arcade["last_action"]["group"] < 0 and arcade["last_action"]["operator"] < 0:
         messages.append(f"由迪拉熊{action}{delta}卡")
     else:
-        operator = await bot.get_stranger_info(
-            user_id=arcade["last_action"]["operator"]
-        )
+        group_info = dict()
+        operator = dict()
+        try:
+            group_info = await bot.get_group_info(
+                group_id=arcade["last_action"]["group"]
+            )
+        except Exception:
+            pass
+        try:
+            operator = await bot.get_group_member_info(
+                group_id=arcade["last_action"]["group"],
+                user_id=arcade["last_action"]["operator"],
+            )
+        except Exception:
+            try:
+                operator = await bot.get_stranger_info(
+                    user_id=arcade["last_action"]["operator"]
+                )
+            except Exception:
+                pass
         messages.append(
-            f"由{arcade['last_action']['group']}::{operator['nickname']}（{
-                arcade['last_action']['operator']
-            }）{action}{delta}卡"
+            f"由{group_info.get('group_name', arcade['last_action']['group'])}::{
+                operator.get('card', str())
+                or operator.get('nickname', arcade['last_action']['operator'])
+            }{action}{delta}卡"
         )
     if arcade["action_times"] > 0:
         messages.append(f"为今日（UTC+4）第{arcade['action_times']}次更新")
