@@ -141,9 +141,9 @@ async def request_queue_task(
                     context_id = response.id
                 continue
 
-            if not ex.body.get("message", str()).startswith(
-                "Total tokens of image and text exceed max message tokens."
-            ):
+            if not isinstance(ex.body, dict) or not ex.body.get(
+                "message", str()
+            ).startswith("Total tokens of image and text exceed max message tokens."):
                 raise
 
             earliest_contextid = await contextManager.delete_earliest_contextid(chat_id)

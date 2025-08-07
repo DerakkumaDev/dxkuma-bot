@@ -243,7 +243,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         arcade_ids = await arcadeManager.get_bounden_arcade_ids(group_id)
 
     if len(arcade_ids) < 1:
-        await list_count.finish("找不到机厅", at_sender=True)
+        return
 
     messages = [
         f"{arcade['name']}\r\n{await gen_message(bot, arcade)}"
@@ -253,7 +253,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if arcade is not None
     ]
     if len(messages) < 1:
-        await list_count.finish("找不到机厅", at_sender=True)
+        return
 
     await list_count.send(f"\r\n{'\r\n\r\n'.join(messages)}", at_sender=True)
 

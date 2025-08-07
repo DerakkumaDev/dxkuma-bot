@@ -88,7 +88,7 @@ class UserConfigManager:
     @with_transaction
     async def set_config_value(
         self, user_id: str, key: str, value: Any, **kwargs
-    ) -> None:
+    ) -> bool:
         session: AsyncSession = kwargs["session"]
 
         stmt = select(UserConfig).where(UserConfig.user_id == user_id)

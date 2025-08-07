@@ -193,7 +193,6 @@ class OpenChars:
         if not record:
             record = WordleGame(group_id=group_id)
             session.add(record)
-            await session.flush()
         else:
             await session.execute(
                 delete(WordleOpenChar).where(WordleOpenChar.game_id == record.id)
@@ -201,7 +200,8 @@ class OpenChars:
             await session.execute(
                 delete(WordleGameContent).where(WordleGameContent.game_id == record.id)
             )
-            await session.flush()
+
+        await session.flush()
 
         for char in game_data.get("open_chars", []):
             open_char = WordleOpenChar(game_id=record.id, char=char)
