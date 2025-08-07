@@ -47,15 +47,13 @@ api_rate_limiter = RateLimiter(max_requests_per_second=RATE_LIMIT)
 
 async def outtime_check(bot: Bot, chat_type: str, qq_id: int):
     await anyio.sleep(OUTTIME)
+    now = datetime.now().timestamp()
     chat_id = f"{qq_id}.{chat_type[0]}"
     if (
         chat_id not in times
-        or (
-            (datetime.now().timestamp() - times[chat_id]) < OUTTIME
-            and len(request_queues[chat_id]) <= 10
-        )
-        or (chat_id in request_queue_tasks and not request_queue_tasks[chat_id].done())
         or chat_id not in request_queues
+        or ((now - times[chat_id]) < OUTTIME and len(request_queues[chat_id]) <= 10)
+        or (chat_id in request_queue_tasks and not request_queue_tasks[chat_id].done())
         or len(request_queues[chat_id]) <= 0
     ):
         return
@@ -140,6 +138,21 @@ async def request_queue_task(
                         },
                     )
                     context_id = response.id
+                continue
+
+            if ex.code == "InvalidParameter" and ex.param == "previous_response_id":
+                await api_rate_limiter.acquire()
+                response = await client.responses.create(
+                    input=[{"role": "system", "content": system_prompt}],
+                    model=config.llm_model,
+                    temperature=0,
+                    top_p=0,
+                    extra_body={
+                        "caching": {"type": "enabled"},
+                        "thinking": {"type": "disabled"},
+                    },
+                )
+                context_id = response.id
                 continue
 
             if not isinstance(ex.body, dict) or not ex.body.get(
