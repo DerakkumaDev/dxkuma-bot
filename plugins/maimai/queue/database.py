@@ -426,12 +426,19 @@ class ArcadeManager:
                 "before": last_action.before_count,
             }
 
+        aliases_stmt = select(ArcadeAlias.alias).where(
+            ArcadeAlias.arcade_id == arcade.id
+        )
+        aliases_result = await session.execute(aliases_stmt)
+        aliases = [row[0] for row in aliases_result.fetchall()]
+
         return {
             "id": arcade.id,
             "name": arcade.name,
             "count": arcade.count,
             "action_times": arcade.action_times,
             "last_action": last_action_dict,
+            "aliases": aliases,
         }
 
 

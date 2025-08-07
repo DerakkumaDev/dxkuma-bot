@@ -78,18 +78,27 @@ class OpenChars:
     async def start(self, group_id: str, **kwargs) -> dict:
         session: AsyncSession = kwargs["session"]
 
-        stmt = select(WordleGame).where(WordleGame.group_id == group_id)
-        result = await session.execute(stmt)
-        record = result.scalar_one_or_none()
+        for i in range(3):
+            stmt = select(WordleGame).where(WordleGame.group_id == group_id)
+            result = await session.execute(stmt)
+            record = result.scalar_one_or_none()
 
-        if record:
-            return await self._build_game_data(record, session)
+            if record:
+                return await self._build_game_data(record, session)
 
-        game_data = await generate_game_data()
+            game_data = await generate_game_data()
 
-        new_game = WordleGame(group_id=group_id)
-        session.add(new_game)
-        await session.flush()
+            new_game = WordleGame(group_id=group_id)
+            session.add(new_game)
+            try:
+                await session.flush()
+                break
+            except IntegrityError:
+                if i >= 2:
+                    raise
+
+                await session.rollback()
+                continue
 
         for content in game_data["game_contents"]:
             game_content = WordleGameContent(

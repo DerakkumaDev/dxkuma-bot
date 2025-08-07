@@ -90,6 +90,7 @@ async def request_queue_task(
             },
         )
         context_id = response.id
+        await contextManager.set_prompthash(chat_id, global_prompt_hash)
 
     input_content = list()
     for media in content["medias"]:
@@ -152,7 +153,6 @@ async def request_queue_task(
             except Exception:
                 pass
 
-    await contextManager.set_prompthash(chat_id, global_prompt_hash)
     texts = list()
     async for chunk in stream:
         if (
