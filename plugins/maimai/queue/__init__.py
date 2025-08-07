@@ -176,7 +176,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"添加别(名|称)\s*(.+?)\s+(.+)", msg)
+    match = re.fullmatch(r"添加别(?:名|称)\s*(.+?)\s+(.+)", msg)
     if not match:
         return
 
@@ -200,7 +200,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"删除别(名|称)\s*(.+?)\s+(.+)", msg)
+    match = re.fullmatch(r"删除别(?:名|称)\s*(.+?)\s+(.+)", msg)
     if not match:
         return
 

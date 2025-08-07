@@ -2133,7 +2133,9 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     msg = event.get_plaintext().strip()
     match = re.fullmatch(
-        r"(?:alias|查看?别(名|称))\s*(.+)|(.+)有(什么|哪些)别(名|称)？?", msg, re.I
+        r"(?:alias|查看?别(?:名|称))\s*(.+)|(.+)有(?:什么|哪些)别(?:名|称)？?",
+        msg,
+        re.I,
     )
     if not match:
         return
