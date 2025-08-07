@@ -86,7 +86,7 @@ class Ranking:
         result = await session.execute(stmt)
         records = result.fetchall()
 
-        achis = []
+        achis = list()
         for record in records:
             if record.count > 0:
                 achis.append((record.user_id, float(record.avg_score), record.count))

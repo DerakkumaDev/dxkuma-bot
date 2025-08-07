@@ -186,33 +186,22 @@ class ArcadeManager:
 
         return True
 
-    @with_transaction
-    async def search(self, group_id: int, word: str, **kwargs) -> list[str]:
-        session: AsyncSession = kwargs["session"]
+    async def search(self, group_id: int, word: str) -> list[str]:
+        bounden_arcade_ids = await self.get_bounden_arcade_ids(group_id)
+        matched_ids = list()
 
-        stmt = select(ArcadeBinding.arcade_id).where(ArcadeBinding.group_id == group_id)
-        result = await session.execute(stmt)
-        bound_arcade_ids = [row[0] for row in result.fetchall()]
-        if not bound_arcade_ids:
-            return []
+        for arcade_id in bounden_arcade_ids:
+            arcade = await self.get_arcade(arcade_id)
+            if arcade is None:
+                continue
 
-        stmt = select(Arcade.name).where(Arcade.id.in_(bound_arcade_ids))
-        result = await session.execute(stmt)
-        names = [row[0] for row in result.fetchall()]
+            if word in arcade["aliases"]:
+                matched_ids.append(arcade_id)
 
-        stmt = select(ArcadeAlias.alias, ArcadeAlias.arcade_id).where(
-            ArcadeAlias.arcade_id.in_(bound_arcade_ids)
-        )
-        result = await session.execute(stmt)
-        aliases = {row[0]: row[1] for row in result.fetchall()}
+            if word == arcade["name"]:
+                matched_ids.append(arcade_id)
 
-        all_names = names + list(aliases.keys())
-
-        matched_arcade_ids = await self._filter_arcade_ids(
-            word, all_names, fuzz.ratio, 60, session
-        )
-
-        return matched_arcade_ids
+        return matched_ids
 
     async def _filter_arcade_ids(
         self,
@@ -222,55 +211,43 @@ class ArcadeManager:
         score_cutoff: int,
         session: AsyncSession,
     ) -> list[str]:
-        matches = process.extract(
-            word, names, scorer=scorer, score_cutoff=score_cutoff, limit=10
-        )
-
-        matched_names = [match[0] for match in matches]
-
-        arcade_ids = set()
-
-        stmt = select(Arcade.id).where(Arcade.name.in_(matched_names))
-        result = await session.execute(stmt)
-        arcade_ids.update([row[0] for row in result.fetchall()])
-
-        stmt = select(ArcadeAlias.arcade_id).where(ArcadeAlias.alias.in_(matched_names))
-        result = await session.execute(stmt)
-        arcade_ids.update([row[0] for row in result.fetchall()])
-
-        return list(arcade_ids)
+        results = process.extract(word, names, scorer=scorer, score_cutoff=score_cutoff)
+        filtered = []
+        for name, _, _ in results:
+            stmt = select(Arcade.id).where(Arcade.name == name)
+            result = await session.execute(stmt)
+            arcade_id = result.scalar_one_or_none()
+            if arcade_id is not None:
+                filtered.append(arcade_id)
+        return list(dict.fromkeys(filtered))
 
     @with_transaction
     async def search_all(self, word: str, **kwargs) -> list[str]:
         session: AsyncSession = kwargs["session"]
 
+        stmt = select(ArcadeAlias.arcade_id).where(ArcadeAlias.alias == word)
+        result = await session.execute(stmt)
+        exact_alias_match = result.scalar_one_or_none()
+        if exact_alias_match:
+            return [exact_alias_match]
+
+        names = list()
         stmt = select(Arcade.name)
         result = await session.execute(stmt)
-        names = [row[0] for row in result.fetchall()]
+        for row in result.fetchall():
+            names.append(row[0])
 
-        stmt = select(ArcadeAlias.alias)
-        result = await session.execute(stmt)
-        aliases = [row[0] for row in result.fetchall()]
+        matched_ids = await self._filter_arcade_ids(
+            word, names, scorer=fuzz.QRatio, score_cutoff=100, session=session
+        )
+        if len(matched_ids) > 0:
+            return matched_ids
 
-        all_names = names + aliases
-
-        matches = process.extract(
-            word, all_names, scorer=fuzz.ratio, score_cutoff=60, limit=10
+        matched_ids = await self._filter_arcade_ids(
+            word, names, scorer=fuzz.WRatio, score_cutoff=80, session=session
         )
 
-        matched_names = [match[0] for match in matches]
-
-        arcade_ids = set()
-
-        stmt = select(Arcade.id).where(Arcade.name.in_(matched_names))
-        result = await session.execute(stmt)
-        arcade_ids.update([row[0] for row in result.fetchall()])
-
-        stmt = select(ArcadeAlias.arcade_id).where(ArcadeAlias.alias.in_(matched_names))
-        result = await session.execute(stmt)
-        arcade_ids.update([row[0] for row in result.fetchall()])
-
-        return list(arcade_ids)
+        return matched_ids
 
     @with_transaction
     async def all_arcade_ids(self, **kwargs) -> list[str]:
@@ -432,6 +409,12 @@ class ArcadeManager:
         aliases_result = await session.execute(aliases_stmt)
         aliases = [row[0] for row in aliases_result.fetchall()]
 
+        bindings_stmt = select(ArcadeBinding.group_id).where(
+            ArcadeBinding.arcade_id == arcade.id
+        )
+        bindings_result = await session.execute(bindings_stmt)
+        bindings = [row[0] for row in bindings_result.fetchall()]
+
         return {
             "id": arcade.id,
             "name": arcade.name,
@@ -439,6 +422,7 @@ class ArcadeManager:
             "action_times": arcade.action_times,
             "last_action": last_action_dict,
             "aliases": aliases,
+            "bindings": bindings,
         }
 
 

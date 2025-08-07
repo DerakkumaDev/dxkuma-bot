@@ -107,11 +107,11 @@ class OpenChars:
                 title=content["title"],
                 music_id=content["music_id"],
                 is_correct=content["is_correct"],
-                tips=orjson.dumps(content.get("tips", [])).decode(),
+                tips=orjson.dumps(content.get("tips", list())).decode(),
                 pic_times=content["pic_times"],
                 aud_times=content["aud_times"],
                 opc_times=content["opc_times"],
-                part=orjson.dumps(content.get("part", [])).decode(),
+                part=orjson.dumps(content.get("part", list())).decode(),
             )
             session.add(game_content)
 
@@ -164,7 +164,7 @@ class OpenChars:
 
         for content in game_contents:
             if check_char_in_text(content.title, chars):
-                part_list = orjson.loads(content.part) if content.part else []
+                part_list = orjson.loads(content.part) if content.part else list()
                 if user_id not in part_list:
                     part_list.append(user_id)
                     content.part = orjson.dumps(part_list).decode()
@@ -212,22 +212,22 @@ class OpenChars:
 
         await session.flush()
 
-        for char in game_data.get("open_chars", []):
+        for char in game_data.get("open_chars", list()):
             open_char = WordleOpenChar(game_id=record.id, char=char)
             session.add(open_char)
 
-        for content in game_data.get("game_contents", []):
+        for content in game_data.get("game_contents", list()):
             game_content = WordleGameContent(
                 game_id=record.id,
                 index=content["index"],
                 title=content["title"],
                 music_id=content["music_id"],
                 is_correct=content["is_correct"],
-                tips=orjson.dumps(content.get("tips", [])).decode(),
+                tips=orjson.dumps(content.get("tips", list())).decode(),
                 pic_times=content["pic_times"],
                 aud_times=content["aud_times"],
                 opc_times=content["opc_times"],
-                part=orjson.dumps(content.get("part", [])).decode(),
+                part=orjson.dumps(content.get("part", list())).decode(),
             )
             session.add(game_content)
 
@@ -250,18 +250,18 @@ class OpenChars:
         game_contents_result = await session.execute(game_contents_stmt)
         game_contents_records = game_contents_result.scalars().all()
 
-        game_contents = []
+        game_contents = list()
         for content in game_contents_records:
             game_content = {
                 "index": content.index,
                 "title": content.title,
                 "music_id": content.music_id,
                 "is_correct": content.is_correct,
-                "tips": orjson.loads(content.tips) if content.tips else [],
+                "tips": orjson.loads(content.tips) if content.tips else list(),
                 "pic_times": content.pic_times,
                 "aud_times": content.aud_times,
                 "opc_times": content.opc_times,
-                "part": orjson.loads(content.part) if content.part else [],
+                "part": orjson.loads(content.part) if content.part else list(),
             }
             game_contents.append(game_content)
 
