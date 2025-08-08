@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import datetime, timedelta, timezone
 
 import orjson
 from sqlalchemy import (
@@ -7,6 +8,7 @@ from sqlalchemy import (
     Boolean,
     ForeignKey,
     Text,
+    DateTime,
     UniqueConstraint,
     delete,
 )
@@ -25,6 +27,9 @@ class WordleGame(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     group_id: Mapped[str] = mapped_column(
         String(10), unique=True, nullable=False, index=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
     )
 
     open_chars: Mapped[list["WordleOpenChar"]] = relationship(
@@ -84,7 +89,11 @@ class OpenChars:
             record = result.scalar_one_or_none()
 
             if record:
-                return await self._build_game_data(record, session)
+                if datetime.now(timezone.utc) - record.updated_at > timedelta(hours=12):
+                    await session.delete(record)
+                    await session.flush()
+                else:
+                    return await self._build_game_data(record, session)
 
             game_data = await generate_game_data()
 
@@ -145,6 +154,11 @@ class OpenChars:
         if not record:
             return False, None
 
+        if datetime.now(timezone.utc) - record.updated_at > timedelta(hours=12):
+            await session.delete(record)
+            await session.flush()
+            return False, None
+
         new_char = WordleOpenChar(game_id=record.id, char=chars.casefold())
         session.add(new_char)
 
@@ -171,6 +185,8 @@ class OpenChars:
 
                 content.opc_times += 1
 
+        record.updated_at = datetime.now(timezone.utc)
+
         await session.flush()
         with session.no_autoflush:
             game_data = await self._build_game_data(record, session)
@@ -186,6 +202,11 @@ class OpenChars:
         record = result.scalar_one_or_none()
 
         if record:
+            if datetime.now(timezone.utc) - record.updated_at > timedelta(hours=12):
+                await session.delete(record)
+                await session.flush()
+                return None
+
             return await self._build_game_data(record, session)
         return None
 
@@ -203,12 +224,20 @@ class OpenChars:
             record = WordleGame(group_id=group_id)
             session.add(record)
         else:
-            await session.execute(
-                delete(WordleOpenChar).where(WordleOpenChar.game_id == record.id)
-            )
-            await session.execute(
-                delete(WordleGameContent).where(WordleGameContent.game_id == record.id)
-            )
+            if datetime.now(timezone.utc) - record.updated_at > timedelta(hours=12):
+                await session.delete(record)
+                await session.flush()
+                record = WordleGame(group_id=group_id)
+                session.add(record)
+            else:
+                await session.execute(
+                    delete(WordleOpenChar).where(WordleOpenChar.game_id == record.id)
+                )
+                await session.execute(
+                    delete(WordleGameContent).where(
+                        WordleGameContent.game_id == record.id
+                    )
+                )
 
         await session.flush()
 
@@ -230,6 +259,8 @@ class OpenChars:
                 part=orjson.dumps(content.get("part", list())).decode(),
             )
             session.add(game_content)
+
+        record.updated_at = datetime.now(timezone.utc)
 
         await session.flush()
 

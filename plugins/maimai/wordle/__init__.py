@@ -133,7 +133,8 @@ async def _(event: GroupMessageEvent):
         "发送“封面（+行号）”获取部分封面（每首2次机会）\r\n"
         "发送“歌曲（+行号）”获取1秒歌曲片段（每首1次机会）\r\n"
         "发送“结束猜歌”结束\r\n"
-        "发送歌名或别名即可尝试猜歌"
+        "发送歌名或别名即可尝试猜歌\r\n"
+        "12个小时内无操作自动结束本轮游戏"
     )
     await start_open_chars.send(game_state)
 
