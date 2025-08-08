@@ -543,7 +543,9 @@ async def _(bot: Bot, event: MessageEvent):
                     MessageSegment.at(sender_qq),
                     MessageSegment.text(" "),
                     MessageSegment.text(
-                        f"迪拉熊没有在{source_name}查分器上找到{'你' if target_qq == event.get_user_id() else '他'}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
+                        f"迪拉熊没有在{source_name}查分器上找到{
+                            '你' if target_qq == event.get_user_id() else '他'
+                        }的信息，可以发送“换源{another_source_name}”更换数据源哦~"
                     ),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 )
@@ -612,7 +614,9 @@ async def _(bot: Bot, event: MessageEvent):
             if resp.status != 200:
                 msg = (
                     MessageSegment.text(
-                        f"迪拉熊没有在{source_name}查分器上找到{'你' if target_qq == event.get_user_id() else '他'}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
+                        f"迪拉熊没有在{source_name}查分器上找到{
+                            '你' if target_qq == event.get_user_id() else '他'
+                        }的信息，可以发送“换源{another_source_name}”更换数据源哦~"
                     ),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 )
@@ -1790,7 +1794,9 @@ async def _(event: MessageEvent):
                 if resp.status != 200:
                     msg = (
                         MessageSegment.text(
-                            f"迪拉熊没有在{source_name}查分器上找到{'你' if qq == event.get_user_id() else '他'}的信息，可以发送“换源 {another_source_name}”更换数据源哦~"
+                            f"迪拉熊没有在{source_name}查分器上找到{
+                                '你' if qq == event.get_user_id() else '他'
+                            }的信息，可以发送“换源{another_source_name}”更换数据源哦~"
                         ),
                         MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                     )

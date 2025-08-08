@@ -13,8 +13,8 @@ binding = on_regex(r"^绑定机厅\s*.+$")
 unbinding = on_regex(r"^解绑机厅\s*.+$")
 search = on_regex(r"^搜索机厅\s*.+$")
 list_all = on_regex(r"^(所有|全部)机厅$", permission=ADMIN)
-add_alias = on_regex(r"^添加别(名|称)\s*.+?\s+.+$")
-remove_alias = on_regex(r"^删除别(名|称)\s*.+?\s+.+$")
+add_alias = on_regex(r"^添加别(名|称)\s*.+?\s*.+$")
+remove_alias = on_regex(r"^删除别(名|称)\s*.+?\s*.+$")
 list_count = on_regex(r"^(机厅|jt|看看|.+\s*)?有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
 change_count = on_regex(
     r"^.+?\s*(加|减|为|＋|－|＝|\+|-|=)?\s*\d+(人|卡)?$", block=False
@@ -24,17 +24,18 @@ change_count = on_regex(
 @all_help.handle()
 async def _(event: GroupMessageEvent):
     await all_help.send(
-        "排卡指令\r\n"
+        "一起来舞萌吧~\r\n"
         "\r\n"
-        "注册机厅+机厅全称\r\n"
-        "绑定机厅+机厅全称\r\n"
-        "解绑机厅+别名\r\n"
-        "搜索机厅+关键词\r\n"
-        "添加别名+机厅全称+机厅别名\r\n"
-        "删除别名+机厅全称+机厅别名\r\n"
-        "机厅几卡\r\n"
-        "别名+几卡\r\n"
-        "别名+(+/-/=)+整数"
+        "发送“注册机厅[机厅全称]”注册并为本群绑定机厅\r\n"
+        "发送“绑定机厅[机厅全称]”为本群绑定机厅\r\n"
+        "发送“解绑机厅[别名]”为本群解绑机厅\r\n"
+        "发送“搜索机厅[关键词]”搜索所有相关机厅\r\n"
+        "发送“添加别名[机厅全称] [机厅别名]”为机厅添加别名\r\n"
+        "发送“删除别名[机厅全称] [机厅别名]”为机厅删除别名\r\n"
+        "发送“机厅有几卡”查询本群机厅卡数\r\n"
+        "发送“[别名]有几卡”查询指定机厅卡数\r\n"
+        "发送“[别名]（+/-/=）[整数]”更新指定机厅卡数\r\n"
+        "每日4点（UTC+8）自动清零卡数"
     )
 
 
@@ -176,7 +177,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"添加别(?:名|称)\s*(.+?)\s+(.+)", msg)
+    match = re.fullmatch(r"添加别(?:名|称)\s*(.+?)\s*(.+)", msg)
     if not match:
         return
 
@@ -200,7 +201,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"删除别(?:名|称)\s*(.+?)\s+(.+)", msg)
+    match = re.fullmatch(r"删除别(?:名|称)\s*(.+?)\s*(.+)", msg)
     if not match:
         return
 
