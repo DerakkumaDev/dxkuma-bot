@@ -1,5 +1,5 @@
 from typing import Optional
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import orjson
 from sqlalchemy import (
@@ -29,7 +29,7 @@ class WordleGame(Base):
         String(10), unique=True, nullable=False, index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+        DateTime, nullable=False, default=lambda: datetime.now()
     )
 
     open_chars: Mapped[list["WordleOpenChar"]] = relationship(
@@ -89,7 +89,7 @@ class OpenChars:
             record = result.scalar_one_or_none()
 
             if record:
-                if datetime.now(timezone.utc) - record.updated_at > timedelta(hours=12):
+                if datetime.now() - record.updated_at > timedelta(hours=12):
                     await session.delete(record)
                     await session.flush()
                 else:
@@ -154,7 +154,7 @@ class OpenChars:
         if not record:
             return False, None
 
-        if datetime.now(timezone.utc) - record.updated_at > timedelta(hours=12):
+        if datetime.now() - record.updated_at > timedelta(hours=12):
             await session.delete(record)
             await session.flush()
             return False, None
@@ -185,7 +185,7 @@ class OpenChars:
 
                 content.opc_times += 1
 
-        record.updated_at = datetime.now(timezone.utc)
+        record.updated_at = datetime.now()
 
         await session.flush()
         with session.no_autoflush:
@@ -202,7 +202,7 @@ class OpenChars:
         record = result.scalar_one_or_none()
 
         if record:
-            if datetime.now(timezone.utc) - record.updated_at > timedelta(hours=12):
+            if datetime.now() - record.updated_at > timedelta(hours=12):
                 await session.delete(record)
                 await session.flush()
                 return None
@@ -224,7 +224,7 @@ class OpenChars:
             record = WordleGame(group_id=group_id)
             session.add(record)
         else:
-            if datetime.now(timezone.utc) - record.updated_at > timedelta(hours=12):
+            if datetime.now() - record.updated_at > timedelta(hours=12):
                 await session.delete(record)
                 await session.flush()
                 record = WordleGame(group_id=group_id)
@@ -260,7 +260,7 @@ class OpenChars:
             )
             session.add(game_content)
 
-        record.updated_at = datetime.now(timezone.utc)
+        record.updated_at = datetime.now()
 
         await session.flush()
 
