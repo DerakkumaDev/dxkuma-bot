@@ -7,7 +7,7 @@ from pathlib import Path
 
 import aiofiles
 import numpy as np
-from aiohttp import ClientSession
+from httpx import AsyncClient
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 from numpy import random
@@ -524,7 +524,7 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
-    async with ClientSession() as session:
+    async with AsyncClient(http2=True) as session:
         if source == "lxns":
             params = {"dev-token": config.lx_token}
             if lx_personal_token:
@@ -534,23 +534,21 @@ async def _(bot: Bot, event: MessageEvent):
         elif source == "diving-fish":
             params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
         start_time = time.perf_counter()
-        async with session.get(
-            f"{config.backend_url}/bests/{source}", params=params
-        ) as resp:
-            end_time = time.perf_counter()
-            if resp.status != 200:
-                msg = (
-                    MessageSegment.at(sender_qq),
-                    MessageSegment.text(" "),
-                    MessageSegment.text(
-                        f"迪拉熊没有在{source_name}查分器上找到{
-                            '你' if target_qq == event.get_user_id() else '他'
-                        }的信息，可以发送“换源{another_source_name}”更换数据源哦~"
-                    ),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-                await best50.finish(msg)
-            img = await resp.read()
+        resp = await session.get(f"{config.backend_url}/bests/{source}", params=params)
+        end_time = time.perf_counter()
+        if resp.status_code != 200:
+            msg = (
+                MessageSegment.at(sender_qq),
+                MessageSegment.text(" "),
+                MessageSegment.text(
+                    f"迪拉熊没有在{source_name}查分器上找到{
+                        '你' if target_qq == event.get_user_id() else '他'
+                    }的信息，可以发送“换源{another_source_name}”更换数据源哦~"
+                ),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            )
+            await best50.finish(msg)
+        img = await resp.aread()
     msg = (
         MessageSegment.at(sender_qq),
         MessageSegment.image(img),
@@ -597,7 +595,7 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，时间较长需要耐心等待mai~"),
         )
     )
-    async with ClientSession() as session:
+    async with AsyncClient(http2=True) as session:
         if source == "lxns":
             params = {"dev-token": config.lx_token}
             if lx_personal_token:
@@ -607,21 +605,21 @@ async def _(bot: Bot, event: MessageEvent):
         elif source == "diving-fish":
             params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
         start_time = time.perf_counter()
-        async with session.get(
+        resp = await session.get(
             f"{config.backend_url}/bests/anime/{source}", params=params
-        ) as resp:
-            end_time = time.perf_counter()
-            if resp.status != 200:
-                msg = (
-                    MessageSegment.text(
-                        f"迪拉熊没有在{source_name}查分器上找到{
-                            '你' if target_qq == event.get_user_id() else '他'
-                        }的信息，可以发送“换源{another_source_name}”更换数据源哦~"
-                    ),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-                await ani50.finish(msg, at_sender=True)
-            img = await resp.read()
+        )
+        end_time = time.perf_counter()
+        if resp.status_code != 200:
+            msg = (
+                MessageSegment.text(
+                    f"迪拉熊没有在{source_name}查分器上找到{
+                        '你' if target_qq == event.get_user_id() else '他'
+                    }的信息，可以发送“换源{another_source_name}”更换数据源哦~"
+                ),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            )
+            await ani50.finish(msg, at_sender=True)
+        img = await resp.aread()
     msg = (
         MessageSegment.at(target_qq),
         MessageSegment.image(img),
@@ -1778,7 +1776,7 @@ async def _(event: MessageEvent):
         await wcb.send(
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
         )
-        async with ClientSession() as session:
+        async with AsyncClient(http2=True) as session:
             params = {"level": level, "page": page}
             if source == "lxns":
                 params["personal-token"] = lx_personal_token
@@ -1787,21 +1785,21 @@ async def _(event: MessageEvent):
                 params["qq"] = qq
                 params["plate"] = plate
             start_time = time.perf_counter()
-            async with session.get(
+            resp = await session.get(
                 f"{config.backend_url}/list/{source}", params=params
-            ) as resp:
-                end_time = time.perf_counter()
-                if resp.status != 200:
-                    msg = (
-                        MessageSegment.text(
-                            f"迪拉熊没有在{source_name}查分器上找到{
-                                '你' if qq == event.get_user_id() else '他'
-                            }的信息，可以发送“换源{another_source_name}”更换数据源哦~"
-                        ),
-                        MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                    )
-                    await wcb.finish(msg, at_sender=True)
-                img = await resp.read()
+            )
+            end_time = time.perf_counter()
+            if resp.status_code != 200:
+                msg = (
+                    MessageSegment.text(
+                        f"迪拉熊没有在{source_name}查分器上找到{
+                            '你' if qq == event.get_user_id() else '他'
+                        }的信息，可以发送“换源{another_source_name}”更换数据源哦~"
+                    ),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                )
+                await wcb.finish(msg, at_sender=True)
+            img = await resp.aread()
     else:
         data, status = await get_player_records(qq)
         if status == 400:
@@ -2235,19 +2233,17 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     file_path = f"./Cache/Plate/{id}.png"
     if not os.path.exists(file_path):
-        async with ClientSession(conn_timeout=3) as session:
-            async with session.get(
-                f"https://assets2.lxns.net/maimai/plate/{id}.png"
-            ) as resp:
-                if resp.status != 200:
-                    msg = (
-                        MessageSegment.text("迪拉熊没有找到合适的姓名框哦~"),
-                        MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                    )
-                    await set_plate.finish(msg, at_sender=True)
+        async with AsyncClient(http2=True, timeout=3) as session:
+            resp = await session.get(f"https://assets2.lxns.net/maimai/plate/{id}.png")
+            if resp.status_code != 200:
+                msg = (
+                    MessageSegment.text("迪拉熊没有找到合适的姓名框哦~"),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                )
+                await set_plate.finish(msg, at_sender=True)
 
-                async with aiofiles.open(file_path, "wb") as fd:
-                    await fd.write(await resp.read())
+            async with aiofiles.open(file_path, "wb") as fd:
+                await fd.write(await resp.aread())
 
     await user_config_manager.set_config_value(qq, "plate", id)
     msg = "迪拉熊帮你换好啦~"
@@ -2261,19 +2257,17 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     file_path = f"./Static/maimai/Frame/UI_Frame_{id}.png"
     if not os.path.exists(file_path):
-        async with ClientSession(conn_timeout=3) as session:
-            async with session.get(
-                f"https://assets2.lxns.net/maimai/frame/{id}.png"
-            ) as resp:
-                if resp.status != 200:
-                    msg = (
-                        MessageSegment.text("迪拉熊没有找到合适的背景哦~"),
-                        MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                    )
-                    await set_frame.finish(msg, at_sender=True)
+        async with AsyncClient(http2=True, timeout=3) as session:
+            resp = await session.get(f"https://assets2.lxns.net/maimai/frame/{id}.png")
+            if resp.status_code != 200:
+                msg = (
+                    MessageSegment.text("迪拉熊没有找到合适的背景哦~"),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                )
+                await set_frame.finish(msg, at_sender=True)
 
-                async with aiofiles.open(file_path, "wb") as fd:
-                    await fd.write(await resp.read())
+            async with aiofiles.open(file_path, "wb") as fd:
+                await fd.write(await resp.aread())
 
     await user_config_manager.set_config_value(qq, "frame", id)
     msg = "迪拉熊帮你换好啦~"
@@ -2287,19 +2281,17 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     file_path = f"./Static/maimai/Icon/{id}.png"
     if not os.path.exists(file_path):
-        async with ClientSession(conn_timeout=3) as session:
-            async with session.get(
-                f"https://assets2.lxns.net/maimai/icon/{id}.png"
-            ) as resp:
-                if resp.status != 200:
-                    msg = (
-                        MessageSegment.text("迪拉熊没有找到合适的头像哦~"),
-                        MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                    )
-                    await set_icon.finish(msg, at_sender=True)
+        async with AsyncClient(http2=True, timeout=3) as session:
+            resp = await session.get(f"https://assets2.lxns.net/maimai/icon/{id}.png")
+            if resp.status_code != 200:
+                msg = (
+                    MessageSegment.text("迪拉熊没有找到合适的头像哦~"),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                )
+                await set_icon.finish(msg, at_sender=True)
 
-                async with aiofiles.open(file_path, "wb") as fd:
-                    await fd.write(await resp.read())
+            async with aiofiles.open(file_path, "wb") as fd:
+                await fd.write(await resp.aread())
 
     await user_config_manager.set_config_value(qq, "icon", id)
     msg = "迪拉熊帮你换好啦~"

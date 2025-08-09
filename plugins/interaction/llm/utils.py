@@ -7,16 +7,12 @@ from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
     MessageSegment,
 )
-from openai import AsyncOpenAI, DefaultAioHttpClient
+from openai import AsyncOpenAI
 from xxhash import xxh32_hexdigest
 
 from util.Config import config
 
-client = AsyncOpenAI(
-    base_url=config.llm_base_url,
-    api_key=config.llm_api_key,
-    http_client=DefaultAioHttpClient(),
-)
+client = AsyncOpenAI(base_url=config.llm_base_url, api_key=config.llm_api_key)
 
 with open("prompt/system.md", "r") as f:
     system_prompt = f.read()

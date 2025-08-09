@@ -5,7 +5,7 @@ from io import BytesIO
 import aiofiles
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
-from aiohttp import ClientSession
+from httpx import AsyncClient
 
 from util.Config import config as Config
 from .Config import (
@@ -387,12 +387,12 @@ async def music_to_part(
     # 歌曲封面
     jacket_path = f"./Cache/Jacket/{song_id % 10000}.png"
     if not os.path.exists(jacket_path):
-        async with ClientSession(conn_timeout=3) as session:
-            async with session.get(
+        async with AsyncClient(http2=True, timeout=3) as session:
+            resp = await session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{song_id % 10000}.png"
-            ) as resp:
-                async with aiofiles.open(jacket_path, "wb") as fd:
-                    await fd.write(await resp.read())
+            )
+            async with aiofiles.open(jacket_path, "wb") as fd:
+                await fd.write(await resp.aread())
     jacket = Image.open(jacket_path)
     jacket = resize_image(jacket, 0.56)
     partbase = paste(partbase, jacket, (36, 41))
@@ -702,12 +702,12 @@ async def generatebests(
     if frame:
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
         if not os.path.exists(frame_path):
-            async with ClientSession(conn_timeout=3) as session:
-                async with session.get(
+            async with AsyncClient(http2=True, timeout=3) as session:
+                resp = await session.get(
                     f"https://assets2.lxns.net/maimai/frame/{frame}.png"
-                ) as resp:
-                    async with aiofiles.open(frame_path, "wb") as fd:
-                        await fd.write(await resp.read())
+                )
+                async with aiofiles.open(frame_path, "wb") as fd:
+                    await fd.write(await resp.aread())
         frame = Image.open(frame_path)
         frame = resize_image(frame, 0.95)
         bests = paste(bests, frame, (48, 45))
@@ -715,12 +715,12 @@ async def generatebests(
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
     if not os.path.exists(plate_path):
-        async with ClientSession(conn_timeout=3) as session:
-            async with session.get(
+        async with AsyncClient(http2=True, timeout=3) as session:
+            resp = await session.get(
                 f"https://assets2.lxns.net/maimai/plate/{plate}.png"
-            ) as resp:
-                async with aiofiles.open(plate_path, "wb") as fd:
-                    await fd.write(await resp.read())
+            )
+            async with aiofiles.open(plate_path, "wb") as fd:
+                await fd.write(await resp.aread())
     plate = Image.open(plate_path)
     bests = paste(bests, plate, (60, 60))
 
@@ -732,12 +732,10 @@ async def generatebests(
     # 头像
     icon_pic_path = maimai_Icon / f"{icon}.png"
     if not os.path.exists(icon_pic_path):
-        async with ClientSession(conn_timeout=3) as session:
-            async with session.get(
-                f"https://assets2.lxns.net/maimai/icon/{icon}.png"
-            ) as resp:
-                async with aiofiles.open(icon_pic_path, "wb") as fd:
-                    await fd.write(await resp.read())
+        async with AsyncClient(http2=True, timeout=3) as session:
+            resp = await session.get(f"https://assets2.lxns.net/maimai/icon/{icon}.png")
+            async with aiofiles.open(icon_pic_path, "wb") as fd:
+                await fd.write(await resp.aread())
     icon_pic = Image.open(icon_pic_path)
     icon_pic = icon_pic.resize((88, 88))
     bests = paste(bests, icon_pic, (73, 75))
@@ -892,12 +890,12 @@ async def generate_wcb(
     else:
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
         if not os.path.exists(frame_path):
-            async with ClientSession(conn_timeout=3) as session:
-                async with session.get(
+            async with AsyncClient(http2=True, timeout=3) as session:
+                resp = await session.get(
                     f"https://assets2.lxns.net/maimai/frame/{frame}.png"
-                ) as resp:
-                    async with aiofiles.open(frame_path, "wb") as fd:
-                        await fd.write(await resp.read())
+                )
+                async with aiofiles.open(frame_path, "wb") as fd:
+                    await fd.write(await resp.aread())
     frame = Image.open(frame_path)
     frame = resize_image(frame, 0.95)
     bg = paste(bg, frame, (48, 45))
@@ -905,12 +903,12 @@ async def generate_wcb(
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
     if not os.path.exists(plate_path):
-        async with ClientSession(conn_timeout=3) as session:
-            async with session.get(
+        async with AsyncClient(http2=True, timeout=3) as session:
+            resp = await session.get(
                 f"https://assets2.lxns.net/maimai/plate/{plate}.png"
-            ) as resp:
-                async with aiofiles.open(plate_path, "wb") as fd:
-                    await fd.write(await resp.read())
+            )
+            async with aiofiles.open(plate_path, "wb") as fd:
+                await fd.write(await resp.aread())
     plate = Image.open(plate_path)
     bg = paste(bg, plate, (60, 60))
 
@@ -922,12 +920,10 @@ async def generate_wcb(
     # 头像
     icon_pic_path = maimai_Icon / f"{icon}.png"
     if not os.path.exists(icon_pic_path):
-        async with ClientSession(conn_timeout=3) as session:
-            async with session.get(
-                f"https://assets2.lxns.net/maimai/icon/{icon}.png"
-            ) as resp:
-                async with aiofiles.open(icon_pic_path, "wb") as fd:
-                    await fd.write(await resp.read())
+        async with AsyncClient(http2=True, timeout=3) as session:
+            resp = await session.get(f"https://assets2.lxns.net/maimai/icon/{icon}.png")
+            async with aiofiles.open(icon_pic_path, "wb") as fd:
+                await fd.write(await resp.aread())
     icon_pic = Image.open(icon_pic_path)
     icon_pic = icon_pic.resize((88, 88))
     bg = paste(bg, icon_pic, (73, 75))

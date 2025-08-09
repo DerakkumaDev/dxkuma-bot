@@ -4,7 +4,7 @@ from datetime import date
 
 import aiofiles
 import orjson as json
-from aiohttp import ClientError, ClientSession
+from httpx import HTTPError, AsyncClient
 
 music_data_lock = Lock()
 chart_stats_lock = Lock()
@@ -19,14 +19,14 @@ async def get_music_data_df():
     async with music_data_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with ClientSession(conn_timeout=3) as session:
+            async with AsyncClient(http2=True, timeout=3) as session:
                 try:
-                    async with session.get(
+                    resp = await session.get(
                         "https://www.diving-fish.com/api/maimaidxprober/music_data"
-                    ) as resp:
-                        async with aiofiles.open(cache_path, "wb") as fd:
-                            await fd.write(await resp.read())
-                except ClientError:
+                    )
+                    async with aiofiles.open(cache_path, "wb") as fd:
+                        await fd.write(await resp.aread())
+                except HTTPError:
                     if os.path.exists(cache_path):
                         os.remove(cache_path)
                     if files:
@@ -50,15 +50,15 @@ async def get_music_data_lxns():
     async with music_data_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with ClientSession(conn_timeout=3) as session:
+            async with AsyncClient(http2=True, timeout=3) as session:
                 try:
-                    async with session.get(
+                    resp = await session.get(
                         "https://maimai.lxns.net/api/v0/maimai/song/list",
                         params={"notes": "true"},
-                    ) as resp:
-                        async with aiofiles.open(cache_path, "wb") as fd:
-                            await fd.write(await resp.read())
-                except ClientError:
+                    )
+                    async with aiofiles.open(cache_path, "wb") as fd:
+                        await fd.write(await resp.aread())
+                except HTTPError:
                     if os.path.exists(cache_path):
                         os.remove(cache_path)
                     if files:
@@ -82,14 +82,14 @@ async def get_chart_stats():
     async with chart_stats_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with ClientSession(conn_timeout=3) as session:
+            async with AsyncClient(http2=True, timeout=3) as session:
                 try:
-                    async with session.get(
+                    resp = await session.get(
                         "https://www.diving-fish.com/api/maimaidxprober/chart_stats"
-                    ) as resp:
-                        async with aiofiles.open(cache_path, "wb") as fd:
-                            await fd.write(await resp.read())
-                except ClientError:
+                    )
+                    async with aiofiles.open(cache_path, "wb") as fd:
+                        await fd.write(await resp.aread())
+                except HTTPError:
                     if os.path.exists(cache_path):
                         os.remove(cache_path)
                     if files:
@@ -113,14 +113,14 @@ async def get_alias_list_lxns():
     async with alias_list_lxns_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with ClientSession(conn_timeout=3) as session:
+            async with AsyncClient(http2=True, timeout=3) as session:
                 try:
-                    async with session.get(
+                    resp = await session.get(
                         "https://maimai.lxns.net/api/v0/maimai/alias/list"
-                    ) as resp:
-                        async with aiofiles.open(cache_path, "wb") as fd:
-                            await fd.write(await resp.read())
-                except ClientError:
+                    )
+                    async with aiofiles.open(cache_path, "wb") as fd:
+                        await fd.write(await resp.aread())
+                except HTTPError:
                     if os.path.exists(cache_path):
                         os.remove(cache_path)
                     if files:
@@ -144,14 +144,14 @@ async def get_alias_list_ycn():
     async with alias_list_ycn_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with ClientSession(conn_timeout=3) as session:
+            async with AsyncClient(http2=True, timeout=3) as session:
                 try:
-                    async with session.get(
+                    resp = await session.get(
                         "https://www.yuzuchan.moe/api/maimaidx/maimaidxalias"
-                    ) as resp:
-                        async with aiofiles.open(cache_path, "wb") as fd:
-                            await fd.write(await resp.read())
-                except ClientError:
+                    )
+                    async with aiofiles.open(cache_path, "wb") as fd:
+                        await fd.write(await resp.aread())
+                except HTTPError:
                     if os.path.exists(cache_path):
                         os.remove(cache_path)
                     if files:
@@ -175,14 +175,14 @@ async def get_alias_list_xray():
     async with alias_list_xray_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with ClientSession(conn_timeout=3) as session:
+            async with AsyncClient(http2=True, timeout=3) as session:
                 try:
-                    async with session.get(
+                    resp = await session.get(
                         "https://download.xraybot.site/maimai/alias.json"
-                    ) as resp:
-                        async with aiofiles.open(cache_path, "wb") as fd:
-                            await fd.write(await resp.read())
-                except ClientError:
+                    )
+                    async with aiofiles.open(cache_path, "wb") as fd:
+                        await fd.write(await resp.aread())
+                except HTTPError:
                     if os.path.exists(cache_path):
                         os.remove(cache_path)
                     if files:

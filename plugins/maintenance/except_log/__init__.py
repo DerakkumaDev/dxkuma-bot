@@ -1,7 +1,7 @@
 import traceback
 from typing import Optional
 
-from aiohttp import ConnectionTimeoutError
+from httpx import HTTPError
 from nonebot import get_bot
 from nonebot.adapters.onebot.v11 import MessageSegment, Event, MessageEvent
 from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
@@ -21,7 +21,7 @@ async def _(event: Event, exception: Optional[Exception]):
         (
             OneBotV11AdapterException,
             WebSocketDisconnect,
-            ConnectionTimeoutError,
+            HTTPError,
             NotAllowedException,
             NeedToSwitchException,
         ),

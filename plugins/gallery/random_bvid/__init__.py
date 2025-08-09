@@ -2,7 +2,7 @@ import datetime
 import re
 
 import orjson as json
-from aiohttp import ClientSession
+from httpx import AsyncClient
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 
@@ -43,12 +43,13 @@ async def _(bot: Bot, event: GroupMessageEvent):
     while True:
         bvid = await bvidList.random_bvid()
         headers = {"User-Agent": f"kumabot/{config.version[0]}.{config.version[1]}"}
-        async with ClientSession(conn_timeout=3, headers=headers) as session:
-            async with session.get(
+        async with AsyncClient(http2=True, timeout=3) as session:
+            resp = await session.get(
                 "https://api.bilibili.com/x/web-interface/wbi/view",
                 params={"bvid": bvid},
-            ) as resp:
-                video_info = await resp.json(loads=json.loads)
+                headers=headers,
+            )
+            video_info = resp.json()
         if video_info["code"] != 0:
             await bvidList.remove(bvid)
             continue
