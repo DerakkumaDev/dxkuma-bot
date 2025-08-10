@@ -36,7 +36,6 @@ class Config:
         # backend
         self.backend_url = None
         # llm
-        self.llm_base_url = None
         self.llm_api_key = None
         self.llm_model = None
 
@@ -59,7 +58,6 @@ class Config:
         self.lx_token = data["prober"]["lxns_token"]
         self.admin_accounts = data["admin"]["accounts"]
         self.backend_url = data["backend"]["url"]
-        self.llm_base_url = data["llm"]["base_url"]
         self.llm_api_key = data["llm"]["api_key"]
         self.llm_model = data["llm"]["model"]
 

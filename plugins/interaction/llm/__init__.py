@@ -39,10 +39,7 @@ async def _(bot: Bot, event: MessageEvent):
         if not chat_mode and not event.is_tome():
             return
 
-        request_queue = request_queues.setdefault(
-            chat_id, {"texts": list(), "medias": list()}
-        )
-        msg_text = await gen_message(event, bot, chat_mode, request_queue["medias"])
+        msg_text = await gen_message(event, bot, chat_mode)
         group_info = await bot.get_group_info(group_id=event.group_id)
         message = (
             f'<message time="{now.isoformat()}" chatroom_name="{
@@ -57,10 +54,7 @@ async def _(bot: Bot, event: MessageEvent):
         qqid = event.user_id
         chat_type = "private"
         chat_id = f"{qqid}.{chat_type[0]}"
-        request_queue = request_queues.setdefault(
-            chat_id, {"texts": list(), "medias": list()}
-        )
-        msg_text = await gen_message(event, bot, False, request_queue["medias"])
+        msg_text = await gen_message(event, bot, False)
         message = (
             f'<message time="{now.isoformat()}" sender_id="{qqid}" sender_name="{
                 escape(event.sender.nickname)
@@ -72,7 +66,7 @@ async def _(bot: Bot, event: MessageEvent):
     if not msg_text:
         return
 
-    request_queue["texts"].append(message)
+    request_queues[chat_id] = message
     times[chat_id] = event.time
     asyncio.create_task(outtime_check(bot, chat_type, qqid))
 

@@ -6,7 +6,7 @@ from datetime import datetime
 import anyio
 import numpy as np
 from nonebot.adapters.onebot.v11 import Bot
-from openai import BadRequestError
+from volcenginesdkarkruntime._exceptions import ArkBadRequestError, ArkNotFoundError
 
 from util.Config import config
 from .database import contextManager
@@ -15,7 +15,7 @@ from .utils import client, system_prompt, user_prompt, prompt_hash as global_pro
 OUTTIME = 10 / 2
 RATE_LIMIT = 10 / 3
 
-request_queues: dict[str, dict[str, list[str | dict[str, str | float]]]] = dict()
+request_queues: dict[str, str] = dict()
 response_queues: dict[str, list[str]] = dict()
 request_queue_tasks: dict[str, Task] = dict()
 response_queue_tasks: dict[str, Task] = dict()
@@ -65,92 +65,67 @@ async def outtime_check(bot: Bot, chat_type: str, qq_id: int):
     del times[chat_id]
 
 
-async def request_queue_task(
-    bot: Bot,
-    chat_type: str,
-    qq_id: int,
-    content: dict[str, list[str | dict[str, str | float]]],
-):
+async def request_queue_task(bot: Bot, chat_type: str, qq_id: int, content: str):
     chat_id = f"{qq_id}.{chat_type[0]}"
     context_id = await contextManager.get_latest_contextid(chat_id)
 
     prompt_hash = await contextManager.get_prompthash(chat_id)
     if context_id is None or prompt_hash is None or prompt_hash != global_prompt_hash:
         await api_rate_limiter.acquire()
-        response = await client.responses.create(
-            input=[{"role": "system", "content": system_prompt}],
+        response = await client.context.create(
             model=config.llm_model,
-            temperature=0,
-            top_p=0,
-            extra_body={
-                "caching": {"type": "enabled"},
-                "thinking": {"type": "disabled"},
-            },
+            messages=[{"role": "system", "content": system_prompt}],
+            extra_headers={"x-is-encrypted": "true"},
         )
         context_id = response.id
         await contextManager.set_prompthash(chat_id, global_prompt_hash)
 
-    input_content = list()
-    for media in content["medias"]:
-        media_info = {
-            "type": f"input_{media['type']}",
-            f"{media['type']}_url": media["url"],
-        }
-        if media["type"] == "vedio":
-            media_info["fps"] = 2 / 10
-
-        input_content.append(media_info)
-
-    message = "\n".join(content["texts"])
+    message = "\n".join(content)
     input_message = str.format(user_prompt, message)
-    input_content.append({"type": "input_text", "text": input_message})
 
     while True:
         try:
             await api_rate_limiter.acquire()
-            stream = await client.responses.create(
-                input=[{"role": "user", "content": input_content}],
+            stream = await client.context.completions.create(
+                context_id=context_id,
+                messages=[{"role": "user", "content": input_message}],
                 model=config.llm_model,
-                previous_response_id=context_id,
                 stream=True,
-                temperature=2 / 2,
-                top_p=2 / 3,
-                extra_body={
-                    "caching": {"type": "enabled"},
-                    "thinking": {"type": "disabled"},
-                },
+                extra_headers={"x-is-encrypted": "true"},
             )
             break
-        except BadRequestError as ex:
+        except ArkNotFoundError:
+            await contextManager.delete_latest_contextid(chat_id)
+            context_id = await contextManager.get_latest_contextid(chat_id)
+            if context_id is None:
+                await api_rate_limiter.acquire()
+                response = await client.context.create(
+                    model=config.llm_model,
+                    messages=[{"role": "system", "content": system_prompt}],
+                    extra_headers={"x-is-encrypted": "true"},
+                )
+                context_id = response.id
+            continue
+        except ArkBadRequestError as ex:
             if ex.code == "InvalidParameter.PreviousResponseNotFound":
                 await contextManager.delete_latest_contextid(chat_id)
                 context_id = await contextManager.get_latest_contextid(chat_id)
                 if context_id is None:
                     await api_rate_limiter.acquire()
-                    response = await client.responses.create(
-                        input=[{"role": "system", "content": system_prompt}],
+                    response = await client.context.create(
                         model=config.llm_model,
-                        temperature=0,
-                        top_p=0,
-                        extra_body={
-                            "caching": {"type": "enabled"},
-                            "thinking": {"type": "disabled"},
-                        },
+                        messages=[{"role": "system", "content": system_prompt}],
+                        extra_headers={"x-is-encrypted": "true"},
                     )
                     context_id = response.id
                 continue
 
             if ex.code == "InvalidParameter" and ex.param == "previous_response_id":
                 await api_rate_limiter.acquire()
-                response = await client.responses.create(
-                    input=[{"role": "system", "content": system_prompt}],
+                response = await client.context.create(
                     model=config.llm_model,
-                    temperature=0,
-                    top_p=0,
-                    extra_body={
-                        "caching": {"type": "enabled"},
-                        "thinking": {"type": "disabled"},
-                    },
+                    messages=[{"role": "system", "content": system_prompt}],
+                    extra_headers={"x-is-encrypted": "true"},
                 )
                 context_id = response.id
                 continue
@@ -160,32 +135,25 @@ async def request_queue_task(
             ).startswith("Total tokens of image and text exceed max message tokens."):
                 raise
 
-            earliest_contextid = await contextManager.delete_earliest_contextid(chat_id)
-            try:
-                await client.responses.delete(earliest_contextid)
-            except Exception:
-                pass
+            await contextManager.delete_earliest_contextid(chat_id)
 
     texts = list()
     async for chunk in stream:
-        if (
-            hasattr(chunk, "response")
-            and hasattr(chunk.response, "id")
-            and chunk.response.id is not None
-            and chunk.response.id != context_id
-        ):
-            await contextManager.add_contextid(chat_id, chunk.response.id)
+        if chunk.id != context_id:
+            context_id = chunk.id
+            await contextManager.add_contextid(chat_id, context_id)
 
-        if not hasattr(chunk, "delta") or not chunk.delta:
-            continue
+        for choice in chunk.choices:
+            if not choice.delta.content:
+                continue
 
-        if chunk.delta in "\r\n":
-            if len(texts) > 0:
-                reply = str().join(texts)
-                await push_and_start_sending(bot, reply, chat_type, qq_id)
-            texts = list()
-        else:
-            texts.append(chunk.delta)
+            if choice.delta.content in "\r\n":
+                if len(texts) > 0:
+                    reply = str().join(texts)
+                    await push_and_start_sending(bot, reply, chat_type, qq_id)
+                texts = list()
+            else:
+                texts.append(choice.delta.content)
 
     reply = str().join(texts)
     await push_and_start_sending(bot, reply, chat_type, qq_id)

@@ -2,12 +2,13 @@ import asyncio
 import math
 import os
 import re
+import sys
 import time
 from pathlib import Path
 
 import aiofiles
 import numpy as np
-from httpx import AsyncClient
+from httpx import AsyncClient, Timeout
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 from numpy import random
@@ -524,7 +525,9 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
-    async with AsyncClient(http2=True) as session:
+    async with AsyncClient(
+        http2=True, timeout=Timeout(timeout=3, read=sys.maxsize)
+    ) as session:
         if source == "lxns":
             params = {"dev-token": config.lx_token}
             if lx_personal_token:
@@ -595,7 +598,9 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，时间较长需要耐心等待mai~"),
         )
     )
-    async with AsyncClient(http2=True) as session:
+    async with AsyncClient(
+        http2=True, timeout=Timeout(timeout=3, read=sys.maxsize)
+    ) as session:
         if source == "lxns":
             params = {"dev-token": config.lx_token}
             if lx_personal_token:
@@ -1776,7 +1781,9 @@ async def _(event: MessageEvent):
         await wcb.send(
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
         )
-        async with AsyncClient(http2=True) as session:
+        async with AsyncClient(
+            http2=True, timeout=Timeout(timeout=3, read=sys.maxsize)
+        ) as session:
             params = {"level": level, "page": page}
             if source == "lxns":
                 params["personal-token"] = lx_personal_token
