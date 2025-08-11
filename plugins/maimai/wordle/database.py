@@ -136,10 +136,11 @@ class OpenChars:
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
 
-        if record:
-            await session.delete(record)
-            return True
-        return False
+        if not record:
+            return False
+
+        await session.delete(record)
+        return True
 
     @with_transaction
     async def open_char(
@@ -201,14 +202,15 @@ class OpenChars:
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
 
-        if record:
-            if datetime.now() - record.updated_at > timedelta(hours=12):
-                await session.delete(record)
-                await session.flush()
-                return None
+        if not record:
+            return None
 
-            return await self._build_game_data(record, session)
-        return None
+        if datetime.now() - record.updated_at > timedelta(hours=12):
+            await session.delete(record)
+            await session.flush()
+            return None
+
+        return await self._build_game_data(record, session)
 
     @with_transaction
     async def update_game_data(self, group_id: str, game_data: dict, **kwargs) -> None:
