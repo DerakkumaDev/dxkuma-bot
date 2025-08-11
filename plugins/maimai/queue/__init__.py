@@ -13,11 +13,11 @@ binding = on_regex(r"^绑定机厅\s*.+$")
 unbinding = on_regex(r"^解绑机厅\s*.+$")
 search = on_regex(r"^搜索机厅\s*.+$")
 list_all = on_regex(r"^(所有|全部)机厅$", permission=ADMIN)
-add_alias = on_regex(r"^添加别(名|称)\s*.+?\s*.+$")
-remove_alias = on_regex(r"^删除别(名|称)\s*.+?\s*.+$")
+add_alias = on_regex(r"^添加别(名|称)\s*.+?\s+.+$")
+remove_alias = on_regex(r"^删除别(名|称)\s*.+?\s+.+$")
 list_count = on_regex(r"^(机厅|jt|看看|.+\s*)?有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
 change_count = on_regex(
-    r"^.+?\s*(加|减|为|＋|－|＝|\+|-|=)?\s*\d+(人|卡)?$", block=False
+    r"^.+\s*(加|减|为|＋|－|＝|\+|-|=)?\s*\d+(人|卡)?$", block=False
 )
 
 
@@ -115,11 +115,14 @@ async def _(bot: Bot, event: GroupMessageEvent):
         await list_all.finish("找不到机厅", at_sender=True)
 
     arcade_names = [
-        f"{arcade['name']}{
-            f'\r\n别名：{"、".join(arcade["aliases"])}'
+        f"{arcade['name']}\r\n"
+        f"ID：{arcade['id']}\r\n"
+        f"绑定：{'、'.join(str(i) for i in arcade['bindings'])}\r\n"
+        f"{
+            f'别名：{"、".join(arcade["aliases"])}\r\n'
             if len(arcade['aliases']) > 0
             else str()
-        }\r\n"
+        }"
         f"{await gen_message(bot, arcade)}"
         for arcade in arcades
         if arcade is not None
@@ -177,7 +180,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"添加别(?:名|称)\s*(.+?)\s*(.+)", msg)
+    match = re.fullmatch(r"添加别(?:名|称)\s*(.+?)\s+(.+)", msg)
     if not match:
         return
 
@@ -201,7 +204,7 @@ async def _(event: GroupMessageEvent):
 async def _(event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"删除别(?:名|称)\s*(.+?)\s*(.+)", msg)
+    match = re.fullmatch(r"删除别(?:名|称)\s*(.+?)\s+(.+)", msg)
     if not match:
         return
 
@@ -264,7 +267,7 @@ async def _(event: GroupMessageEvent):
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"(.+?)\s*(加|减|为|＋|－|＝|\+|-|=)?\s*(\d+)(?:人|卡)?", msg)
+    match = re.fullmatch(r"(.+)\s*(加|减|为|＋|－|＝|\+|-|=)?\s*(\d+)(?:人|卡)?", msg)
     if not match:
         return
 
