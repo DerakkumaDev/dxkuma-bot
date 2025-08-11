@@ -1,7 +1,6 @@
-from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import String, Boolean, DateTime
+from sqlalchemy import String, Boolean
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column
@@ -13,9 +12,10 @@ class ChatContext(Base):
     __tablename__ = "chat_contexts"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    chat_id: Mapped[str] = mapped_column(String(12), nullable=False, index=True)
+    chat_id: Mapped[str] = mapped_column(
+        String(12), unique=True, nullable=False, index=True
+    )
     context_id: Mapped[str] = mapped_column(String(58), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
 
 
 class ChatMode(Base):
@@ -40,62 +40,26 @@ class PromptHash(Base):
 
 class ContextManager:
     @with_transaction
-    async def get_latest_contextid(self, chat_id: str, **kwargs) -> Optional[str]:
+    async def get_contextid(self, chat_id: str, **kwargs) -> Optional[str]:
         session: AsyncSession = kwargs["session"]
 
-        stmt = (
-            select(ChatContext.context_id)
-            .where(ChatContext.chat_id == chat_id)
-            .order_by(ChatContext.created_at.desc())
-            .limit(1)
-        )
-
+        stmt = select(ChatContext.context_id).where(ChatContext.chat_id == chat_id)
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
     @with_transaction
-    async def add_contextid(self, chat_id: str, context_id: str, **kwargs) -> None:
+    async def set_contextid(self, chat_id: str, context_id: str, **kwargs) -> None:
         session: AsyncSession = kwargs["session"]
 
-        new_context = ChatContext(chat_id=chat_id, context_id=context_id)
-        session.add(new_context)
-
-    @with_transaction
-    async def delete_earliest_contextid(self, chat_id: str, **kwargs) -> Optional[str]:
-        session: AsyncSession = kwargs["session"]
-
-        stmt = (
-            select(ChatContext)
-            .where(ChatContext.chat_id == chat_id)
-            .order_by(ChatContext.created_at.asc())
-            .limit(1)
-        )
-
+        stmt = select(ChatContext).where(ChatContext.chat_id == chat_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
 
         if record:
-            context_id = record.context_id
-            await session.delete(record)
-            return context_id
-        return None
-
-    @with_transaction
-    async def delete_latest_contextid(self, chat_id: str, **kwargs) -> None:
-        session: AsyncSession = kwargs["session"]
-
-        stmt = (
-            select(ChatContext)
-            .where(ChatContext.chat_id == chat_id)
-            .order_by(ChatContext.created_at.desc())
-            .limit(1)
-        )
-
-        result = await session.execute(stmt)
-        record = result.scalar_one_or_none()
-
-        if record:
-            await session.delete(record)
+            record.context_id = context_id
+        else:
+            new_context = ChatContext(chat_id=chat_id, context_id=context_id)
+            session.add(new_context)
 
     @with_transaction
     async def get_chatmode(self, chat_id: str, **kwargs) -> bool:

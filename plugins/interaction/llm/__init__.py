@@ -66,7 +66,8 @@ async def _(bot: Bot, event: MessageEvent):
     if not msg_text:
         return
 
-    request_queues[chat_id] = message
+    messages = request_queues.setdefault(chat_id, list())
+    messages.append(message)
     times[chat_id] = event.time
     asyncio.create_task(outtime_check(bot, chat_type, qqid))
 

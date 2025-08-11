@@ -123,9 +123,9 @@ async def gen_message_segment(
         try:
             reply_msg = await bot.get_msg(message_id=seg.data.get("id", 0))
         except Exception:
-            return "<reply/>"
+            return "<quote/>"
         sender = reply_msg.get("sender", dict())
-        return f"<reply{
+        return f"<quote{
             gen_name_field(
                 'sender',
                 sender.get('user_id', str()),
@@ -138,7 +138,7 @@ async def gen_message_segment(
                     for sub_seg in reply_msg.get('message', list())
                 ]
             )
-        }</reply>"
+        }</quote>"
     elif seg.type == "forward":
         forward_messages = seg.data.get("content", list())
         if not forward_messages:
@@ -189,7 +189,7 @@ async def gen_message_segment(
     elif seg.type == "image":
         return f"<image>{escape(seg.data.get('name', str()))}</image>"
     elif seg.type == "face":
-        return f"<face>{escape(seg.data.get('raw', dict()).get('faceText', str()) or str())}</face>"
+        return f"<emoji>{escape(seg.data.get('raw', dict()).get('faceText', str()) or str())}</emoji>"
     elif seg.type == "video":
         return f"<video>{escape(seg.data.get('name', str()))}</video>"
     elif seg.type == "record":
@@ -197,7 +197,7 @@ async def gen_message_segment(
     elif seg.type == "file":
         return f"<file>{escape(seg.data.get('name', str()))}</file>"
     elif seg.type == "mface":
-        return f"<mface>{escape(seg.data.get('summary', str()))}</mface>"
+        return f"<emoticon>{escape(seg.data.get('summary', str()))}</emoticon>"
     elif seg.type == "markdown":
         return f"<markdown>{escape(seg.data.get('content', str()))}</markdown>"
     elif seg.type == "dice":
