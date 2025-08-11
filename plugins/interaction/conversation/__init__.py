@@ -11,7 +11,7 @@ from util.Config import config
 from util.exceptions import NeedToSwitchException
 from util.lock import locks
 
-xc = on_regex(r"^(香草|想草|xc)(迪拉熊|dlx)$", re.I)
+xc = on_regex(r"^([香想]草|xc)(迪拉熊|dlx)$", re.I)
 wxhn = on_regex(r"^(迪拉熊|dlx)我喜欢你$", re.I)
 roll = on_regex(r"是.+还是.", rule=to_me())
 cum = on_fullmatch("dlxcum", ignorecase=True)

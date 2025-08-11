@@ -30,7 +30,7 @@ from .utils import (
     get_version_name,
 )
 
-start_open_chars = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母)$", re.I)
+start_open_chars = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母|k(zm)?)$", re.I)
 open_chars = on_regex(r"^开\s*(.|[a-zA-Z]+)$")
 all_message_handle = on_message(priority=1000, block=False)
 pass_game = on_regex(r"^(结束(猜歌|开字母)|将大局逆转吧)$")
@@ -150,7 +150,7 @@ async def _(event: GroupMessageEvent):
 
     char = match.group(1)
     not_opened, game_data = await openchars.open_char(group_id, char, user_id)
-    if not_opened is None:
+    if game_data is None:
         return
 
     if not not_opened:

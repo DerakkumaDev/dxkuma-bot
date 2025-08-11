@@ -63,14 +63,14 @@ playinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?)\s*)?.+$", re.I)
 scoreinfo = on_regex(
     r"^(achv|分数列?表)\s*(绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?.+$", re.I
 )
-playaudio = on_regex(r"^(迪拉熊|dlx)点歌\s*.+$", re.I)
+playaudio = on_regex(r"^(迪拉熊|dlx)?点歌\s*.+$", re.I)
 randomsong = on_regex(
     r"^(rand|随(歌|个|首|张))\s*(绿|黄|红|紫|白)?\s*\d+(\.\d|\+)?$", re.I
 )
 maiwhat = on_fullmatch("mai什么", ignorecase=True)
 
 wcb = on_regex(
-    r"^(list|完成表)\s*(\d+\+?|真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|宴|镜)(\s*\d+)?$",
+    r"^(list|完成列?表)\s*(\d+\+?|真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|宴|镜)(\s*\d+)?$",
     re.I,
 )
 
@@ -78,22 +78,22 @@ aliasSearch = on_regex(
     r"^((alias|查看?别(名|称))\s*.+|.+有(什么|哪些)别(名|称)？?)$", re.I
 )
 
-all_plate = on_regex(r"^(plates?|看姓名框)$", re.I)
-all_frame = on_regex(r"^(frames?|看背景)$", re.I)
-all_icon = on_regex(r"^(icons?|看头像)$", re.I)
+all_plate = on_regex(r"^(迪拉熊|dlx)?(plates?|看姓名框)$", re.I)
+all_frame = on_regex(r"^(迪拉熊|dlx)?(frames?|看背景)$", re.I)
+all_icon = on_regex(r"^(迪拉熊|dlx)?(icons?|看头像)$", re.I)
 
-set_plate = on_regex(r"^(setplate|设置?姓名框)\s*\d{6}$", re.I)
-set_frame = on_regex(r"^(setframe|设置?背景)\s*\d{6}$", re.I)
-set_icon = on_regex(r"^(seticon|设置?头像)\s*\d{6}$", re.I)
+set_plate = on_regex(r"^(迪拉熊|dlx)?(setplate|设置?姓名框)\s*\d{6}$", re.I)
+set_frame = on_regex(r"^(迪拉熊|dlx)?(setframe|设置?背景)\s*\d{6}$", re.I)
+set_icon = on_regex(r"^(迪拉熊|dlx)?(seticon|设置?头像)\s*\d{6}$", re.I)
 
-ratj_on = on_regex(r"^(开启?|启用)分数推荐$")
-ratj_off = on_regex(r"^(关闭?|禁用)分数推荐$")
+ratj_on = on_regex(r"^(迪拉熊|dlx)?(开启?|启用)分数推荐$")
+ratj_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用)分数推荐$")
 
-allow_other_on = on_regex(r"^(开启?|启用|允许)代查$")
-allow_other_off = on_regex(r"^(关闭?|禁用|禁止)代查$")
+allow_other_on = on_regex(r"^(迪拉熊|dlx)?(开启?|启用|允许)代查$")
+allow_other_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用|禁止)代查$")
 
-set_source = on_regex(r"^((切|更)?换|设置)(数据)?源\s*(落雪|水鱼)$")
-set_token = on_regex(r"^绑定\s*(落雪|水鱼)\s*.+$")
+set_source = on_regex(r"^(迪拉熊|dlx)?((切|更)?换|设置)(数据)?源\s*(落雪|水鱼)$")
+set_token = on_regex(r"^(迪拉熊|dlx)?(绑定|bind)\s*(落雪|水鱼)\s*.+$")
 
 
 # 根据乐曲别名查询乐曲id列表
@@ -2039,7 +2039,7 @@ async def _(event: MessageEvent):
 @playaudio.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext().strip()
-    match = re.fullmatch(r"(?:迪拉熊|dlx)点歌\s*(.+)", msg, re.I)
+    match = re.fullmatch(r"(?:迪拉熊|dlx)?点歌\s*(.+)", msg, re.I)
     if not match:
         return
 
@@ -2359,7 +2359,11 @@ async def _(event: MessageEvent):
 @set_token.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id().strip()
-    match = re.fullmatch(r"绑定\s*(落雪|水鱼)\s*(.+)", event.get_plaintext(), re.I)
+    match = re.fullmatch(
+        r"(?:迪拉熊|dlx)?(?:绑定|bind)\s*(落雪|水鱼)\s*(.+)",
+        event.get_plaintext(),
+        re.I,
+    )
     prober = match.group(1)
     token = match.group(2)
     if prober == "落雪":
