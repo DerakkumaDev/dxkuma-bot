@@ -8,7 +8,7 @@ base_url = "https://www.diving-fish.com/api/maimaidxprober/"
 
 async def get_player_data(qq: str):
     payload = {"qq": qq, "b50": True}
-    async with AsyncClient(http2=True, timeout=3) as session:
+    async with AsyncClient(http2=True) as session:
         resp = await session.post(f"{base_url}query/player", json=payload)
         if resp.status_code == 200:
             obj = resp.json()
@@ -19,7 +19,7 @@ async def get_player_data(qq: str):
 async def get_player_records(qq: str):
     headers = {"Developer-Token": config.df_token}
     payload = {"qq": qq}
-    async with AsyncClient(http2=True, timeout=3) as session:
+    async with AsyncClient(http2=True) as session:
         resp = await session.get(
             f"{base_url}dev/player/records",
             headers=headers,
@@ -34,7 +34,7 @@ async def get_player_records(qq: str):
 async def get_player_record(qq: str, music_id: str | int):
     headers = {"Developer-Token": config.df_token}
     payload = {"qq": qq, "music_id": music_id}
-    async with AsyncClient(http2=True, timeout=3) as session:
+    async with AsyncClient(http2=True) as session:
         resp = await session.post(
             f"{base_url}dev/player/record",
             headers=headers,

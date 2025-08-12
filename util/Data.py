@@ -19,7 +19,7 @@ async def get_music_data_df():
     async with music_data_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with AsyncClient(http2=True, timeout=3) as session:
+            async with AsyncClient(http2=True) as session:
                 try:
                     resp = await session.get(
                         "https://www.diving-fish.com/api/maimaidxprober/music_data"
@@ -50,7 +50,7 @@ async def get_music_data_lxns():
     async with music_data_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with AsyncClient(http2=True, timeout=3) as session:
+            async with AsyncClient(http2=True) as session:
                 try:
                     resp = await session.get(
                         "https://maimai.lxns.net/api/v0/maimai/song/list",
@@ -82,7 +82,7 @@ async def get_chart_stats():
     async with chart_stats_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with AsyncClient(http2=True, timeout=3) as session:
+            async with AsyncClient(http2=True) as session:
                 try:
                     resp = await session.get(
                         "https://www.diving-fish.com/api/maimaidxprober/chart_stats"
@@ -113,7 +113,7 @@ async def get_alias_list_lxns():
     async with alias_list_lxns_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with AsyncClient(http2=True, timeout=3) as session:
+            async with AsyncClient(http2=True) as session:
                 try:
                     resp = await session.get(
                         "https://maimai.lxns.net/api/v0/maimai/alias/list"
@@ -144,7 +144,7 @@ async def get_alias_list_ycn():
     async with alias_list_ycn_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with AsyncClient(http2=True, timeout=3) as session:
+            async with AsyncClient(http2=True) as session:
                 try:
                     resp = await session.get(
                         "https://www.yuzuchan.moe/api/maimaidx/maimaidxalias"
@@ -175,7 +175,7 @@ async def get_alias_list_xray():
     async with alias_list_xray_lock:
         if not os.path.exists(cache_path):
             files = os.listdir(cache_dir)
-            async with AsyncClient(http2=True, timeout=3) as session:
+            async with AsyncClient(http2=True) as session:
                 try:
                     resp = await session.get(
                         "https://download.xraybot.site/maimai/alias.json"

@@ -43,7 +43,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     while True:
         bvid = await bvidList.random_bvid()
         headers = {"User-Agent": f"kumabot/{config.version[0]}.{config.version[1]}"}
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 "https://api.bilibili.com/x/web-interface/wbi/view",
                 params={"bvid": bvid},

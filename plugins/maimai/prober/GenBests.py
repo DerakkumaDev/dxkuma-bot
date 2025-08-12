@@ -387,7 +387,7 @@ async def music_to_part(
     # 歌曲封面
     jacket_path = f"./Cache/Jacket/{song_id % 10000}.png"
     if not os.path.exists(jacket_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{song_id % 10000}.png"
             )
@@ -702,7 +702,7 @@ async def generatebests(
     if frame:
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
         if not os.path.exists(frame_path):
-            async with AsyncClient(http2=True, timeout=3) as session:
+            async with AsyncClient(http2=True) as session:
                 resp = await session.get(
                     f"https://assets2.lxns.net/maimai/frame/{frame}.png"
                 )
@@ -715,7 +715,7 @@ async def generatebests(
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
     if not os.path.exists(plate_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 f"https://assets2.lxns.net/maimai/plate/{plate}.png"
             )
@@ -732,7 +732,7 @@ async def generatebests(
     # 头像
     icon_pic_path = maimai_Icon / f"{icon}.png"
     if not os.path.exists(icon_pic_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(f"https://assets2.lxns.net/maimai/icon/{icon}.png")
             async with aiofiles.open(icon_pic_path, "wb") as fd:
                 await fd.write(await resp.aread())
@@ -890,7 +890,7 @@ async def generate_wcb(
     else:
         frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
         if not os.path.exists(frame_path):
-            async with AsyncClient(http2=True, timeout=3) as session:
+            async with AsyncClient(http2=True) as session:
                 resp = await session.get(
                     f"https://assets2.lxns.net/maimai/frame/{frame}.png"
                 )
@@ -903,7 +903,7 @@ async def generate_wcb(
     # 牌子
     plate_path = f"./Cache/Plate/{plate}.png"
     if not os.path.exists(plate_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 f"https://assets2.lxns.net/maimai/plate/{plate}.png"
             )
@@ -920,7 +920,7 @@ async def generate_wcb(
     # 头像
     icon_pic_path = maimai_Icon / f"{icon}.png"
     if not os.path.exists(icon_pic_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(f"https://assets2.lxns.net/maimai/icon/{icon}.png")
             async with aiofiles.open(icon_pic_path, "wb") as fd:
                 await fd.write(await resp.aread())

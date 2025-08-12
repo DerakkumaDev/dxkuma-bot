@@ -2240,7 +2240,7 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     file_path = f"./Cache/Plate/{id}.png"
     if not os.path.exists(file_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(f"https://assets2.lxns.net/maimai/plate/{id}.png")
             if resp.status_code != 200:
                 msg = (
@@ -2264,7 +2264,7 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     file_path = f"./Static/maimai/Frame/UI_Frame_{id}.png"
     if not os.path.exists(file_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(f"https://assets2.lxns.net/maimai/frame/{id}.png")
             if resp.status_code != 200:
                 msg = (
@@ -2288,7 +2288,7 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     file_path = f"./Static/maimai/Icon/{id}.png"
     if not os.path.exists(file_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(f"https://assets2.lxns.net/maimai/icon/{id}.png")
             if resp.status_code != 200:
                 msg = (

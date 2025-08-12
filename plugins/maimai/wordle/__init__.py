@@ -170,7 +170,7 @@ async def _(event: GroupMessageEvent):
         for i, title, id in char_all_open:
             cover_path = f"./Cache/Jacket/{id % 10000}.png"
             if not os.path.exists(cover_path):
-                async with AsyncClient(http2=True, timeout=3) as session:
+                async with AsyncClient(http2=True) as session:
                     resp = await session.get(
                         f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
                     )
@@ -216,7 +216,7 @@ async def _(event: GroupMessageEvent):
     for i, title, id in guess_success:
         cover_path = f"./Cache/Jacket/{id % 10000}.png"
         if not os.path.exists(cover_path):
-            async with AsyncClient(http2=True, timeout=3) as session:
+            async with AsyncClient(http2=True) as session:
                 resp = await session.get(
                     f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
                 )
@@ -401,7 +401,7 @@ async def _(event: GroupMessageEvent):
 
     cover_path = f"./Cache/Jacket/{data['music_id'] % 10000}.png"
     if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{data['music_id'] % 10000}.png"
             )
@@ -488,7 +488,7 @@ async def _(event: GroupMessageEvent):
     )
     music_path = f"./Cache/Music/{data['music_id'] % 10000}.mp3"
     if not os.path.exists(music_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 f"https://assets2.lxns.net/maimai/music/{data['music_id'] % 10000}.mp3"
             )

@@ -57,7 +57,7 @@ async def music_info(song_data):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
             )
@@ -272,7 +272,7 @@ async def play_info(data, song_data):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
             )
@@ -518,7 +518,7 @@ async def utage_music_info(song_data, index=0):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
             )
@@ -699,7 +699,7 @@ async def score_info(song_data, index):
     # 歌曲封面
     cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
     if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True, timeout=3) as session:
+        async with AsyncClient(http2=True) as session:
             resp = await session.get(
                 f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
             )
