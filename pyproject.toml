@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "aiofiles>=24.1.0",
+    "googleapis-common-protos>=1.70.0",
+    "grpcio-tools>=1.74.0",
     "httpx[http2]>=0.28.1",
     "nanoid>=2.0.0",
     "nonebot-adapter-onebot>=2.4.6",
