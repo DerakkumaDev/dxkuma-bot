@@ -2,13 +2,14 @@ import asyncio
 import math
 import os
 import re
-import sys
 import time
+from io import BytesIO
 from pathlib import Path
 
 import aiofiles
 import numpy as np
-from httpx import AsyncClient, Timeout
+from grpc import RpcError
+from httpx import AsyncClient
 from nonebot import on_fullmatch, on_message, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 from numpy import random
@@ -37,6 +38,7 @@ from .GenBests import (
 )
 from .MusicInfo import music_info, play_info, utage_music_info, score_info
 from .database import user_config_manager
+from .limekuma_client import BestsApiClient, ListApiClient
 
 best50 = on_message(regex(r"^dlxb?50$", re.I))
 ani50 = on_message(regex(r"^dlxani(50)?$", re.I))
@@ -525,21 +527,33 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"),
         )
     )
-    async with AsyncClient(
-        http2=True, timeout=Timeout(timeout=3, read=sys.maxsize)
-    ) as session:
-        if source == "lxns":
-            params = {"dev-token": config.lx_token}
-            if lx_personal_token:
-                params["personal-token"] = lx_personal_token
+    img_byte_arr = BytesIO()
+    async with BestsApiClient() as client:
+        try:
+            if source == "lxns":
+                params = {"dev_token": config.lx_token}
+                if lx_personal_token:
+                    params["personal_token"] = lx_personal_token
+                else:
+                    params["qq"] = int(target_qq)
+                gen = client.get_from_lxns(**params)
+            elif source == "diving-fish":
+                params = {
+                    "qq": int(target_qq),
+                    "frame": int(frame),
+                    "plate": int(plate),
+                    "icon": int(icon),
+                }
+                gen = client.get_from_diving_fish(**params)
             else:
-                params["qq"] = target_qq
-        elif source == "diving-fish":
-            params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
-        start_time = time.perf_counter()
-        resp = await session.get(f"{config.backend_url}/bests/{source}", params=params)
-        end_time = time.perf_counter()
-        if resp.status_code != 200:
+                return
+            end_time = 0
+            start_time = time.perf_counter()
+            async for b in gen:
+                if end_time <= 0:
+                    end_time = time.perf_counter()
+                img_byte_arr.write(b.data)
+        except RpcError:
             msg = (
                 MessageSegment.at(sender_qq),
                 MessageSegment.text(" "),
@@ -551,10 +565,11 @@ async def _(bot: Bot, event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
             await best50.finish(msg)
-        img = await resp.aread()
+    img_byte_arr.seek(0)
+    img_bytes = img_byte_arr.getvalue()
     msg = (
         MessageSegment.at(sender_qq),
-        MessageSegment.image(img),
+        MessageSegment.image(img_bytes),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
     await best50.send(msg)
@@ -598,23 +613,33 @@ async def _(bot: Bot, event: MessageEvent):
             MessageSegment.text("迪拉熊绘制中，时间较长需要耐心等待mai~"),
         )
     )
-    async with AsyncClient(
-        http2=True, timeout=Timeout(timeout=3, read=sys.maxsize)
-    ) as session:
-        if source == "lxns":
-            params = {"dev-token": config.lx_token}
-            if lx_personal_token:
-                params["personal-token"] = lx_personal_token
+    img_byte_arr = BytesIO()
+    async with BestsApiClient() as client:
+        try:
+            if source == "lxns":
+                params = {"dev_token": config.lx_token}
+                if lx_personal_token:
+                    params["personal_token"] = lx_personal_token
+                else:
+                    params["qq"] = int(target_qq)
+                gen = client.get_anime_from_lxns(**params)
+            elif source == "diving-fish":
+                params = {
+                    "qq": int(target_qq),
+                    "frame": int(frame),
+                    "plate": int(plate),
+                    "icon": int(icon),
+                }
+                gen = client.get_anime_from_diving_fish(**params)
             else:
-                params["qq"] = target_qq
-        elif source == "diving-fish":
-            params = {"qq": target_qq, "frame": frame, "plate": plate, "icon": icon}
-        start_time = time.perf_counter()
-        resp = await session.get(
-            f"{config.backend_url}/bests/anime/{source}", params=params
-        )
-        end_time = time.perf_counter()
-        if resp.status_code != 200:
+                return
+            end_time = 0
+            start_time = time.perf_counter()
+            async for b in gen:
+                if end_time <= 0:
+                    end_time = time.perf_counter()
+                img_byte_arr.write(b.data)
+        except RpcError:
             msg = (
                 MessageSegment.text(
                     f"迪拉熊没有在{source_name}查分器上找到{
@@ -624,10 +649,11 @@ async def _(bot: Bot, event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
             await ani50.finish(msg, at_sender=True)
-        img = await resp.aread()
+    img_byte_arr.seek(0)
+    img_bytes = img_byte_arr.getvalue()
     msg = (
         MessageSegment.at(target_qq),
-        MessageSegment.image(img),
+        MessageSegment.image(img_bytes),
         MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
     await ani50.send(msg)
@@ -1781,22 +1807,27 @@ async def _(event: MessageEvent):
         await wcb.send(
             MessageSegment.text("迪拉熊绘制中，稍等一下mai~"), at_sender=True
         )
-        async with AsyncClient(
-            http2=True, timeout=Timeout(timeout=3, read=sys.maxsize)
-        ) as session:
-            params = {"level": level, "page": page}
-            if source == "lxns":
-                params["personal-token"] = lx_personal_token
-            elif source == "diving-fish":
-                params["dev-token"] = config.df_token
-                params["qq"] = qq
-                params["plate"] = plate
-            start_time = time.perf_counter()
-            resp = await session.get(
-                f"{config.backend_url}/list/{source}", params=params
-            )
-            end_time = time.perf_counter()
-            if resp.status_code != 200:
+        img_byte_arr = BytesIO()
+        async with ListApiClient() as client:
+            try:
+                params = {"level": level, "page": page}
+                if source == "lxns":
+                    params["personal_token"] = lx_personal_token
+                    gen = client.get_from_lxns(**params)
+                elif source == "diving-fish":
+                    params["dev_token"] = config.df_token
+                    params["qq"] = int(qq)
+                    params["plate"] = plate
+                    gen = client.get_from_diving_fish(**params)
+                else:
+                    return
+                end_time = 0
+                start_time = time.perf_counter()
+                async for b in gen:
+                    if end_time <= 0:
+                        end_time = time.perf_counter()
+                    img_byte_arr.write(b.data)
+            except RpcError:
                 msg = (
                     MessageSegment.text(
                         f"迪拉熊没有在{source_name}查分器上找到{
@@ -1806,7 +1837,8 @@ async def _(event: MessageEvent):
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 )
                 await wcb.finish(msg, at_sender=True)
-            img = await resp.aread()
+        img_byte_arr.seek(0)
+        img = img_byte_arr.getvalue()
     else:
         data, status = await get_player_records(qq)
         if status == 400:
