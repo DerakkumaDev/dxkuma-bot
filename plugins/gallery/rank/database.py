@@ -1,6 +1,7 @@
 import datetime
 
 from sqlalchemy import String, Integer, Date, UniqueConstraint
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column
@@ -65,24 +66,26 @@ class Ranking:
         session: AsyncSession = kwargs["session"]
 
         time = self.now
-        stmt = select(RankingRecord).where(
-            RankingRecord.qq == qq, RankingRecord.week_key == time
-        )
-        result = await session.execute(stmt)
-        record = result.scalar_one_or_none()
-
-        if record is None:
-            record = RankingRecord(
-                qq=qq, week_key=time, sfw_count=0, nsfw_count=0, video_count=0
-            )
-            session.add(record)
-
+        count_increment = {"sfw_count": 0, "nsfw_count": 0, "video_count": 0}
         if type == "sfw":
-            record.sfw_count += 1
+            count_increment["sfw_count"] = 1
         elif type == "nsfw":
-            record.nsfw_count += 1
+            count_increment["nsfw_count"] = 1
         elif type == "video":
-            record.video_count += 1
+            count_increment["video_count"] = 1
+
+        stmt = insert(RankingRecord).values(
+            qq=qq, week_key=time, **count_increment, created_at=datetime.date.today()
+        )
+        stmt = stmt.on_conflict_do_update(
+            constraint="uq_qq_week_key",
+            set_={
+                "sfw_count": RankingRecord.sfw_count + stmt.excluded.sfw_count,
+                "nsfw_count": RankingRecord.nsfw_count + stmt.excluded.nsfw_count,
+                "video_count": RankingRecord.video_count + stmt.excluded.video_count,
+            },
+        )
+        await session.execute(stmt)
 
 
 ranking = Ranking()

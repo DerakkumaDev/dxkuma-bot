@@ -1,4 +1,5 @@
 from sqlalchemy import String, Integer, Boolean, Float, func
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column
@@ -58,7 +59,7 @@ class Ranking:
         session: AsyncSession = kwargs["session"]
 
         score = self._compute_score(oc_times, it_times, pt_times, ad_times, is_guesser)
-        new_record = WordleScore(
+        stmt = insert(WordleScore).values(
             user_id=user_id,
             oc_times=oc_times,
             it_times=it_times,
@@ -67,7 +68,7 @@ class Ranking:
             is_guesser=is_guesser,
             score=score,
         )
-        session.add(new_record)
+        await session.execute(stmt)
 
     @with_transaction
     async def avg_scores(self, **kwargs) -> list[tuple[str, float, int]]:

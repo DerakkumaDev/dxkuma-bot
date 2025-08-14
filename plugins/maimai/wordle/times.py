@@ -1,6 +1,7 @@
 from datetime import date, timedelta, datetime
 
-from sqlalchemy import String, Integer, DateTime
+from sqlalchemy import String, DateTime
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column
@@ -13,10 +14,9 @@ class WordleTimes(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
-    year: Mapped[int] = mapped_column(Integer, nullable=False)
-    month: Mapped[int] = mapped_column(Integer, nullable=False)
-    day: Mapped[int] = mapped_column(Integer, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=lambda: datetime.now()
+    )
 
     @property
     def game_date(self) -> date:
@@ -30,8 +30,10 @@ class Times:
     ) -> None:
         session: AsyncSession = kwargs["session"]
 
-        new_record = WordleTimes(user_id=user_id, year=year, month=month, day=day)
-        session.add(new_record)
+        stmt = insert(WordleTimes).values(
+            user_id=user_id, created_at=date(year, month, day)
+        )
+        await session.execute(stmt)
 
     @with_transaction
     async def check_available(self, user_id: str, **kwargs) -> bool:

@@ -4,6 +4,7 @@ from typing import Optional
 import nanoid
 from rapidfuzz import fuzz, process
 from sqlalchemy import String, Integer, ForeignKey, UniqueConstraint, BigInteger
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -138,25 +139,23 @@ class ArcadeManager:
             return None
 
         arcade_id = nanoid.generate()
-        new_arcade = Arcade(id=arcade_id, name=arcade_name)
-        session.add(new_arcade)
+        stmt = insert(Arcade).values(
+            id=arcade_id, name=arcade_name, count=0, action_times=0
+        )
+        stmt = stmt.on_conflict_do_nothing(index_elements=["name"])
+        result = await session.execute(stmt)
 
-        return arcade_id
+        return arcade_id if result.rowcount > 0 else None
 
     @with_transaction
     async def bind(self, group_id: int, arcade_id: str, **kwargs) -> bool:
         session: AsyncSession = kwargs["session"]
 
-        stmt = select(ArcadeBinding).where(
-            ArcadeBinding.group_id == group_id, ArcadeBinding.arcade_id == arcade_id
-        )
+        stmt = insert(ArcadeBinding).values(group_id=group_id, arcade_id=arcade_id)
+        stmt = stmt.on_conflict_do_nothing(constraint="uq_arcade_binding")
         result = await session.execute(stmt)
-        if result.scalar_one_or_none():
-            return False
 
-        new_binding = ArcadeBinding(group_id=group_id, arcade_id=arcade_id)
-        session.add(new_binding)
-        return True
+        return result.rowcount > 0
 
     @with_transaction
     async def unbind(self, group_id: int, arcade_id: str, **kwargs) -> bool:
@@ -227,9 +226,11 @@ class ArcadeManager:
 
         stmt = select(ArcadeAlias.arcade_id).where(ArcadeAlias.alias == word)
         result = await session.execute(stmt)
-        exact_alias_match = result.scalar_one_or_none()
-        if exact_alias_match:
-            return [exact_alias_match]
+        arcade_ids = [row[0] for row in result.fetchall()]
+        if len(arcade_ids) == 1:
+            return [arcade_ids[0]]
+        elif len(arcade_ids) > 1:
+            return arcade_ids
 
         names = list()
         stmt = select(Arcade.name)
@@ -261,16 +262,11 @@ class ArcadeManager:
     async def add_alias(self, arcade_id: str, alias: str, **kwargs) -> bool:
         session: AsyncSession = kwargs["session"]
 
-        stmt = select(ArcadeAlias).where(
-            ArcadeAlias.arcade_id == arcade_id, ArcadeAlias.alias == alias
-        )
+        stmt = insert(ArcadeAlias).values(arcade_id=arcade_id, alias=alias)
+        stmt = stmt.on_conflict_do_nothing(constraint="uq_arcade_alias")
         result = await session.execute(stmt)
-        if result.scalar_one_or_none():
-            return False
 
-        new_alias = ArcadeAlias(arcade_id=arcade_id, alias=alias)
-        session.add(new_alias)
-        return True
+        return result.rowcount > 0
 
     @with_transaction
     async def remove_alias(self, arcade_id: str, alias: str, **kwargs) -> bool:
@@ -342,14 +338,23 @@ class ArcadeManager:
             last_action.action_time = time
             last_action.before_count = before
         else:
-            new_last_action = ArcadeLastAction(
+            stmt = insert(ArcadeLastAction).values(
                 arcade_id=arcade_id,
                 group_id=group_id,
                 operator_id=operator,
                 action_time=time,
                 before_count=before,
             )
-            session.add(new_last_action)
+            stmt = stmt.on_conflict_do_update(
+                index_elements=["arcade_id"],
+                set_={
+                    "group_id": stmt.excluded.group_id,
+                    "operator_id": stmt.excluded.operator_id,
+                    "action_time": stmt.excluded.action_time,
+                    "before_count": stmt.excluded.before_count,
+                },
+            )
+            await session.execute(stmt)
 
         return await self._arcade_to_dict(arcade, session)
 
@@ -375,14 +380,24 @@ class ArcadeManager:
                 last_action.action_time = time
                 last_action.before_count = arcade.count
             else:
-                new_last_action = ArcadeLastAction(
+                stmt = insert(ArcadeLastAction).values(
                     arcade_id=arcade_id,
                     group_id=-1,
                     operator_id=-1,
                     action_time=time,
                     before_count=arcade.count,
                 )
-                session.add(new_last_action)
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=["arcade_id"],
+                    set_={
+                        "group_id": stmt.excluded.group_id,
+                        "operator_id": stmt.excluded.operator_id,
+                        "action_time": stmt.excluded.action_time,
+                        "before_count": stmt.excluded.before_count,
+                    },
+                )
+                await session.execute(stmt)
+
             arcade.count = 0
 
         return await self._arcade_to_dict(arcade, session)

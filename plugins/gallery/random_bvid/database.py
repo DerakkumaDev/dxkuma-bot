@@ -1,5 +1,6 @@
 from numpy import random
 from sqlalchemy import Column, String, Integer
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -28,15 +29,11 @@ class BvidList:
     async def add(self, bvid: str, **kwargs) -> bool:
         session: AsyncSession = kwargs["session"]
 
-        stmt = select(BvidRecord).where(BvidRecord.bvid == bvid)
+        stmt = insert(BvidRecord).values(bvid=bvid)
+        stmt = stmt.on_conflict_do_nothing(index_elements=["bvid"])
         result = await session.execute(stmt)
-        if result.scalar_one_or_none():
-            return False
 
-        new_record = BvidRecord(bvid=bvid)
-        session.add(new_record)
-
-        return True
+        return result.rowcount > 0
 
     @with_transaction
     async def remove(self, bvid: str, **kwargs) -> None:

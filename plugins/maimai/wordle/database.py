@@ -12,7 +12,7 @@ from sqlalchemy import (
     UniqueConstraint,
     delete,
 )
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -83,34 +83,35 @@ class OpenChars:
     async def start(self, group_id: str, **kwargs) -> dict:
         session: AsyncSession = kwargs["session"]
 
-        for i in range(3):
-            stmt = select(WordleGame).where(WordleGame.group_id == group_id)
-            result = await session.execute(stmt)
-            record = result.scalar_one_or_none()
+        stmt = select(WordleGame).where(WordleGame.group_id == group_id)
+        result = await session.execute(stmt)
+        record = result.scalar_one_or_none()
 
-            if record:
-                if datetime.now() - record.updated_at > timedelta(hours=12):
-                    await session.delete(record)
-                    await session.flush()
-                else:
-                    return await self._build_game_data(record, session)
-
-            game_data = await generate_game_data()
-
-            new_game = WordleGame(group_id=group_id)
-            session.add(new_game)
-            try:
+        if record:
+            if datetime.now() - record.updated_at > timedelta(hours=12):
+                await session.delete(record)
                 await session.flush()
-                break
-            except IntegrityError:
-                if i >= 2:
-                    raise
+            else:
+                return await self._build_game_data(record, session)
 
-                await session.rollback()
-                continue
+        game_data = await generate_game_data()
+
+        stmt = insert(WordleGame).values(group_id=group_id, updated_at=datetime.now())
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["group_id"],
+            set_={
+                "updated_at": stmt.excluded.updated_at,
+            },
+        )
+        await session.execute(stmt)
+        await session.flush()
+
+        stmt = select(WordleGame).where(WordleGame.group_id == group_id)
+        result = await session.execute(stmt)
+        new_game = result.scalar_one()
 
         for content in game_data["game_contents"]:
-            game_content = WordleGameContent(
+            stmt = insert(WordleGameContent).values(
                 game_id=new_game.id,
                 index=content["index"],
                 title=content["title"],
@@ -122,7 +123,21 @@ class OpenChars:
                 opc_times=content["opc_times"],
                 part=orjson.dumps(content.get("part", list())).decode(),
             )
-            session.add(game_content)
+            stmt = stmt.on_conflict_do_update(
+                constraint="uq_game_index",
+                set_={
+                    "title": stmt.excluded.title,
+                    "music_id": stmt.excluded.music_id,
+                    "is_correct": stmt.excluded.is_correct,
+                    "tips": stmt.excluded.tips,
+                    "pic_times": stmt.excluded.pic_times,
+                    "aud_times": stmt.excluded.aud_times,
+                    "opc_times": stmt.excluded.opc_times,
+                    "part": stmt.excluded.part,
+                },
+            )
+
+            await session.execute(stmt)
 
         return game_data
 
@@ -160,12 +175,11 @@ class OpenChars:
             await session.flush()
             return False, None
 
-        new_char = WordleOpenChar(game_id=record.id, char=chars.casefold())
-        session.add(new_char)
+        stmt = insert(WordleOpenChar).values(game_id=record.id, char=chars.casefold())
+        stmt = stmt.on_conflict_do_nothing(constraint="uq_game_char")
+        result = await session.execute(stmt)
 
-        try:
-            await session.flush()
-        except IntegrityError:
+        if result.rowcount == 0:
             return False, None
 
         stmt = (
@@ -223,14 +237,38 @@ class OpenChars:
         record = result.scalar_one_or_none()
 
         if not record:
-            record = WordleGame(group_id=group_id)
-            session.add(record)
+            stmt = insert(WordleGame).values(
+                group_id=group_id, updated_at=datetime.now()
+            )
+            stmt = stmt.on_conflict_do_update(
+                index_elements=["group_id"],
+                set_={
+                    "updated_at": stmt.excluded.updated_at,
+                },
+            )
+            result = await session.execute(stmt)
+
+            stmt = select(WordleGame).where(WordleGame.group_id == group_id)
+            result = await session.execute(stmt)
+            record = result.scalar_one()
         else:
             if datetime.now() - record.updated_at > timedelta(hours=12):
                 await session.delete(record)
                 await session.flush()
-                record = WordleGame(group_id=group_id)
-                session.add(record)
+                stmt = insert(WordleGame).values(
+                    group_id=group_id, updated_at=datetime.now()
+                )
+                stmt = stmt.on_conflict_do_update(
+                    index_elements=["group_id"],
+                    set_={
+                        "updated_at": stmt.excluded.updated_at,
+                    },
+                )
+                result = await session.execute(stmt)
+
+                stmt = select(WordleGame).where(WordleGame.group_id == group_id)
+                result = await session.execute(stmt)
+                record = result.scalar_one()
             else:
                 await session.execute(
                     delete(WordleOpenChar).where(WordleOpenChar.game_id == record.id)
@@ -244,11 +282,12 @@ class OpenChars:
         await session.flush()
 
         for char in game_data.get("open_chars", list()):
-            open_char = WordleOpenChar(game_id=record.id, char=char)
-            session.add(open_char)
+            stmt = insert(WordleOpenChar).values(game_id=record.id, char=char)
+            stmt = stmt.on_conflict_do_nothing(constraint="uq_game_char")
+            await session.execute(stmt)
 
         for content in game_data.get("game_contents", list()):
-            game_content = WordleGameContent(
+            stmt = insert(WordleGameContent).values(
                 game_id=record.id,
                 index=content["index"],
                 title=content["title"],
@@ -260,7 +299,20 @@ class OpenChars:
                 opc_times=content["opc_times"],
                 part=orjson.dumps(content.get("part", list())).decode(),
             )
-            session.add(game_content)
+            stmt = stmt.on_conflict_do_update(
+                constraint="uq_game_index",
+                set_={
+                    "title": stmt.excluded.title,
+                    "music_id": stmt.excluded.music_id,
+                    "is_correct": stmt.excluded.is_correct,
+                    "tips": stmt.excluded.tips,
+                    "pic_times": stmt.excluded.pic_times,
+                    "aud_times": stmt.excluded.aud_times,
+                    "opc_times": stmt.excluded.opc_times,
+                    "part": stmt.excluded.part,
+                },
+            )
+            await session.execute(stmt)
 
         record.updated_at = datetime.now()
 
