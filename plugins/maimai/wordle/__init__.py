@@ -480,12 +480,6 @@ async def _(event: GroupMessageEvent):
     data["aud_times"] += 1
     await openchars.update_game_data(group_id, game_data)
 
-    await aud_tip.send(
-        MessageSegment.text(
-            f"迪拉熊正在准备播放第{data['index']}行的歌曲，稍等一下mai~"
-        ),
-        at_sender=True,
-    )
     music_path = f"./Cache/Music/{data['music_id'] % 10000}.mp3"
     if not os.path.exists(music_path):
         async with AsyncClient(http2=True) as session:
