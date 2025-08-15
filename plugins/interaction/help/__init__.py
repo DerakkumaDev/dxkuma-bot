@@ -21,6 +21,7 @@ async def _():
     msg = (
         MessageSegment.text("迪拉熊Bug反馈&建议收集站：https://l.srcz.one/kumabugs"),
         MessageSegment.image(Path("./Static/Help/1.jpg")),
+        MessageSegment.text("git仓库：https://codeberg.org/Derakkuma"),
     )
     await report.send(msg)
 
@@ -30,5 +31,6 @@ async def _():
     msg = (
         MessageSegment.text("迪拉熊Bug反馈&建议收集站：https://l.srcz.one/kumabugs"),
         MessageSegment.image(Path("./Static/Help/1.jpg")),
+        MessageSegment.text("git仓库：https://codeberg.org/Derakkuma"),
     )
     await report_tome.send(msg)
