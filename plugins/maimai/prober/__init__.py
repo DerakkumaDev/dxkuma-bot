@@ -1815,9 +1815,9 @@ async def _(event: MessageEvent):
                     params["personal_token"] = lx_personal_token
                     gen = client.get_from_lxns(**params)
                 elif source == "diving-fish":
-                    params["dev_token"] = config.df_token
+                    params["token"] = config.df_token
                     params["qq"] = int(qq)
-                    params["plate"] = plate
+                    params["plate"] = int(plate)
                     gen = client.get_from_diving_fish(**params)
                 else:
                     return
