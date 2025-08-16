@@ -7,7 +7,7 @@ import numpy as np
 from nonebot.adapters.onebot.v11 import Bot
 from volcenginesdkarkruntime._exceptions import ArkBadRequestError, ArkNotFoundError
 
-from util.Config import config
+from util.config import config
 from .database import contextManager
 from .utils import client, system_prompt, user_prompt, prompt_hash as global_prompt_hash
 

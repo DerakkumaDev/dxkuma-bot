@@ -1,7 +1,7 @@
 import orjson as json
 from httpx import AsyncClient
 
-from util.Config import config
+from util.config import config
 
 base_url = "https://www.diving-fish.com/api/maimaidxprober/"
 

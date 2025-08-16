@@ -7,7 +7,7 @@ from nonebot.rule import to_me
 from numpy import random
 from xxhash import xxh32_hexdigest
 
-from util.Config import config
+from util.config import config
 from util.exceptions import NeedToSwitchException
 from util.lock import locks
 

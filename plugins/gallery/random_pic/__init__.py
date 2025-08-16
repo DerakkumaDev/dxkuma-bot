@@ -11,7 +11,7 @@ from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 from numpy import random
 
-from util.Config import config
+from util.config import config
 from util.exceptions import NotAllowedException
 from ..rank.database import ranking
 

@@ -15,17 +15,17 @@ from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 from numpy import random
 from rapidfuzz import fuzz, process
 
-from util.Config import config
-from util.Data import (
+from util.config import config
+from util.data import (
     get_chart_stats,
     get_music_data_df,
     get_alias_list_lxns,
     get_alias_list_ycn,
     get_alias_list_xray,
 )
-from util.Rule import regex
-from .DivingFish import get_player_records, get_player_record
-from .GenBests import (
+from util.rule import regex
+from .diving_fish import get_player_records, get_player_record
+from .bests_gen import (
     compute_record,
     generatebests,
     generate_wcb,
@@ -36,7 +36,7 @@ from .GenBests import (
     dxscore_proc,
     get_fit_diff,
 )
-from .MusicInfo import music_info, play_info, utage_music_info, score_info
+from .musicInfo import music_info, play_info, utage_music_info, score_info
 from .database import user_config_manager
 from .limekuma_client import BestsApiClient, ListApiClient
 

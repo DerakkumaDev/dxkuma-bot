@@ -8,7 +8,7 @@ from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
 from nonebot.message import run_postprocessor
 from starlette.websockets import WebSocketDisconnect
 
-from util.Config import config
+from util.config import config
 from util.exceptions import NotAllowedException, NeedToSwitchException
 
 PICPATH = "./Static/Gallery/SFW/"

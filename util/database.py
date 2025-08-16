@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import NullPool
 
-from util.Config import config
+from .config import config
 
 engine = create_async_engine(config.database_url, echo=False, poolclass=NullPool)
 

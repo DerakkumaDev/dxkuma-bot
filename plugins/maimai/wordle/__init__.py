@@ -14,7 +14,7 @@ from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 from rapidfuzz import fuzz, process
 
-from util.Data import (
+from util.data import (
     get_alias_list_lxns,
     get_alias_list_ycn,
     get_alias_list_xray,

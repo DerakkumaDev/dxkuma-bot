@@ -2,7 +2,7 @@ from typing import Optional
 import grpc
 from google.protobuf import wrappers_pb2
 
-from util.Config import config
+from util.config import config
 from .proto import kumabot_pb2
 from .proto import kumabot_pb2_grpc
 

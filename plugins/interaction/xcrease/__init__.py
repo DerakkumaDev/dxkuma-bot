@@ -11,7 +11,7 @@ from nonebot.adapters.onebot.v11 import (
     MessageSegment,
 )
 
-from util.Config import config
+from util.config import config
 
 groupIncrease = on_type(GroupIncreaseNoticeEvent)
 groupDecrease = on_type(GroupDecreaseNoticeEvent)

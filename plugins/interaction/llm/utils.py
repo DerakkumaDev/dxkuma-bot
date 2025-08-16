@@ -10,7 +10,7 @@ from nonebot.adapters.onebot.v11 import (
 from volcenginesdkarkruntime import AsyncArk
 from xxhash import xxh32_hexdigest
 
-from util.Config import config
+from util.config import config
 
 client = AsyncArk(api_key=config.llm_api_key)
 

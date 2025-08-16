@@ -7,8 +7,8 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from httpx import AsyncClient
 
-from util.Config import config
-from util.Data import get_chart_stats
+from util.config import config
+from util.data import get_chart_stats
 from .Config import (
     font_path,
     maimai_Static,
@@ -16,8 +16,8 @@ from .Config import (
     maimai_Plus,
     maimai_MusicType,
 )
-from .Draw import paste, text
-from .GenBests import get_fit_diff
+from .draw import paste, text
+from .bests_gen import get_fit_diff
 
 # 字体路径
 ttf_black_path = font_path / "rounded-x-mplus-1p-heavy.ttf"

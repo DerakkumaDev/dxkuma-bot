@@ -2,7 +2,7 @@ from nonebot.adapters import Bot
 from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
 from nonebot.permission import Permission
 
-from .Config import config
+from .config import config
 
 
 class Admin:

@@ -1,7 +1,7 @@
 import nonebot
 from nonebot.adapters.onebot.v11 import Adapter as V11Adapter
 
-from util.Config import config
+from util.config import config
 
 if __name__ == "__main__":
     with open(".env", "w", encoding="utf-8") as v:

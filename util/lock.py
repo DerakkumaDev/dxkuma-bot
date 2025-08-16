@@ -2,7 +2,7 @@ from enum import Enum, unique
 
 from anyio import Semaphore
 
-from util.Config import config
+from .config import config
 
 
 @unique

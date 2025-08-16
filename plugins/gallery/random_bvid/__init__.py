@@ -6,7 +6,7 @@ from httpx import AsyncClient
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 
-from util.Config import config
+from util.config import config
 from util.permission import ADMIN
 from .database import bvidList
 from ..rank.database import ranking

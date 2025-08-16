@@ -5,7 +5,7 @@ from datetime import datetime
 from numpy import random
 from pykakasi import kakasi
 
-from util.Data import get_music_data_lxns
+from util.data import get_music_data_lxns
 from .ranking import ranking
 from .times import times
 
