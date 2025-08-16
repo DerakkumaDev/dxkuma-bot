@@ -23,7 +23,6 @@ from util.data import (
     get_alias_list_ycn,
     get_alias_list_xray,
 )
-from util.rule import regex
 from .diving_fish import get_player_records, get_player_record
 from .bests_gen import (
     compute_record,
@@ -40,18 +39,18 @@ from .musicInfo import music_info, play_info, utage_music_info, score_info
 from .database import user_config_manager
 from .limekuma_client import BestsApiClient, ListApiClient
 
-best50 = on_message(regex(r"^dlxb?50$", re.I))
-ani50 = on_message(regex(r"^dlxani(50)?$", re.I))
-best40 = on_message(regex(r"^dlxb?40$", re.I))
+best50 = on_regex(r"^dlxb?50$", re.I)
+ani50 = on_regex(r"^dlxani(50)?$", re.I)
+best40 = on_regex(r"^dlxb?40$", re.I)
 fit50 = on_fullmatch("dlxf50", ignorecase=True)
 dxs50 = on_fullmatch("dlxs50", ignorecase=True)
-star50 = on_message(regex(r"^dlxx50(\s*[1-5])+$", re.I))
-rate50 = on_message(regex(r"^dlxr50(\s*(s{1,3}(p|\+)?|a{1,3}|b{1,3}|[cd]))+?$", re.I))
-ap50 = on_message(regex(r"^dlxap(50)?$", re.I))
-fc50 = on_message(regex(r"^dlxfc(50)?$", re.I))
-cf50 = on_message(regex(r"^dlxcf(50)?$", re.I))
-sd50 = on_message(regex(r"^dlx(s|f)d(50)?$", re.I))
-all50 = on_message(regex(r"^dlx(all?(50)?|b)$", re.I))
+star50 = on_regex(r"^dlxx50(\s*[1-5])+$", re.I)
+rate50 = on_regex(r"^dlxr50(\s*(s{1,3}(p|\+)?|a{1,3}|b{1,3}|[cd]))+?$", re.I)
+ap50 = on_regex(r"^dlxap(50)?$", re.I)
+fc50 = on_regex(r"^dlxfc(50)?$", re.I)
+cf50 = on_regex(r"^dlxcf(50)?$", re.I)
+sd50 = on_regex(r"^dlx(s|f)d(50)?$", re.I)
+all50 = on_regex(r"^dlx(all?(50)?|b)$", re.I)
 rr50 = on_regex(r"^dlxrr(50)?(\s*\d+)?$", re.I)
 sunlist = on_regex(r"^dlx(sunn?|cun|寸|🤏)(\s*\d+?)?$", re.I)
 locklist = on_regex(r"^dlx(suo|锁|🔒)(\s*\d+?)?$", re.I)

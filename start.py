@@ -1,7 +1,9 @@
 import nonebot
+from nonebot import rule
 from nonebot.adapters.onebot.v11 import Adapter as V11Adapter
 
 from util.config import config
+from util.rule import RegexRule
 
 if __name__ == "__main__":
     with open(".env", "w", encoding="utf-8") as v:
@@ -19,6 +21,9 @@ if __name__ == "__main__":
 
     driver = nonebot.get_driver()
     driver.register_adapter(V11Adapter)
+
+    # Patch NoneBot's regex rule
+    rule.RegexRule = RegexRule
 
     nonebot.load_plugins("plugins/maintenance")
     nonebot.load_plugins("plugins/maimai")
