@@ -168,11 +168,11 @@ async def _(event: GroupMessageEvent):
     await openchars.update_game_data(group_id, game_data)
     if char_all_open:
         for i, title, id in char_all_open:
-            cover_path = f"./Cache/Jacket/{id}.png"
+            cover_path = f"./Cache/Jacket/{id % 10000}.png"
             if not os.path.exists(cover_path):
                 async with AsyncClient(http2=True) as session:
                     resp = await session.get(
-                        f"https://assets2.lxns.net/maimai/jacket/{id}.png"
+                        f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
                     )
                     async with aiofiles.open(cover_path, "wb") as fd:
                         await fd.write(await resp.aread())
@@ -214,11 +214,11 @@ async def _(event: GroupMessageEvent):
         return
 
     for i, title, id in guess_success:
-        cover_path = f"./Cache/Jacket/{id}.png"
+        cover_path = f"./Cache/Jacket/{id % 10000}.png"
         if not os.path.exists(cover_path):
             async with AsyncClient(http2=True) as session:
                 resp = await session.get(
-                    f"https://assets2.lxns.net/maimai/jacket/{id}.png"
+                    f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
                 )
                 async with aiofiles.open(cover_path, "wb") as fd:
                     await fd.write(await resp.aread())
@@ -399,11 +399,11 @@ async def _(event: GroupMessageEvent):
     data["pic_times"] += 1
     await openchars.update_game_data(group_id, game_data)
 
-    cover_path = f"./Cache/Jacket/{data['music_id']}.png"
+    cover_path = f"./Cache/Jacket/{data['music_id'] % 10000}.png"
     if not os.path.exists(cover_path):
         async with AsyncClient(http2=True) as session:
             resp = await session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{data['music_id']}.png"
+                f"https://assets2.lxns.net/maimai/jacket/{data['music_id'] % 10000}.png"
             )
             async with aiofiles.open(cover_path, "wb") as fd:
                 await fd.write(await resp.aread())
@@ -480,11 +480,11 @@ async def _(event: GroupMessageEvent):
     data["aud_times"] += 1
     await openchars.update_game_data(group_id, game_data)
 
-    music_path = f"./Cache/Music/{data['music_id']}.mp3"
+    music_path = f"./Cache/Music/{data['music_id'] % 10000}.mp3"
     if not os.path.exists(music_path):
         async with AsyncClient(http2=True) as session:
             resp = await session.get(
-                f"https://assets2.lxns.net/maimai/music/{data['music_id']}.mp3"
+                f"https://assets2.lxns.net/maimai/music/{data['music_id'] % 10000}.mp3"
             )
             async with aiofiles.open(music_path, "wb") as fd:
                 await fd.write(await resp.aread())

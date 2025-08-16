@@ -12,7 +12,7 @@ from .database import contextManager
 from .utils import client, system_prompt, user_prompt, prompt_hash as global_prompt_hash
 
 OUTTIME = 10 / 2
-CONTEXT_TTL = 60 * 60 * 24 * 2
+CONTEXT_TTL = 60 * 60 * 24 * 2 / 3
 
 request_queues: dict[str, list[str]] = dict()
 response_queues: dict[str, list[str]] = dict()
@@ -54,7 +54,12 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
         response = await client.context.create(
             model=config.llm_model,
             messages=[{"role": "system", "content": system_prompt}],
-            ttl=CONTEXT_TTL,
+            ttl=int(CONTEXT_TTL),
+            truncation_strategy={
+                "type": "rolling_tokens",
+                "max_window_tokens": 4096,
+                "rolling_window_tokens": 512,
+            },
             extra_headers={"x-is-encrypted": "true"},
         )
         context_id = response.id
