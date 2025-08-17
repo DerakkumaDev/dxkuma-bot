@@ -1549,7 +1549,7 @@ async def _(bot: Bot, event: MessageEvent):
 
 @rr50.handle()
 async def _(event: MessageEvent):
-    match = re.fullmatch(r"dlxrr(?:50)?\s*(\d+)", event.get_plaintext().strip(), re.I)
+    match = re.fullmatch(r"dlxrr(?:50)?\s*(\d+)", event.get_plaintext(), re.I)
     rating = 0
     if match:
         rating = int(match.group(1))
@@ -1911,7 +1911,7 @@ async def _(event: MessageEvent):
 
 @songinfo.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext().strip()
+    msg = event.get_plaintext()
     match = re.fullmatch(
         r"(?:chart|id|search|查歌)\s*(?:(dx|sd|标准?)\s*)?(.+)|(?:(dx|sd|标准?)\s*)?(.+)是什么歌？?",
         msg,
@@ -1926,7 +1926,7 @@ async def _(event: MessageEvent):
         return
 
     songList = await get_music_data_df()
-    result, song_info = await get_info_by_name(song.strip(), music_type, songList)
+    result, song_info = await get_info_by_name(song, music_type, songList)
     if result == 1:
         if isinstance(song_info, set):
             msg = f"迪拉熊找到啦~结果有：\r\n{'\r\n'.join(song_info)}"
@@ -1961,7 +1961,7 @@ async def _(event: MessageEvent):
 @playinfo.handle()
 async def _(event: MessageEvent):
     qq = event.get_user_id()
-    msg = event.get_plaintext().strip()
+    msg = event.get_plaintext()
     match = re.fullmatch(r"(?:score|info)\s*(?:(dx|sd|标准?)\s*)?(.+)", msg, re.I)
     if not match:
         return
@@ -2069,7 +2069,7 @@ async def _(event: MessageEvent):
 
 @playaudio.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext().strip()
+    msg = event.get_plaintext()
     match = re.fullmatch(r"(?:迪拉熊|dlx)?点歌\s*(.+)", msg, re.I)
     if not match:
         return
@@ -2173,7 +2173,7 @@ async def _(event: MessageEvent):
 # 查看别名
 @aliasSearch.handle()
 async def _(event: MessageEvent):
-    msg = event.get_plaintext().strip()
+    msg = event.get_plaintext()
     match = re.fullmatch(
         r"(?:alias|查看?别(?:名|称))\s*(.+)|(.+)有(?:什么|哪些)别(?:名|称)？?",
         msg,
@@ -2193,7 +2193,7 @@ async def _(event: MessageEvent):
         )
 
     songList = await get_music_data_df()
-    result, song_info = await get_info_by_name(name.strip(), None, songList)
+    result, song_info = await get_info_by_name(name, None, songList)
     if result == 1:
         if isinstance(song_info, set):
             msg = f"迪拉熊找到啦~结果有：\r\n{'\r\n'.join(song_info)}"
@@ -2389,12 +2389,15 @@ async def _(event: MessageEvent):
 
 @set_token.handle()
 async def _(event: MessageEvent):
-    qq = event.get_user_id().strip()
+    qq = event.get_user_id()
     match = re.fullmatch(
         r"(?:迪拉熊|dlx)?(?:绑定|bind)\s*(落雪|水鱼)\s*(.+)",
         event.get_plaintext(),
         re.I,
     )
+    if not match:
+        return
+
     prober = match.group(1)
     token = match.group(2)
     if prober == "落雪":
