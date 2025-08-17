@@ -229,7 +229,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     group_id = event.group_id
     msg = event.get_plaintext()
     match = re.fullmatch(
-        r"(?:机厅|jt|看看|(.+)\s*)?有?(?:几(?:人|卡)?|多少(?:人|卡)|jr?)", msg
+        r"(?:机厅|jt|看看|(.+?)\s*)?有?(?:几(?:人|卡)?|多少(?:人|卡)|jr?)", msg
     )
     arcade_ids = None
     if match:
@@ -267,7 +267,7 @@ async def _(event: GroupMessageEvent):
     group_id = event.group_id
     user_id = event.user_id
     msg = event.get_plaintext()
-    match = re.fullmatch(r"(.+)\s*(加|减|为|＋|－|＝|\+|-|=)?\s*(\d+)(?:人|卡)?", msg)
+    match = re.fullmatch(r"(.+?)\s*(加|减|为|＋|－|＝|\+|-|=)?\s*(\d+)(?:人|卡)?", msg)
     if not match:
         return
 
