@@ -3,7 +3,7 @@ from nonebot.adapters.onebot.v11 import GroupMessageEvent
 
 from .rule import repeater
 
-m = on_message(repeater(), priority=100000)
+m = on_message(repeater())
 
 
 @m.handle()

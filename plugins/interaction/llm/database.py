@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import String, Boolean
+from sqlalchemy import String
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -17,16 +17,6 @@ class ChatContext(Base):
         String(12), unique=True, nullable=False, index=True
     )
     context_id: Mapped[str] = mapped_column(String(58), nullable=False)
-
-
-class ChatMode(Base):
-    __tablename__ = "chat_modes"
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    chat_id: Mapped[str] = mapped_column(
-        String(12), unique=True, nullable=False, index=True
-    )
-    chat_mode: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class PromptHash(Base):
@@ -55,24 +45,6 @@ class ContextManager:
         stmt = insert(ChatContext).values(chat_id=chat_id, context_id=context_id)
         stmt = stmt.on_conflict_do_update(
             index_elements=["chat_id"], set_={"context_id": stmt.excluded.context_id}
-        )
-        await session.execute(stmt)
-
-    @with_transaction
-    async def get_chatmode(self, chat_id: str, **kwargs) -> bool:
-        session: AsyncSession = kwargs["session"]
-
-        stmt = select(ChatMode.chat_mode).where(ChatMode.chat_id == chat_id)
-        result = await session.execute(stmt)
-        return result.scalar_one_or_none() or False
-
-    @with_transaction
-    async def set_chatmode(self, chat_id: str, chat_mode: bool, **kwargs) -> None:
-        session: AsyncSession = kwargs["session"]
-
-        stmt = insert(ChatMode).values(chat_id=chat_id, chat_mode=chat_mode)
-        stmt = stmt.on_conflict_do_update(
-            index_elements=["chat_id"], set_={"chat_mode": stmt.excluded.chat_mode}
         )
         await session.execute(stmt)
 

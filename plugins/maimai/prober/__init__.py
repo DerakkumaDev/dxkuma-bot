@@ -10,7 +10,7 @@ import aiofiles
 import numpy as np
 from grpc import RpcError
 from httpx import AsyncClient
-from nonebot import on_fullmatch, on_message, on_regex
+from nonebot import on_fullmatch, on_regex
 from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
 from numpy import random
 from rapidfuzz import fuzz, process

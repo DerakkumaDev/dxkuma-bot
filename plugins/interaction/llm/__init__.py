@@ -1,31 +1,14 @@
 import asyncio
-import re
 from datetime import datetime
 
-from nonebot import on_message, on_regex
+from nonebot import on_message
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
+from nonebot.rule import to_me
 
-from util.permission import GROUP_MANAGER
-from .database import contextManager
 from .tasks import times, request_queues, outtime_check
 from .utils import escape, gen_message
 
-handler = on_message(priority=10000, block=False)
-
-chat_mode_on = on_regex(
-    r"^((开启|开始|启用|启动|打开|切换)主动(模式)?|"
-    r"(关闭|禁用|结束)被动(模式)?|"
-    r"(迪拉熊|dlx)说话?)$",
-    re.I,
-    permission=GROUP_MANAGER,
-)
-chat_mode_off = on_regex(
-    r"^((关闭|禁用|结束)主动(模式)?|"
-    r"(开启|开始|启用|启动|打开|切换)被动(模式)?|"
-    r"(迪拉熊|dlx)闭嘴?)$",
-    re.I,
-    permission=GROUP_MANAGER,
-)
+handler = on_message(to_me(), priority=1000)
 
 
 @handler.handle()
@@ -34,12 +17,7 @@ async def _(bot: Bot, event: MessageEvent):
     if isinstance(event, GroupMessageEvent):
         qqid = event.group_id
         chat_type = "group"
-        chat_id = f"{qqid}.{chat_type[0]}"
-        chat_mode = await contextManager.get_chatmode(chat_id)
-        if not chat_mode and not event.is_tome():
-            return
-
-        msg_text = await gen_message(event, bot, chat_mode)
+        msg_text = await gen_message(event, bot)
         group_info = await bot.get_group_info(group_id=event.group_id)
         message = (
             f'<message time="{now.isoformat()}" chatroom_name="{
@@ -53,8 +31,7 @@ async def _(bot: Bot, event: MessageEvent):
     else:
         qqid = event.user_id
         chat_type = "private"
-        chat_id = f"{qqid}.{chat_type[0]}"
-        msg_text = await gen_message(event, bot, False)
+        msg_text = await gen_message(event, bot)
         message = (
             f'<message time="{now.isoformat()}" sender_id="{qqid}" sender_name="{
                 escape(event.sender.nickname)
@@ -66,21 +43,8 @@ async def _(bot: Bot, event: MessageEvent):
     if not msg_text:
         return
 
+    chat_id = f"{qqid}.{chat_type[0]}"
     messages = request_queues.setdefault(chat_id, list())
     messages.append(message)
     times[chat_id] = event.time
     asyncio.create_task(outtime_check(bot, chat_type, qqid))
-
-
-@chat_mode_on.handle()
-async def _(event: GroupMessageEvent):
-    chat_id = f"{event.group_id}.g"
-    await contextManager.set_chatmode(chat_id, True)
-    await chat_mode_on.send("迪拉熊可以直接看到消息啦~", at_sender=True)
-
-
-@chat_mode_off.handle()
-async def _(event: GroupMessageEvent):
-    chat_id = f"{event.group_id}.g"
-    await contextManager.set_chatmode(chat_id, False)
-    await chat_mode_off.send("迪拉熊只能看到被at的消息啦~", at_sender=True)

@@ -32,7 +32,7 @@ def escape(message: str) -> str:
     )
 
 
-async def gen_message(event: MessageEvent, bot: Bot, is_chat_mode: bool) -> str:
+async def gen_message(event: MessageEvent, bot: Bot) -> str:
     group_id = event.group_id if isinstance(event, GroupMessageEvent) else None
     l = list()
     if event.reply:
@@ -53,9 +53,6 @@ async def gen_message(event: MessageEvent, bot: Bot, is_chat_mode: bool) -> str:
                 )
             }</reply>"
         )
-
-    if event.is_tome() and is_chat_mode:
-        l.append("<at>迪拉熊</at>")
 
     for seg in event.get_message():
         l.append(await gen_message_segment(seg, bot, group_id))
@@ -118,7 +115,7 @@ async def gen_message_segment(
             contact_name = escape(group_info.get("card", str()))
         return f'<contact type="{contact_type}"{gen_name_field("contact", contact_id, contact_name, True)}</contact>'
     elif seg.type == "music":
-        return f"<music>{escape(seg.data.get('title', str()))}</music>"
+        return gen_seg("music", escape(seg.data.get("title", str())))
     elif seg.type == "reply":
         try:
             reply_msg = await bot.get_msg(message_id=seg.data.get("id", 0))
@@ -185,25 +182,27 @@ async def gen_message_segment(
                 f"{msg_text}\n"
                 "</message>"
             )
-        return f"<forward>{str().join(messages)}</forward>"
+        return gen_seg("forward", str().join(messages))
     elif seg.type == "image":
-        return f"<image>{escape(seg.data.get('name', str()))}</image>"
+        return gen_seg("image", escape(seg.data.get("name", str())))
     elif seg.type == "face":
-        return f"<emoji>{escape(seg.data.get('raw', dict()).get('faceText', str()) or str())}</emoji>"
+        return gen_seg(
+            "emoji", escape(seg.data.get("raw", dict()).get("faceText", str()) or str())
+        )
     elif seg.type == "video":
-        return f"<video>{escape(seg.data.get('name', str()))}</video>"
+        return gen_seg("video", escape(seg.data.get("name", str())))
     elif seg.type == "record":
-        return f"<record>{escape(seg.data.get('name', str()))}</record>"
+        return gen_seg("record", escape(seg.data.get("name", str())))
     elif seg.type == "file":
-        return f"<file>{escape(seg.data.get('name', str()))}</file>"
+        return gen_seg("file", escape(seg.data.get("name", str())))
     elif seg.type == "mface":
-        return f"<emoticon>{escape(seg.data.get('summary', str()))}</emoticon>"
+        return gen_seg("emoticon", escape(seg.data.get("summary", str())))
     elif seg.type == "markdown":
-        return f"<markdown>{escape(seg.data.get('content', str()))}</markdown>"
+        return gen_seg("markdown", escape(seg.data.get("content", str())))
     elif seg.type == "dice":
-        return f"<dice>{escape(seg.data.get('result', str()))}</dice>"
+        return gen_seg("dice", escape(seg.data.get("result", str())))
     elif seg.type == "rps":
-        return f"<rps>{escape(seg.data.get('result', str()))}</rps>"
+        return gen_seg("rps", escape(seg.data.get("result", str())))
     else:
         return f"<{seg.type}>{seg.data}<{seg.type}/>"
 
@@ -222,3 +221,7 @@ def gen_name_field(key: str, user_id: str, name: str, name_value: bool = False) 
             return f' {key}_id="{user_id}"'
         else:
             return f' {key}_id="{user_id}" {key}_name="{name}"'
+
+
+def gen_seg(key: str, value: str) -> str:
+    return f"<{key}>{value}<{key}/>"
