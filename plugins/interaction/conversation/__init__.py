@@ -8,7 +8,7 @@ from numpy import random
 from xxhash import xxh32_hexdigest
 
 from util.config import config
-from util.exceptions import NeedToSwitchException
+from util.exceptions import SkipedException
 from util.lock import locks
 
 xc = on_regex(r"^([香想]草|xc)(迪拉熊|dlx)$", re.I)
@@ -84,7 +84,7 @@ async def _(event: GroupMessageEvent):
         and locks[key].count > 1
         and event.self_id not in config.nsfw_allowed
     ):
-        raise NeedToSwitchException
+        raise SkipedException
 
     i = 0
     if event.self_id in config.nsfw_allowed:

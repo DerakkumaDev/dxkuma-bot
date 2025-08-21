@@ -13,7 +13,7 @@ from nonebot.message import event_preprocessor, run_postprocessor, event_postpro
 from xxhash import xxh32_hexdigest
 
 from util.config import config
-from util.exceptions import NotAllowedException, NeedToSwitchException, SkipException
+from util.exceptions import ContinuedException, ProcessedException, SkipedException
 from util.lock import locks, Lock, States
 
 
@@ -23,7 +23,7 @@ async def _(
     event: GroupMessageEvent | GroupIncreaseNoticeEvent | GroupDecreaseNoticeEvent,
 ):
     if event.get_user_id() in config.bots:
-        raise IgnoredException(SkipException)
+        raise IgnoredException(ProcessedException)
 
     check_event(event)
 
@@ -43,7 +43,7 @@ async def _(
         else:
             del locks[key]
 
-        raise IgnoredException(SkipException)
+        raise IgnoredException(ProcessedException)
 
     return
 
@@ -58,12 +58,12 @@ async def _(
             event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id
         }"
     )
-    if isinstance(exception, NotAllowedException):
+    if isinstance(exception, SkipedException):
         locks[key].state = States.SKIPED
         return
 
-    if isinstance(exception, NeedToSwitchException):
-        locks[key].state = States.NEED_TO_SWITCH
+    if isinstance(exception, ContinuedException):
+        locks[key].state = States.CONTINUED
         return
 
     locks[key].state = States.PROCESSED
@@ -105,4 +105,4 @@ def check_event(event: Event):
         if ats := message["at"]:
             for at in ats:
                 if at.data["qq"] in config.bots and not event.is_tome():
-                    raise IgnoredException(SkipException)
+                    raise IgnoredException(ProcessedException)

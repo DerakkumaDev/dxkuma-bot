@@ -1,10 +1,10 @@
-class NotAllowedException(Exception):
+class ContinuedException(Exception):
     pass
 
 
-class SkipException(Exception):
+class ProcessedException(Exception):
     pass
 
 
-class NeedToSwitchException(Exception):
+class SkipedException(Exception):
     pass

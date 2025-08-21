@@ -12,10 +12,10 @@ from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 from numpy import random
 
 from util.config import config
-from util.exceptions import NotAllowedException
+from .rule import nsfw
 from ..rank.database import ranking
 
-rand_pic = on_regex(r"^(随机)?(迪拉熊|dlx)((涩|色|瑟)图|st)?$", re.I)
+rand_pic = on_regex(r"^(随机)?(迪拉熊|dlx)((涩|色|瑟)图|st)?$", re.I, nsfw())
 
 LIMIT_MINUTES = 1
 LIMIT_TIMES = 10
@@ -70,8 +70,6 @@ async def _(bot: Bot, event: GroupMessageEvent):
     if type == "nsfw":
         if os.path.exists("./data/nsfw_lock"):
             await rand_pic.finish("由于该账号被警告，该功能暂时关闭，请稍后再试mai~")
-        if event.self_id not in config.nsfw_allowed:  # type 为 'nsfw' 且非指定机器人
-            raise NotAllowedException
     elif group_id != config.special_group:  # 不被限制的 group_id
         while len(groups[group_id]) > 0:
             t = groups[group_id][0]

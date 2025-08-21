@@ -9,8 +9,8 @@ from .config import config
 class States(Enum):
     PROCESSING = 0
     PROCESSED = 1
-    SKIPED = 2
-    NEED_TO_SWITCH = 3
+    CONTINUED = 2
+    SKIPED = 3
 
 
 class Lock(object):
