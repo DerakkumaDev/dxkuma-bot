@@ -16,8 +16,6 @@ client = AsyncArk(api_key=config.llm_api_key)
 
 with open("prompt/system.md", "r") as f:
     system_prompt = f.read()
-with open("prompt/user.md", "r") as f:
-    user_prompt = f.read()
 prompt_hash = xxh32_hexdigest(system_prompt)
 
 

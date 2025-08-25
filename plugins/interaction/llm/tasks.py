@@ -9,7 +9,7 @@ from volcenginesdkarkruntime._exceptions import ArkBadRequestError, ArkNotFoundE
 
 from util.config import config
 from .database import contextManager
-from .utils import client, system_prompt, user_prompt, prompt_hash as global_prompt_hash
+from .utils import client, system_prompt, prompt_hash as global_prompt_hash
 
 OUTTIME = 10 / 2
 
@@ -67,11 +67,10 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
                 if count > 1:
                     message += "\n"
 
-        input_message = str.format(user_prompt, message)
         try:
             stream = await client.context.completions.create(
                 context_id=context_id,
-                messages=[{"role": "user", "content": input_message}],
+                messages=[{"role": "user", "content": message}],
                 model=config.llm_model,
                 stream=True,
                 extra_headers={"x-is-encrypted": "true"},
@@ -120,6 +119,18 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
                 if len(texts) > 0:
                     reply = str().join(texts)
                     await push_and_start_sending(bot, reply, chat_type, qq_id)
+                texts = list()
+            elif choice.delta.content == "（" and len(texts) > 0:
+                reply = str().join(texts)
+                await push_and_start_sending(bot, reply, chat_type, qq_id)
+                texts = list()
+                texts.append(choice.delta.content)
+            elif choice.delta.content in "）" or (
+                choice.delta.content == "~" and texts[-1] == "mai"
+            ):
+                texts.append(choice.delta.content)
+                reply = str().join(texts)
+                await push_and_start_sending(bot, reply, chat_type, qq_id)
                 texts = list()
             else:
                 texts.append(choice.delta.content)
