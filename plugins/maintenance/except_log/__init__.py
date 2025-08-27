@@ -3,7 +3,7 @@ from typing import Optional
 
 from httpx import HTTPError
 from nonebot import get_bot
-from nonebot.adapters.onebot.v11 import MessageSegment, Event, MessageEvent
+from nonebot.adapters.onebot.v11 import Event, MessageEvent, MessageSegment
 from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
 from nonebot.message import run_postprocessor
 from starlette.websockets import WebSocketDisconnect

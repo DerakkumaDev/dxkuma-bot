@@ -4,7 +4,7 @@ from datetime import date
 
 import aiofiles
 import orjson as json
-from httpx import HTTPError, AsyncClient
+from httpx import AsyncClient, HTTPError
 
 music_data_lock = Lock()
 chart_stats_lock = Lock()

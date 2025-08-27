@@ -16,16 +16,16 @@ from rapidfuzz import fuzz, process
 
 from util.data import (
     get_alias_list_lxns,
-    get_alias_list_ycn,
     get_alias_list_xray,
+    get_alias_list_ycn,
     get_music_data_lxns,
 )
 from .database import openchars
 from .ranking import ranking
 from .times import times
 from .utils import (
-    generate_message_state,
     check_music_id,
+    generate_message_state,
     generate_success_state,
     get_version_name,
 )

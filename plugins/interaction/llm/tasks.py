@@ -9,7 +9,7 @@ from volcenginesdkarkruntime._exceptions import ArkBadRequestError, ArkNotFoundE
 
 from util.config import config
 from .database import contextManager
-from .utils import client, system_prompt, prompt_hash as global_prompt_hash
+from .utils import client, prompt_hash as global_prompt_hash, system_prompt
 
 OUTTIME = 10 / 2
 

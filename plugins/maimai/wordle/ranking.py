@@ -1,4 +1,4 @@
-from sqlalchemy import String, Integer, Boolean, Float, func
+from sqlalchemy import Boolean, Float, Integer, String, func
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select

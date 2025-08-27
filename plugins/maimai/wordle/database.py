@@ -1,14 +1,14 @@
-from typing import Optional
 from datetime import datetime, timedelta
+from typing import Optional
 
 import orjson
 from sqlalchemy import (
-    String,
-    Integer,
     Boolean,
-    ForeignKey,
-    Text,
     DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
     UniqueConstraint,
     delete,
 )
@@ -18,7 +18,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from util.database import Base, with_transaction
-from .utils import generate_game_data, check_char_in_text
+from .utils import check_char_in_text, generate_game_data
 
 
 class WordleGame(Base):
@@ -145,9 +145,7 @@ class OpenChars:
     async def game_over(self, group_id: str, **kwargs) -> bool:
         session: AsyncSession = kwargs["session"]
 
-        stmt = (
-            select(WordleGame).where(WordleGame.group_id == group_id).with_for_update()
-        )
+        stmt = select(WordleGame).where(WordleGame.group_id == group_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
 
@@ -186,7 +184,6 @@ class OpenChars:
             select(WordleGameContent)
             .where(WordleGameContent.game_id == record.id)
             .order_by(WordleGameContent.id)
-            .with_for_update()
         )
         result = await session.execute(stmt)
         game_contents = result.scalars().all()
@@ -230,9 +227,7 @@ class OpenChars:
     async def update_game_data(self, group_id: str, game_data: dict, **kwargs) -> None:
         session: AsyncSession = kwargs["session"]
 
-        stmt = (
-            select(WordleGame).where(WordleGame.group_id == group_id).with_for_update()
-        )
+        stmt = select(WordleGame).where(WordleGame.group_id == group_id)
         result = await session.execute(stmt)
         record = result.scalar_one_or_none()
 

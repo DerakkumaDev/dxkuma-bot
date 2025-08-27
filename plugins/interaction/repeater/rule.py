@@ -1,4 +1,4 @@
-from nonebot.adapters.onebot.v11 import Message, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message
 from nonebot.internal.rule import Rule
 from nonebot.typing import T_State
 from xxhash import xxh32_hexdigest

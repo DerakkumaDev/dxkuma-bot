@@ -11,13 +11,13 @@ from util.config import config
 from util.data import get_chart_stats
 from .Config import (
     font_path,
+    maimai_MusicType,
+    maimai_Plus,
     maimai_Static,
     maimai_Version,
-    maimai_Plus,
-    maimai_MusicType,
 )
-from .draw import paste, text
 from .bests_gen import get_fit_diff
+from .draw import paste, text
 
 # 字体路径
 ttf_black_path = font_path / "rounded-x-mplus-1p-heavy.ttf"

@@ -3,18 +3,18 @@ from typing import Optional
 from nonebot.adapters.onebot.v11 import (
     Bot,
     Event,
-    GroupMessageEvent,
-    GroupIncreaseNoticeEvent,
     GroupDecreaseNoticeEvent,
+    GroupIncreaseNoticeEvent,
+    GroupMessageEvent,
 )
 from nonebot.exception import IgnoredException
 from nonebot.internal.driver import Driver
-from nonebot.message import event_preprocessor, run_postprocessor, event_postprocessor
+from nonebot.message import event_postprocessor, event_preprocessor, run_postprocessor
 from xxhash import xxh32_hexdigest
 
 from util.config import config
 from util.exceptions import ContinuedException, ProcessedException, SkipedException
-from util.lock import locks, Lock, States
+from util.lock import Lock, States, locks
 
 
 @event_preprocessor

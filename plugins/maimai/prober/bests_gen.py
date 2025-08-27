@@ -4,26 +4,26 @@ from io import BytesIO
 
 import aiofiles
 import numpy as np
-from PIL import Image, ImageFont, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from httpx import AsyncClient
 
 from util.config import config as Config
 from .Config import (
     font_path,
-    maimai_Static,
-    maimai_Frame,
-    maimai_Dani,
-    maimai_Rating,
-    maimai_Level,
-    maimai_DXScoreStar,
-    maimai_MusicType,
-    maimai_MusicIcon,
-    maimai_Icon,
     maimai_Class,
+    maimai_DXScoreStar,
+    maimai_Dani,
+    maimai_Frame,
+    maimai_Icon,
+    maimai_Level,
+    maimai_MusicIcon,
+    maimai_MusicType,
+    maimai_Rating,
     maimai_Shougou,
+    maimai_Static,
 )
+from .GLOBAL_CONSTANT import exclude_list, version_df_maps
 from .draw import paste, text
-from .GLOBAL_CONSTANT import version_df_maps, exclude_list
 
 ratings = {
     "app": [1.01, 22.4, 15.0],

@@ -3,7 +3,7 @@ from typing import Optional
 
 import nanoid
 from rapidfuzz import fuzz, process
-from sqlalchemy import String, Integer, ForeignKey, UniqueConstraint, BigInteger
+from sqlalchemy import BigInteger, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select

@@ -1,4 +1,3 @@
-import orjson as json
 from httpx import AsyncClient
 
 from util.config import config

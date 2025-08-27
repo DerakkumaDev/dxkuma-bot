@@ -3,8 +3,8 @@ from typing import Optional
 
 from nonebot.adapters.onebot.v11 import (
     Bot,
-    MessageEvent,
     GroupMessageEvent,
+    MessageEvent,
     MessageSegment,
 )
 from volcenginesdkarkruntime import AsyncArk

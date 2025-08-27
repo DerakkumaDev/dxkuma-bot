@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import String, Integer, Date, UniqueConstraint
+from sqlalchemy import Date, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select

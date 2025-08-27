@@ -1,4 +1,5 @@
 from typing import Optional
+
 import grpc
 from google.protobuf import wrappers_pb2
 

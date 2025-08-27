@@ -1,6 +1,6 @@
-from datetime import date, timedelta, datetime
+from datetime import date, datetime, timedelta
 
-from sqlalchemy import String, DateTime
+from sqlalchemy import DateTime, String
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select

@@ -1,5 +1,5 @@
 from nonebot.adapters import Bot
-from nonebot.adapters.onebot.v11 import MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageEvent
 from nonebot.permission import Permission
 
 from .config import config

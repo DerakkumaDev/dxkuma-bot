@@ -11,33 +11,33 @@ import numpy as np
 from grpc import RpcError
 from httpx import AsyncClient
 from nonebot import on_fullmatch, on_regex
-from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment, Bot
+from nonebot.adapters.onebot.v11 import Bot, MessageEvent, MessageSegment
 from numpy import random
 from rapidfuzz import fuzz, process
 
 from util.config import config
 from util.data import (
+    get_alias_list_lxns,
+    get_alias_list_xray,
+    get_alias_list_ycn,
     get_chart_stats,
     get_music_data_df,
-    get_alias_list_lxns,
-    get_alias_list_ycn,
-    get_alias_list_xray,
 )
-from .diving_fish import get_player_records, get_player_record
 from .bests_gen import (
     compute_record,
-    generatebests,
+    dxscore_proc,
+    find_song_by_id,
     generate_wcb,
+    generatebests,
+    get_fit_diff,
     get_page_records,
     ratings,
     records_filter,
-    find_song_by_id,
-    dxscore_proc,
-    get_fit_diff,
 )
-from .musicInfo import music_info, play_info, utage_music_info, score_info
 from .database import user_config_manager
+from .diving_fish import get_player_record, get_player_records
 from .limekuma_client import BestsApiClient, ListApiClient
+from .musicInfo import music_info, play_info, score_info, utage_music_info
 
 best50 = on_regex(r"^dlxb?50$", re.I)
 ani50 = on_regex(r"^dlxani(50)?$", re.I)

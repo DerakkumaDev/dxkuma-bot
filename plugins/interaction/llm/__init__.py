@@ -2,10 +2,10 @@ import asyncio
 from datetime import datetime
 
 from nonebot import on_message
-from nonebot.adapters.onebot.v11 import Bot, MessageEvent, GroupMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
 from nonebot.rule import to_me
 
-from .tasks import times, request_queues, outtime_check
+from .tasks import outtime_check, request_queues, times
 from .utils import escape, gen_message
 
 handler = on_message(to_me(), priority=1000)

@@ -3,10 +3,10 @@ from pathlib import Path
 from nonebot import on_type
 from nonebot.adapters.onebot.v11 import (
     Bot,
-    GroupIncreaseNoticeEvent,
-    GroupDecreaseNoticeEvent,
     FriendAddNoticeEvent,
     FriendRequestEvent,
+    GroupDecreaseNoticeEvent,
+    GroupIncreaseNoticeEvent,
     GroupRequestEvent,
     MessageSegment,
 )
