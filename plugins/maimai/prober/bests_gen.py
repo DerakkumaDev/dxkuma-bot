@@ -1002,7 +1002,7 @@ async def generate_wcb(
                 (rate_x, rate_y),
                 f"{rate_num}/{all_count}",
                 font=ttf,
-                fill=(200, 200, 0) if rate_num == all_count else (53, 74, 164),
+                fill=(248, 179, 42) if rate_num == all_count else (53, 74, 164),
                 anchor="mm",
             )
             rate_x += 118
@@ -1012,7 +1012,7 @@ async def generate_wcb(
                 (fcfs_x, fcfs_y),
                 f"{fcfs_num}/{all_count}",
                 font=ttf,
-                fill=(200, 200, 0) if fcfs_num == all_count else (53, 74, 164),
+                fill=(248, 179, 42) if fcfs_num == all_count else (53, 74, 164),
                 anchor="mm",
             )
             fcfs_x += 102
