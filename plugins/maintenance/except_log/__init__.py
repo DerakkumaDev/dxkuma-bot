@@ -4,9 +4,8 @@ from typing import Optional
 from httpx import HTTPError
 from nonebot import get_bot
 from nonebot.adapters.onebot.v11 import Event, MessageEvent, MessageSegment
-from nonebot.adapters.onebot.v11.exception import OneBotV11AdapterException
+from nonebot.exception import AdapterException
 from nonebot.message import run_postprocessor
-from starlette.websockets import WebSocketDisconnect
 
 from util.config import config
 from util.exceptions import ContinuedException, SkipedException
@@ -17,14 +16,7 @@ PICPATH = "./Static/Gallery/SFW/"
 @run_postprocessor
 async def _(event: Event, exception: Optional[Exception]):
     if not exception or isinstance(
-        exception,
-        (
-            OneBotV11AdapterException,
-            WebSocketDisconnect,
-            HTTPError,
-            ContinuedException,
-            SkipedException,
-        ),
+        exception, (HTTPError, AdapterException, ContinuedException, SkipedException)
     ):
         return
     bot = get_bot()
