@@ -51,7 +51,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     files = os.listdir(path)
     if not files:
         msg = (
-            MessageSegment.text("迪拉熊不准你看"),
+            MessageSegment.text("迪拉熊不准你看！"),
             MessageSegment.image(Path("./Static/Gallery/0.png")),
         )
         await rand_pic.finish(msg)
@@ -62,14 +62,14 @@ async def _(bot: Bot, event: GroupMessageEvent):
             break
     else:
         msg = (
-            MessageSegment.text("迪拉熊不准你看"),
+            MessageSegment.text("迪拉熊不准你看！"),
             MessageSegment.image(Path("./Static/Gallery/0.png")),
         )
         await rand_pic.finish(msg)
     now = datetime.datetime.fromtimestamp(event.time)
     if type == "nsfw":
         if os.path.exists("./data/nsfw_lock"):
-            await rand_pic.finish("由于该账号被警告，该功能暂时关闭，请稍后再试mai~")
+            await rand_pic.finish("由于该账号被警告，该功能暂时关闭，稍后再试mai~")
     elif group_id != config.special_group:  # 不被限制的 group_id
         while len(groups[group_id]) > 0:
             t = groups[group_id][0]
@@ -79,11 +79,11 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if len(groups[group_id]) >= LIMIT_TIMES:
             if type == "sfw":
                 msg = MessageSegment.text(
-                    "迪拉熊提醒你：注意不要过度刷屏，给其他人带来困扰哦，再试一下吧~"
+                    "迪拉熊提醒你：注意不要过度刷屏，给别人带来困扰mai~再试一下吧~"
                 )
             elif type == "nsfw":
                 msg = MessageSegment.text(
-                    "哼哼，迪拉熊的魅力这么大嘛，但是也要注意节制哦~"
+                    "哼哼，迪拉熊的魅力这么大嘛，但是也要注意节制mai~"
                 )
             await rand_pic.finish(msg)
     async with aiofiles.open(pic_path, "rb") as fd:

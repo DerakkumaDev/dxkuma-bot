@@ -36,7 +36,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
         if len(groups[group_id]) >= LIMIT_TIMES:
             msg = MessageSegment.text(
-                "迪拉熊提醒你：注意不要过度刷屏，给其他人带来困扰哦，再试一下吧~"
+                "迪拉熊提醒你：注意不要过度刷屏，给别人带来困扰mai~再试一下吧~"
             )
             await rand_bv.finish(msg)
 

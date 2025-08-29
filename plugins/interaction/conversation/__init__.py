@@ -63,13 +63,13 @@ async def _(event: GroupMessageEvent):
         return
     if len(set(roll_list)) == 1:
         msg = (
-            MessageSegment.text("就一个选项要让迪拉熊怎么选嘛~"),
+            MessageSegment.text("就一个选项要迪拉熊怎么选mai~"),
             MessageSegment.image(Path("./Static/Roll/1.png")),
         )
         await roll.finish(msg, at_sender=True)
     output = rng.choice(roll_list)
     msg = (
-        MessageSegment.text(f"迪拉熊建议你选择“{output}”呢~"),
+        MessageSegment.text(f"迪拉熊建议你选择“{output}”mai~"),
         MessageSegment.image(Path("./Static/Roll/0.png")),
     )
     await roll.send(msg, at_sender=True)

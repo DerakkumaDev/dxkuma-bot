@@ -120,18 +120,6 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
                     reply = str().join(texts)
                     await push_and_start_sending(bot, reply, chat_type, qq_id)
                 texts = list()
-            elif choice.delta.content == "（" and len(texts) > 0:
-                reply = str().join(texts)
-                await push_and_start_sending(bot, reply, chat_type, qq_id)
-                texts = list()
-                texts.append(choice.delta.content)
-            elif choice.delta.content in "）" or (
-                choice.delta.content == "~" and texts[-1] == "mai"
-            ):
-                texts.append(choice.delta.content)
-                reply = str().join(texts)
-                await push_and_start_sending(bot, reply, chat_type, qq_id)
-                texts = list()
             else:
                 texts.append(choice.delta.content)
 

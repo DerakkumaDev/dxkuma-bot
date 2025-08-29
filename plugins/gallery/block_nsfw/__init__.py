@@ -15,7 +15,7 @@ async def _(event: MessageEvent):
     async with aiofiles.open("./data/nsfw_lock", "w"):
         pass
 
-    await block.send("st功能已禁用")
+    await block.send("已禁用")
 
 
 @unlock.handle()
@@ -23,4 +23,4 @@ async def _(event: MessageEvent):
     if os.path.exists("./data/nsfw_lock"):
         os.remove("./data/nsfw_lock")
 
-    await unlock.send("st功能已恢复")
+    await unlock.send("已恢复")

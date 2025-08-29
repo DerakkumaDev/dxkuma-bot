@@ -9,7 +9,7 @@ clean_cache = on_fullmatch("清缓存", permission=ADMIN)
 
 @clean_cache.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
-    await clean_cache.send("开始清空缓存")
+    await clean_cache.send("开始")
     await bot.clean_cache()
-    await clean_cache.send("缓存清空完成")
+    await clean_cache.send("完成")
     raise ContinuedException

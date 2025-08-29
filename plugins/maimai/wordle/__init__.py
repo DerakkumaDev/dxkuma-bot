@@ -130,11 +130,12 @@ async def _(event: GroupMessageEvent):
         "◇——符号\r\n"
         "发送“开[文字]”开出字母\r\n"
         "发送“[歌名/别名]”尝试猜歌\r\n"
-        "发送“提示（行号）”获取提示（每首5次机会）\r\n"
-        "发送“封面（行号）”获取部分封面（每首2次机会）\r\n"
-        "发送“歌曲（行号）”获取1秒歌曲片段（每首1次机会）\r\n"
+        "发送“提示（序号）”获取提示（每首5次机会）\r\n"
+        "发送“封面（序号）”获取部分封面（每首2次机会）\r\n"
+        "发送“歌曲（序号）”获取1秒歌曲片段（每首1次机会）\r\n"
         "发送“结束猜歌”结束\r\n"
-        "12个小时内无操作自动结束本轮游戏"
+        "\r\n"
+        "12个小时内无人猜歌，迪拉熊会帮大家结束游戏哦~不用谢mai~（骄傲）"
     )
     await start_open_chars.send(game_state)
 
@@ -156,7 +157,7 @@ async def _(event: GroupMessageEvent):
     if not not_opened:
         await open_chars.finish(
             (
-                MessageSegment.text("这个字已经开过了哦，换一个吧~"),
+                MessageSegment.text("这个字已经开过了mai~换一个吧~"),
                 MessageSegment.image(Path("./Static/Wordle/1.png")),
             ),
             at_sender=True,
@@ -179,7 +180,7 @@ async def _(event: GroupMessageEvent):
 
             await open_chars.send(
                 (
-                    MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
+                    MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
                     MessageSegment.image(Path(cover_path)),
                     MessageSegment.text(title),
                 ),
@@ -189,7 +190,7 @@ async def _(event: GroupMessageEvent):
     await open_chars.send(game_state)
     if is_game_over:
         await openchars.game_over(group_id)
-        await open_chars.send("全部答对啦，恭喜各位🎉\r\n可以发送“dlx猜歌”再次游玩mai~")
+        await open_chars.send("全部答对啦，恭喜mai~🎉")
 
 
 @all_message_handle.handle()
@@ -225,7 +226,7 @@ async def _(event: GroupMessageEvent):
 
         await all_message_handle.send(
             (
-                MessageSegment.text(f"猜对了！第{i}行的歌曲是"),
+                MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
                 MessageSegment.image(Path(cover_path)),
                 MessageSegment.text(title),
             ),
@@ -237,9 +238,7 @@ async def _(event: GroupMessageEvent):
     await all_message_handle.send(game_state)
     if is_game_over:
         await openchars.game_over(group_id)
-        await all_message_handle.send(
-            "全部答对啦，恭喜各位🎉\r\n可以发送“dlx猜歌”再次游玩mai~"
-        )
+        await open_chars.send("全部答对啦，恭喜mai~🎉")
     else:
         await openchars.update_game_data(group_id, game_data)
 
@@ -254,7 +253,7 @@ async def _(event: GroupMessageEvent):
     await openchars.game_over(group_id)
 
     await pass_game.send(generate_success_state(game_data))
-    await pass_game.send("本轮开字母结束了，可以发送“dlx猜歌”再次游玩mai~")
+    await pass_game.send("迪拉熊帮大家揭晓答案啦mai~")
 
 
 @info_tip.handle()
@@ -278,7 +277,7 @@ async def _(event: GroupMessageEvent):
         if not game_contents:
             await info_tip.finish(
                 (
-                    MessageSegment.text("所有歌曲的信息提示次数都已经用完了mai~"),
+                    MessageSegment.text("所有歌的信息提示次数都用完了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
@@ -288,7 +287,7 @@ async def _(event: GroupMessageEvent):
     if data["is_correct"]:
         await info_tip.finish(
             (
-                MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
+                MessageSegment.text(f"第{data['index']}首歌已经猜对了mai~"),
                 MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
         )
@@ -323,7 +322,7 @@ async def _(event: GroupMessageEvent):
     if not tip_keys:
         await info_tip.finish(
             (
-                MessageSegment.text(f"第{data['index']}行的歌曲信息提示次数用完了mai~"),
+                MessageSegment.text(f"第{data['index']}首歌信息提示次数已经用完了mai~"),
                 MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
         )
@@ -333,7 +332,7 @@ async def _(event: GroupMessageEvent):
     if len(song) != 1:
         await info_tip.finish(
             (
-                MessageSegment.text(f"第{data['index']}行的歌曲信息提示次数用完了mai~"),
+                MessageSegment.text(f"第{data['index']}首歌信息提示次数已经用完了mai~"),
                 MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
         )
@@ -345,7 +344,7 @@ async def _(event: GroupMessageEvent):
     await openchars.update_game_data(group_id, game_data)
 
     tip_info = tips[tip_key](song[0])
-    await info_tip.send(f"第{data['index']}行的歌曲{tip_key}是 {tip_info} mai~")
+    await info_tip.send(f"第{data['index']}首歌的{tip_key}是{tip_info}mai~")
 
 
 @pic_tip.handle()
@@ -371,7 +370,7 @@ async def _(event: GroupMessageEvent):
         if not game_contents:
             await pic_tip.finish(
                 (
-                    MessageSegment.text("所有歌曲的封面提示次数都已经用完了mai~"),
+                    MessageSegment.text("所有歌的封面提示次数都用完了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
@@ -381,7 +380,7 @@ async def _(event: GroupMessageEvent):
     if data["is_correct"]:
         await pic_tip.finish(
             (
-                MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
+                MessageSegment.text(f"第{data['index']}首歌已经猜对了mai~"),
                 MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
         )
@@ -389,7 +388,9 @@ async def _(event: GroupMessageEvent):
     if data["pic_times"] >= 2:
         await pic_tip.finish(
             (
-                MessageSegment.text(f"第{data['index']}行的封面提示次数用完了mai~"),
+                MessageSegment.text(
+                    f"第{data['index']}首歌的封面提示次数已经用完了mai~"
+                ),
                 MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
         )
@@ -423,7 +424,7 @@ async def _(event: GroupMessageEvent):
     img_bytes = img_byte_arr.getvalue()
     await pic_tip.send(
         (
-            MessageSegment.text(f"第{data['index']}行的歌曲部分封面是"),
+            MessageSegment.text(f"第{data['index']}首歌部分封面是——"),
             MessageSegment.image(img_bytes),
         )
     )
@@ -452,7 +453,7 @@ async def _(event: GroupMessageEvent):
         if not game_contents:
             await aud_tip.finish(
                 (
-                    MessageSegment.text("所有歌曲的歌曲提示次数都已经用完了mai~"),
+                    MessageSegment.text("所有歌的歌曲提示次数都用完了mai~"),
                     MessageSegment.image(Path("./Static/Wordle/1.png")),
                 )
             )
@@ -462,7 +463,7 @@ async def _(event: GroupMessageEvent):
     if data["is_correct"]:
         await aud_tip.finish(
             (
-                MessageSegment.text(f"第{data['index']}行的歌曲已经猜对了mai~"),
+                MessageSegment.text(f"第{data['index']}首歌已经猜对了mai~"),
                 MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
         )
@@ -470,7 +471,7 @@ async def _(event: GroupMessageEvent):
     if data["aud_times"] >= 1:
         await aud_tip.finish(
             (
-                MessageSegment.text(f"第{data['index']}行的歌曲提示次数用完了mai~"),
+                MessageSegment.text(f"第{data['index']}首歌提示次数已经用完了mai~"),
                 MessageSegment.image(Path("./Static/Wordle/1.png")),
             )
         )
@@ -523,13 +524,13 @@ async def _(bot: Bot, event: GroupMessageEvent):
     avg = np.sum(d[1] for d in scores) / len(scores) if len(scores) > 0 else 0
     msg = "\r\n".join(leaderboard_output)
     msg = (
-        "猜歌准确率排行榜Top10：\r\n"
+        "猜歌准确率排行榜前10名是——\r\n"
         f"{msg}\r\n"
         "\r\n"
         f"上榜人数：{len(leaderboard)}/{len(scores)}\r\n"
         f"平均达成率：{math.trunc(avg * 1000000) / 1000000:.4%}\r\n"
         "\r\n"
-        "迪拉熊提醒你：长时间未参与将暂时不计入排行榜，重新参与十首歌即可重新上榜哦~"
+        "长时间未参与游戏将暂时不计入排行榜mai~重新结算10次就可以重新上榜啦~"
     )
     await rank.send(msg)
 
@@ -578,15 +579,15 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
         leaderboard_output.append(f"\r\n游玩次数：{leaderboard[index][2]}")
     else:
-        leaderboard_output.append("你现在还不在排行榜上哦~")
+        leaderboard_output.append("你现在还没有上榜mai~")
         achi, _times = await ranking.get_score(user_id)
         leaderboard_output.append(f"\r\n游玩次数：{_times}")
 
     msg = "\r\n".join(leaderboard_output)
     msg = (
-        "你在排行榜上的位置：\r\n"
+        "你在排行榜上的位置是——\r\n"
         f"{msg}\r\n"
         "\r\n"
-        "迪拉熊提醒你：长时间未参与将暂时不计入排行榜，重新参与十首歌即可重新上榜哦~"
+        "长时间未参与游戏将暂时不计入排行榜mai~重新结算10次就可以重新上榜啦~"
     )
     await rank_i.send(MessageSegment.text(msg), at_sender=True)
