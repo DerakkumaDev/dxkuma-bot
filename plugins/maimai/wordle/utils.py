@@ -117,8 +117,6 @@ async def generate_message_state(
             game_state.append(f"{game_content['index']}. {display_title}")
 
     is_game_over = check_game_over(game_data)
-    # if is_game_over:
-    #     game_state.append("所有歌曲已全部被开出来啦,游戏结束。")
     return is_game_over, "\r\n".join(game_state), char_all_open
 
 

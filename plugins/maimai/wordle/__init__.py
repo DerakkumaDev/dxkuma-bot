@@ -48,7 +48,11 @@ async def find_songid_by_alias(name, song_list):
 
     # 芝士查找
     for info in song_list["songs"]:
-        if name.casefold() == info["title"].casefold() or name == str(info["id"]):
+        if (
+            name.casefold() == info["title"].casefold()
+            or (len(info["difficulties"]["standard"]) > 0 and name == str(info["id"]))
+            or (len(info["difficulties"]["dx"]) > 0 and name == str(10000 + info["id"]))
+        ):
             matched_ids.append(info["id"])
 
     if matched_ids:
@@ -68,8 +72,9 @@ async def find_songid_by_alias(name, song_list):
 
     async def process_xray(alias_map: dict[str, list[str]]):
         alias_list = await get_alias_list_xray()
-        for id, info in alias_list.items():
-            song_id = str(id)
+        for song_id, info in alias_list.items():
+            if len(song_id) == 5:
+                song_id = song_id[-4:]
             for alias in info:
                 alias_map.setdefault(alias, list())
                 if song_id in alias_map[alias]:
@@ -79,7 +84,10 @@ async def find_songid_by_alias(name, song_list):
     async def process_ycn(alias_map: dict[str, list[str]]):
         alias_list = await get_alias_list_ycn()
         for info in alias_list["content"]:
-            song_id = str(info["SongID"])
+            if 10000 < info["SongID"] < 20000:
+                song_id = str(info["SongID"] % 10000)
+            else:
+                song_id = str(info["SongID"])
             for alias in info["Alias"]:
                 alias_map.setdefault(alias, list())
                 if song_id in alias_map[alias]:
@@ -166,7 +174,6 @@ async def _(event: GroupMessageEvent):
     is_game_over, game_state, char_all_open = await generate_message_state(
         game_data, user_id, event.time
     )
-    await openchars.update_game_data(group_id, game_data)
     if char_all_open:
         for i, title, id in char_all_open:
             cover_path = f"./Cache/Jacket/{id % 10000}.png"
@@ -240,7 +247,8 @@ async def _(event: GroupMessageEvent):
         await openchars.game_over(group_id)
         await open_chars.send("全部答对啦，恭喜mai~🎉")
     else:
-        await openchars.update_game_data(group_id, game_data)
+        for i, _, _ in guess_success:
+            await openchars.mark_content_as_correct(group_id, i)
 
 
 @pass_game.handle()
@@ -341,7 +349,8 @@ async def _(event: GroupMessageEvent):
         data["part"].append(user_id)
     tip_key = rng.choice(tip_keys)
     data["tips"].append(tip_key)
-    await openchars.update_game_data(group_id, game_data)
+    await openchars.add_user_to_content_part(group_id, data["index"], user_id)
+    await openchars.add_tip_to_content(group_id, data["index"], tip_key)
 
     tip_info = tips[tip_key](song[0])
     await info_tip.send(f"第{data['index']}首歌的{tip_key}是{tip_info}mai~")
@@ -398,7 +407,8 @@ async def _(event: GroupMessageEvent):
     if user_id not in data["part"]:
         data["part"].append(user_id)
     data["pic_times"] += 1
-    await openchars.update_game_data(group_id, game_data)
+    await openchars.add_user_to_content_part(group_id, data["index"], user_id)
+    await openchars.increment_content_counter(group_id, data["index"], "pic_times")
 
     cover_path = f"./Cache/Jacket/{data['music_id'] % 10000}.png"
     if not os.path.exists(cover_path):
@@ -479,7 +489,8 @@ async def _(event: GroupMessageEvent):
     if user_id not in data["part"]:
         data["part"].append(user_id)
     data["aud_times"] += 1
-    await openchars.update_game_data(group_id, game_data)
+    await openchars.add_user_to_content_part(group_id, data["index"], user_id)
+    await openchars.increment_content_counter(group_id, data["index"], "aud_times")
 
     music_path = f"./Cache/Music/{data['music_id'] % 10000}.mp3"
     if not os.path.exists(music_path):

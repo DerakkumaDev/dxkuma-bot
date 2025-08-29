@@ -224,7 +224,10 @@ class OpenChars:
         return await self._build_game_data(record, session)
 
     @with_transaction
-    async def update_game_data(self, group_id: str, game_data: dict, **kwargs) -> None:
+    async def update_game_content_field(
+        self, group_id: str, content_index: int, field: str, value, **kwargs
+    ) -> bool:
+        """更新游戏内容中的特定字段"""
         session: AsyncSession = kwargs["session"]
 
         stmt = select(WordleGame).where(WordleGame.group_id == group_id)
@@ -232,86 +235,124 @@ class OpenChars:
         record = result.scalar_one_or_none()
 
         if not record:
-            stmt = insert(WordleGame).values(
-                group_id=group_id, updated_at=datetime.now()
-            )
-            stmt = stmt.on_conflict_do_update(
-                index_elements=["group_id"],
-                set_={
-                    "updated_at": stmt.excluded.updated_at,
-                },
-            )
-            result = await session.execute(stmt)
+            return False
 
-            stmt = select(WordleGame).where(WordleGame.group_id == group_id)
-            result = await session.execute(stmt)
-            record = result.scalar_one()
-        else:
-            if datetime.now() - record.updated_at > timedelta(hours=12):
-                await session.delete(record)
-                await session.flush()
-                stmt = insert(WordleGame).values(
-                    group_id=group_id, updated_at=datetime.now()
-                )
-                stmt = stmt.on_conflict_do_update(
-                    index_elements=["group_id"],
-                    set_={
-                        "updated_at": stmt.excluded.updated_at,
-                    },
-                )
-                result = await session.execute(stmt)
+        if datetime.now() - record.updated_at > timedelta(hours=12):
+            await session.delete(record)
+            await session.flush()
+            return False
 
-                stmt = select(WordleGame).where(WordleGame.group_id == group_id)
-                result = await session.execute(stmt)
-                record = result.scalar_one()
+        stmt = select(WordleGameContent).where(
+            WordleGameContent.game_id == record.id,
+            WordleGameContent.index == content_index,
+        )
+        result = await session.execute(stmt)
+        content = result.scalar_one_or_none()
+
+        if not content:
+            return False
+
+        # 根据字段类型进行相应的更新
+        if field == "part":
+            if isinstance(value, list):
+                content.part = orjson.dumps(value).decode()
             else:
-                await session.execute(
-                    delete(WordleOpenChar).where(WordleOpenChar.game_id == record.id)
-                )
-                await session.execute(
-                    delete(WordleGameContent).where(
-                        WordleGameContent.game_id == record.id
-                    )
-                )
-
-        await session.flush()
-
-        for char in game_data.get("open_chars", list()):
-            stmt = insert(WordleOpenChar).values(game_id=record.id, char=char)
-            stmt = stmt.on_conflict_do_nothing(constraint="uq_game_char")
-            await session.execute(stmt)
-
-        for content in game_data.get("game_contents", list()):
-            stmt = insert(WordleGameContent).values(
-                game_id=record.id,
-                index=content["index"],
-                title=content["title"],
-                music_id=content["music_id"],
-                is_correct=content["is_correct"],
-                tips=orjson.dumps(content.get("tips", list())).decode(),
-                pic_times=content["pic_times"],
-                aud_times=content["aud_times"],
-                opc_times=content["opc_times"],
-                part=orjson.dumps(content.get("part", list())).decode(),
-            )
-            stmt = stmt.on_conflict_do_update(
-                constraint="uq_game_index",
-                set_={
-                    "title": stmt.excluded.title,
-                    "music_id": stmt.excluded.music_id,
-                    "is_correct": stmt.excluded.is_correct,
-                    "tips": stmt.excluded.tips,
-                    "pic_times": stmt.excluded.pic_times,
-                    "aud_times": stmt.excluded.aud_times,
-                    "opc_times": stmt.excluded.opc_times,
-                    "part": stmt.excluded.part,
-                },
-            )
-            await session.execute(stmt)
+                part_list = orjson.loads(content.part) if content.part else list()
+                if value not in part_list:
+                    part_list.append(value)
+                    content.part = orjson.dumps(part_list).decode()
+        elif field == "tips":
+            if isinstance(value, list):
+                content.tips = orjson.dumps(value).decode()
+            else:
+                tips_list = orjson.loads(content.tips) if content.tips else list()
+                if value not in tips_list:
+                    tips_list.append(value)
+                    content.tips = orjson.dumps(tips_list).decode()
+        elif field == "pic_times":
+            content.pic_times = value
+        elif field == "aud_times":
+            content.aud_times = value
+        elif field == "opc_times":
+            content.opc_times = value
+        elif field == "is_correct":
+            content.is_correct = value
+        else:
+            return False
 
         record.updated_at = datetime.now()
-
         await session.flush()
+        return True
+
+    @with_transaction
+    async def add_user_to_content_part(
+        self, group_id: str, content_index: int, user_id: str, **kwargs
+    ) -> bool:
+        """将用户添加到指定内容的参与者列表中"""
+        return await self.update_game_content_field(
+            group_id, content_index, "part", user_id, **kwargs
+        )
+
+    @with_transaction
+    async def add_tip_to_content(
+        self, group_id: str, content_index: int, tip: str, **kwargs
+    ) -> bool:
+        """向指定内容添加提示"""
+        return await self.update_game_content_field(
+            group_id, content_index, "tips", tip, **kwargs
+        )
+
+    @with_transaction
+    async def increment_content_counter(
+        self, group_id: str, content_index: int, counter_type: str, **kwargs
+    ) -> bool:
+        """增加指定内容的计数器"""
+        if counter_type not in ["pic_times", "aud_times", "opc_times"]:
+            return False
+
+        session: AsyncSession = kwargs["session"]
+
+        stmt = select(WordleGame).where(WordleGame.group_id == group_id)
+        result = await session.execute(stmt)
+        record = result.scalar_one_or_none()
+
+        if not record:
+            return False
+
+        if datetime.now() - record.updated_at > timedelta(hours=12):
+            await session.delete(record)
+            await session.flush()
+            return False
+
+        stmt = select(WordleGameContent).where(
+            WordleGameContent.game_id == record.id,
+            WordleGameContent.index == content_index,
+        )
+        result = await session.execute(stmt)
+        content = result.scalar_one_or_none()
+
+        if not content:
+            return False
+
+        if counter_type == "pic_times":
+            content.pic_times += 1
+        elif counter_type == "aud_times":
+            content.aud_times += 1
+        elif counter_type == "opc_times":
+            content.opc_times += 1
+
+        record.updated_at = datetime.now()
+        await session.flush()
+        return True
+
+    @with_transaction
+    async def mark_content_as_correct(
+        self, group_id: str, content_index: int, **kwargs
+    ) -> bool:
+        """将指定内容标记为正确"""
+        return await self.update_game_content_field(
+            group_id, content_index, "is_correct", True, **kwargs
+        )
 
     async def _build_game_data(
         self, game_record: WordleGame, session: AsyncSession

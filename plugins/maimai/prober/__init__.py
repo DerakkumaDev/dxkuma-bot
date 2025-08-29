@@ -124,8 +124,7 @@ async def find_songid_by_alias(name, song_list):
 
     async def process_xray(alias_map: dict[str, list[str]]):
         alias_list = await get_alias_list_xray()
-        for id, info in alias_list.items():
-            song_id = str(id)
+        for song_id, info in alias_list.items():
             for alias in info:
                 alias_map.setdefault(alias, list())
                 if song_id in alias_map[alias]:
