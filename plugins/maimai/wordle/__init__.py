@@ -206,14 +206,14 @@ async def _(event: GroupMessageEvent):
     if not msg_content:
         return
 
-    group_id = str(event.group_id)
-    game_data = await openchars.get_game_data(group_id)
-    if not game_data:
-        return
-
     songList = await get_music_data_lxns()
     music_ids = await find_songid_by_alias(msg_content, songList)
     if not music_ids:
+        return
+
+    group_id = str(event.group_id)
+    game_data = await openchars.get_game_data(group_id)
+    if not game_data:
         return
 
     user_id = event.get_user_id()
