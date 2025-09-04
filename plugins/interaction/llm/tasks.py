@@ -110,6 +110,7 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
             raise
 
     texts = list()
+    level = 0
     async for chunk in stream:
         for choice in chunk.choices:
             if not choice.delta.content:
@@ -118,16 +119,58 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
             if choice.delta.content in "\r\n":
                 if len(texts) > 0:
                     reply = str().join(texts)
-                    await push_and_start_sending(bot, reply, chat_type, qq_id)
+                    await push_and_start_sending(bot, reply, chat_type, qq_id, level)
                 texts = list()
+            elif choice.delta.content in "，":
+                if len(texts) <= 0:
+                    continue
+                reply = str().join(texts)
+                if len(texts) < 6:
+                    texts.append(choice.delta.content)
+                    continue
+                await push_and_start_sending(bot, reply, chat_type, qq_id, level)
+                texts = list()
+            elif choice.delta.content.startswith("（"):
+                level += 1
+                if len(texts) > 0:
+                    reply = str().join(texts)
+                    await push_and_start_sending(bot, reply, chat_type, qq_id, level)
+                    texts = list()
+                texts.append(choice.delta.content)
+            elif choice.delta.content.endswith("）"):
+                texts.append(choice.delta.content)
+                reply = str().join(texts)
+                await push_and_start_sending(bot, reply, chat_type, qq_id, level)
+                texts = list()
+                level -= 1
+            elif (
+                texts[-1] + choice.delta.content
+                if len(texts) > 0
+                else choice.delta.content
+            ).endswith("mai~"):
+                texts.append(choice.delta.content)
+                reply = str().join(texts)
+                await push_and_start_sending(bot, reply, chat_type, qq_id, level)
+                texts = list()
+            elif choice.delta.content in "。？！" and len(texts) <= 0:
+                continue
             else:
                 texts.append(choice.delta.content)
 
     reply = str().join(texts)
-    await push_and_start_sending(bot, reply, chat_type, qq_id)
+    await push_and_start_sending(bot, reply, chat_type, qq_id, level)
 
 
-async def push_and_start_sending(bot: Bot, reply: str, chat_type: str, qq_id: int):
+async def push_and_start_sending(
+    bot: Bot, reply: str, chat_type: str, qq_id: int, level: int
+):
+    if level > 0:
+        if not reply.startswith("（"):
+            reply = "（" + reply
+        if not reply.endswith("）"):
+            reply += "）"
+    elif not reply.endswith("mai~"):
+        reply += "mai~"
     chat_id = f"{qq_id}.{chat_type[0]}"
     queue = response_queues.setdefault(chat_id, list())
     queue.append(reply)
@@ -143,9 +186,6 @@ async def response_queue_task(bot: Bot, chat_type: str, qq_id: int):
         message = response_queues[chat_id][0]
         response_queues[chat_id].pop(0)
         if len(message.strip()) <= 0:
-            continue
-
-        if "<ignored/>" in message:
             continue
 
         if chat_type == "group":
