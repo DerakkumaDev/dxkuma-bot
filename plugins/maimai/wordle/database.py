@@ -388,5 +388,23 @@ class OpenChars:
 
         return {"open_chars": open_chars, "game_contents": game_contents}
 
+    @with_transaction
+    async def is_gaming(self, group_id: str, **kwargs) -> bool:
+        session: AsyncSession = kwargs["session"]
+
+        stmt = select(WordleGame).where(WordleGame.group_id == group_id)
+        result = await session.execute(stmt)
+        record = result.scalar_one_or_none()
+
+        if not record:
+            return False
+
+        if datetime.now() - record.updated_at > timedelta(hours=12):
+            await session.delete(record)
+            await session.flush()
+            return False
+
+        return True
+
 
 openchars = OpenChars()
