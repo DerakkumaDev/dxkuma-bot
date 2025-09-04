@@ -337,7 +337,7 @@ sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/d2/e1/67
 
 [[package]]
 name = "kumabot"
-version = "25.23.0"
+version = "25.36.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },

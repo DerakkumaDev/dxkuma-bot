@@ -724,11 +724,6 @@ async def generatebests(
     plate = Image.open(plate_path)
     bests = paste(bests, plate, (60, 60))
 
-    # 头像框
-    iconbase_path = maimai_Static / "icon_base.png"
-    iconbase = Image.open(iconbase_path)
-    iconbase = resize_image(iconbase, 0.308)
-    bests = paste(bests, iconbase, (60, 46))
     # 头像
     icon_pic_path = maimai_Icon / f"{icon}.png"
     if not os.path.exists(icon_pic_path):
@@ -737,25 +732,25 @@ async def generatebests(
             async with aiofiles.open(icon_pic_path, "wb") as fd:
                 await fd.write(await resp.aread())
     icon_pic = Image.open(icon_pic_path)
-    icon_pic = icon_pic.resize((88, 88))
-    bests = paste(bests, icon_pic, (73, 75))
+    icon_pic = icon_pic.resize((94, 94))
+    bests = paste(bests, icon_pic, (72, 72))
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
     namebase = Image.open(namebase_path)
-    bests = paste(bests, namebase, (0, 0))
+    bests = paste(bests, namebase, (175, 108))
 
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
     dani = Image.open(dani_path)
     dani = resize_image(dani, 0.213)
-    bests = paste(bests, dani, (400, 110))
+    bests = paste(bests, dani, (346, 110))
 
     # 阶级
     class_path = maimai_Class / "0.png"
     cla = Image.open(class_path)
     cla = resize_image(cla, 0.78)
-    bests = paste(bests, cla, (400, 50))
+    bests = paste(bests, cla, (346, 50))
 
     # rating推荐
     if type == "b50" and is_rating_tj:
@@ -795,7 +790,7 @@ async def generatebests(
     # rating合计
     ttf = ImageFont.truetype(ttf2_bold_path, size=14)
     draw.text(
-        (334, 154),
+        (304, 154),
         (
             f"Best35：{b35_ra} | Best15：{b15_ra}"
             if type == "all50"
@@ -839,23 +834,6 @@ async def generatebests(
     b15 = await draw_best(b15, type, songList)
     bests = paste(bests, b35, (25, 795))
     bests = paste(bests, b15, (25, 1985))
-
-    ttf = ImageFont.truetype(ttf2_regular_path, size=16)
-    bests = text(
-        text(
-            bests,
-            xy=(bests.width - 16, bests.height - 32),
-            font=ttf,
-            text="感谢水鱼查分器提供数据支持",
-            fill=(0, 0, 0, 50),
-            anchor="rb",
-        ),
-        xy=(bests.width - 16, bests.height - 16),
-        font=ttf,
-        text=f"Ver.{Config.version[0]}.{Config.version[1]}-{Config.version[2]}",
-        fill=(0, 0, 0, 50),
-        anchor="rb",
-    )
 
     img_byte_arr = BytesIO()
     bests = bests.convert("RGB")
@@ -912,11 +890,6 @@ async def generate_wcb(
     plate = Image.open(plate_path)
     bg = paste(bg, plate, (60, 60))
 
-    # 头像框
-    iconbase_path = maimai_Static / "icon_base.png"
-    iconbase = Image.open(iconbase_path)
-    iconbase = resize_image(iconbase, 0.308)
-    bg = paste(bg, iconbase, (60, 46))
     # 头像
     icon_pic_path = maimai_Icon / f"{icon}.png"
     if not os.path.exists(icon_pic_path):
@@ -925,25 +898,25 @@ async def generate_wcb(
             async with aiofiles.open(icon_pic_path, "wb") as fd:
                 await fd.write(await resp.aread())
     icon_pic = Image.open(icon_pic_path)
-    icon_pic = icon_pic.resize((88, 88))
-    bg = paste(bg, icon_pic, (73, 75))
+    icon_pic = icon_pic.resize((94, 94))
+    bg = paste(bg, icon_pic, (72, 72))
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
     namebase = Image.open(namebase_path)
-    bg = paste(bg, namebase, (0, 0))
+    bg = paste(bg, namebase, (175, 108))
 
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
     dani = Image.open(dani_path)
     dani = resize_image(dani, 0.213)
-    bg = paste(bg, dani, (400, 110))
+    bg = paste(bg, dani, (346, 110))
 
     # 阶级
     class_path = maimai_Class / "0.png"
     cla = Image.open(class_path)
     cla = resize_image(cla, 0.78)
-    bg = paste(bg, cla, (400, 50))
+    bg = paste(bg, cla, (346, 50))
 
     # rating框
     ratingbar = compute_ra(rating)
@@ -975,7 +948,7 @@ async def generate_wcb(
     shougou_path = maimai_Shougou / "Normal.png"
     shougou = Image.open(shougou_path)
     shougou = resize_image(shougou, 0.7)
-    bg = paste(bg, shougou, (237, 143))
+    bg = paste(bg, shougou, (206, 143))
     draw = ImageDraw.Draw(bg)
 
     if level:
@@ -1036,23 +1009,6 @@ async def generate_wcb(
         songList=songList,
     )
     bg = paste(bg, records_parts, (25, 795))
-
-    ttf = ImageFont.truetype(ttf2_regular_path, size=16)
-    bg = text(
-        text(
-            bg,
-            xy=(bg.width - 16, bg.height - 32),
-            font=ttf,
-            text="感谢水鱼查分器提供数据支持",
-            fill=(255, 255, 255, 205),
-            anchor="rb",
-        ),
-        xy=(bg.width - 16, bg.height - 16),
-        font=ttf,
-        text=f"Ver.{Config.version[0]}.{Config.version[1]}-{Config.version[2]}",
-        fill=(255, 255, 255, 205),
-        anchor="rb",
-    )
 
     img_byte_arr = BytesIO()
     bg = bg.convert("RGB")
