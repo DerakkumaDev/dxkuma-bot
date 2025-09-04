@@ -169,8 +169,8 @@ def generate_success_state(game_data: dict) -> str:
     game_state = list()
     for game_content in game_data["game_contents"]:
         game_state.append(
-            f"{game_content['index']}. {game_content['title']}{
-                ' ✔︎' if game_content['is_correct'] else ''
+            f"{game_content['index']}. {game_content['title']} {
+                '✔︎' if game_content['is_correct'] else '❌︎'
             }"
         )
     return "\r\n".join(game_state)
