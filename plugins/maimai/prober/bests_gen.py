@@ -481,8 +481,8 @@ async def music_to_part(
             fill=color,
             anchor="lm",
         )
-    s_ra_str = str(song_id)
-    s_ra_str2 = "ID"
+    s_ra_str = "No."
+    s_ra_str2 = str(song_id)
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
     ds_str = str(ds_str).split(".")
     text_position = (376, 215)
@@ -492,11 +492,11 @@ async def music_to_part(
     ttf = ImageFont.truetype(ttf_bold_path, size=28)
     text_content = str(ds_str[1])
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
-    ttf = ImageFont.truetype(ttf_bold_path, size=30)
+    ttf = ImageFont.truetype(ttf_bold_path, size=24)
     text_position = (388, 270)
     draw.text(text_position, s_ra_str, font=ttf, fill=(28, 43, 120), anchor="ls")
-    text_position = (text_position[0] + ttf.getlength(s_ra_str), 272)
-    ttf = ImageFont.truetype(ttf_bold_path, size=24)
+    text_position = (text_position[0] + ttf.getlength(s_ra_str), 270)
+    ttf = ImageFont.truetype(ttf_bold_path, size=30)
     draw.text(text_position, s_ra_str2, font=ttf, fill=(28, 43, 120), anchor="ls")
 
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
