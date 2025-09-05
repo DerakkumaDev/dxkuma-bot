@@ -1,20 +1,17 @@
-# 迪拉熊Bot
-
-![Static Badge](https://img.shields.io/badge/Ver-KM25.36--A-blue)
-![Static Badge](https://img.shields.io/badge/license-AGPLv3-orange)
-![Static Badge](https://img.shields.io/badge/python-3.13%2B-green)
-
----
-
 <div align="center">
 
 <img src="docs/dxkuma.png" width="20%">
 
-# 迪拉熊Bot / Derakkuma Bot
+# 迪拉熊Bot - Derakkuma Bot
 
 一个更好玩更可维护的 音游/日常 Bot。
 
 </div>
+
+![Static Badge](https://img.shields.io/badge/Ver-KM25.36--A-blue)
+![Static Badge](https://img.shields.io/badge/license-AGPLv3-orange)
+![Static Badge](https://img.shields.io/badge/python-3.13%2B-green)
+[![qq](https://img.shields.io/badge/2689340931-gray?logo=qq&style=social)](https://qm.qq.com/cgi-bin/qm/qr?k=LyQOTRI7ViXYSTg0zbS2sGgcmkbYrxbP)
 
 ## 任务板
 
