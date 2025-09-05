@@ -1077,7 +1077,7 @@ wheels = [
 
 [[package]]
 name = "volcengine-python-sdk"
-version = "4.0.15"
+version = "4.0.16"
 source = { registry = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/" }
 dependencies = [
     { name = "certifi" },
@@ -1085,9 +1085,9 @@ dependencies = [
     { name = "six" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/6d/0a/66cdd8c48bb7b6c250d2edc4118e12600d9cbcb320c33b049c2cb8a5929c/volcengine-python-sdk-4.0.15.tar.gz", hash = "sha256:55f902432c95ebb028a03956968227f3e12c1e431a0ce6661260d1030bb08479", size = 6668504, upload-time = "2025-08-28T13:07:53.741Z" }
+sdist = { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/6f/bf/2e76e3906926ba2efd10db079f699b176eb0ec68df92ff8ccfe9791571d4/volcengine-python-sdk-4.0.16.tar.gz", hash = "sha256:7803cb2b0dc560e13d35d4a2edc42af49f062724dc02f3a88294c41c5eebdcab", size = 5782756, upload-time = "2025-09-04T12:20:11.158Z" }
 wheels = [
-    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/4a/bc/5561b210cc9a605794842421145113d2164e6a704c489c4608797abcabd6/volcengine_python_sdk-4.0.15-py2.py3-none-any.whl", hash = "sha256:50dbf46b0b55b96cda248e100f416aa02bf5eda32345102bda7b04da26b5b560", size = 22046876, upload-time = "2025-08-28T13:07:47.058Z" },
+    { url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/packages/98/6e/34a626f95f34b6bcf2ae2f65879fab8a6cfcc7bf46f73c16ec029937fae8/volcengine_python_sdk-4.0.16-py2.py3-none-any.whl", hash = "sha256:362dc2bb1caae1ca3ae3782682544ca79dd1451d1338ef11b15831afce2f2e83", size = 22270862, upload-time = "2025-09-04T12:20:07.512Z" },
 ]
 
 [package.optional-dependencies]
