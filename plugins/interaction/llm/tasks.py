@@ -116,38 +116,41 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
             if not choice.delta.content:
                 continue
 
+            texts_count = len(texts)
             if choice.delta.content in "\r\n":
-                if len(texts) > 0:
+                if texts_count > 0:
                     reply = str().join(texts)
                     await push_and_start_sending(bot, reply, chat_type, qq_id, level)
                 texts = list()
-            elif choice.delta.content in "，":
-                if len(texts) <= 0:
+            elif choice.delta.content == "，":
+                if texts_count <= 0:
                     continue
                 reply = str().join(texts)
-                if len(texts) < 6:
+                if len(reply) <= 5:
                     texts.append(choice.delta.content)
                     continue
                 await push_and_start_sending(bot, reply, chat_type, qq_id, level)
                 texts = list()
-            elif choice.delta.content.startswith("（"):
-                level += 1
-                if len(texts) > 0:
+            elif choice.delta.content == "（":
+                if texts_count > 0:
                     reply = str().join(texts)
                     await push_and_start_sending(bot, reply, chat_type, qq_id, level)
                     texts = list()
+                level += 1
                 texts.append(choice.delta.content)
-            elif choice.delta.content.endswith("）"):
+            elif choice.delta.content == "）":
                 texts.append(choice.delta.content)
                 reply = str().join(texts)
                 await push_and_start_sending(bot, reply, chat_type, qq_id, level)
-                texts = list()
                 level -= 1
+                texts = list()
             elif (
-                texts[-1] + choice.delta.content
-                if len(texts) > 0
-                else choice.delta.content
-            ).endswith("mai~"):
+                choice.delta.content in "~？！"
+                and texts_count > 0
+                and texts[-1] == "mai"
+            ):
+                if texts_count >= 2 and texts[-2] in "，。？！":
+                    texts.pop(-2)
                 texts.append(choice.delta.content)
                 reply = str().join(texts)
                 await push_and_start_sending(bot, reply, chat_type, qq_id, level)
@@ -164,12 +167,17 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
 async def push_and_start_sending(
     bot: Bot, reply: str, chat_type: str, qq_id: int, level: int
 ):
+    reply = reply.strip()
+    if len(reply) <= 0:
+        return
     if level > 0:
         if not reply.startswith("（"):
             reply = "（" + reply
         if not reply.endswith("）"):
             reply += "）"
-    elif not reply.endswith("mai~"):
+    elif reply[-4:-1] != "mai":
+        if reply.endswith(("，", "。", "？", "！")):
+            reply = reply[:-1]
         reply += "mai~"
     chat_id = f"{qq_id}.{chat_type[0]}"
     queue = response_queues.setdefault(chat_id, list())
@@ -185,9 +193,6 @@ async def response_queue_task(bot: Bot, chat_type: str, qq_id: int):
     while len(response_queues[chat_id]) > 0:
         message = response_queues[chat_id][0]
         response_queues[chat_id].pop(0)
-        if len(message.strip()) <= 0:
-            continue
-
         if chat_type == "group":
             await bot.send_group_msg(group_id=qq_id, message=message)
         elif chat_type == "private":
