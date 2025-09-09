@@ -38,6 +38,10 @@ class Config:
         # llm
         self.llm_api_key = None
         self.llm_model = None
+        # tts
+        self.tts_api_key = None
+        self.tts_model = None
+        self.tts_voice_id = None
 
         # 解析配置文件
         self.read_config()
@@ -60,6 +64,9 @@ class Config:
         self.backend_url = data["backend"]["url"]
         self.llm_api_key = data["llm"]["api_key"]
         self.llm_model = data["llm"]["model"]
+        self.tts_api_key = data["tts"]["api_key"]
+        self.tts_model = data["tts"]["model"]
+        self.tts_voice_id = data["tts"]["voice_id"]
 
 
 config = Config()
