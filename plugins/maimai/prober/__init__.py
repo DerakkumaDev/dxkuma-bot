@@ -2138,11 +2138,7 @@ async def _(event: MessageEvent):
         if isinstance(song_info, set):
             msg = f"迪拉熊找到了这些乐曲——\r\n{'\r\n'.join(song_info)}"
             await scoreinfo.finish(MessageSegment.text(msg))
-    elif (
-        result == 2
-        or song_info["basic_info"]["genre"] == "宴会場"
-        or len(song_info["level"]) <= type_index
-    ):
+    elif result == 2:
         await scoreinfo.finish(
             (
                 MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),
@@ -2154,6 +2150,17 @@ async def _(event: MessageEvent):
         await scoreinfo.finish(
             (
                 MessageSegment.text("结果太多啦，缩小范围再试试吧~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            ),
+            at_sender=True,
+        )
+    if (
+        song_info["basic_info"]["genre"] == "宴会場"
+        or len(song_info["level"]) <= type_index
+    ):
+        await scoreinfo.finish(
+            (
+                MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
             at_sender=True,
@@ -2282,7 +2289,7 @@ async def _(event: MessageEvent):
     if not name:
         await aliasSearch.finish(
             (
-                MessageSegment.text("迪拉熊不知道mai~"),
+                MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/2.png")),
             ),
             at_sender=True,
@@ -2297,7 +2304,7 @@ async def _(event: MessageEvent):
     elif result == 2:
         await aliasSearch.finish(
             (
-                MessageSegment.text("迪拉熊不知道mai~"),
+                MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/2.png")),
             ),
             at_sender=True,
@@ -2327,7 +2334,7 @@ async def _(event: MessageEvent):
             alias |= set(d["Alias"])
     if not alias:
         msg = (
-            MessageSegment.text("迪拉熊不知道mai~"),
+            MessageSegment.text("迪拉熊没有找到这首歌的别名mai~"),
             MessageSegment.image(Path("./Static/Maimai/Function/2.png")),
         )
         await aliasSearch.send(MessageSegment.text(msg), at_sender=True)

@@ -544,7 +544,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         f"上榜人数：{len(leaderboard)}/{len(scores)}\r\n"
         f"平均达成率：{math.trunc(avg * 1000000) / 1000000:.4%}\r\n"
         "\r\n"
-        "长时间未参与游戏将暂时不计入排行榜mai~重新结算10次就可以重新上榜啦~"
+        "长时间未参与游戏将暂时不会计入排行榜mai~重新结算10次就可以重新上榜啦~"
     )
     await rank.send(msg)
 
@@ -602,6 +602,6 @@ async def _(bot: Bot, event: GroupMessageEvent):
         "你在排行榜上的位置是——\r\n"
         f"{msg}\r\n"
         "\r\n"
-        "长时间未参与游戏将暂时不计入排行榜mai~重新结算10次就可以重新上榜啦~"
+        "长时间未参与游戏将暂时不会计入排行榜mai~重新结算10次就可以重新上榜啦~"
     )
     await rank_i.send(MessageSegment.text(msg), at_sender=True)

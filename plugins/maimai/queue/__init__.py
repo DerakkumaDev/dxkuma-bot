@@ -109,13 +109,13 @@ async def _(bot: Bot, event: GroupMessageEvent):
     all_arcade_ids = await arcadeManager.all_arcade_ids()
     all_arcade_count = len(all_arcade_ids)
     if all_arcade_count < 1:
-        await list_all.finish("找不到机厅", at_sender=True)
+        await list_all.finish("无机厅", at_sender=True)
 
     arcades = [
         await arcadeManager.get_arcade(arcade_id) for arcade_id in all_arcade_ids
     ]
     if len(arcades) < 1:
-        await list_all.finish("找不到机厅", at_sender=True)
+        await list_all.finish("无机厅", at_sender=True)
 
     arcade_names = [
         f"{arcade['name']}\r\n"
@@ -131,7 +131,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if arcade is not None
     ]
     if len(arcade_names) < 1:
-        await list_all.finish("找不到机厅", at_sender=True)
+        await list_all.finish("无机厅", at_sender=True)
 
     await list_all.send(
         f"找到以下机厅：\r\n{'\r\n\r\n'.join(arcade_names)}",
