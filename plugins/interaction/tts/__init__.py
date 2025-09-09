@@ -1,22 +1,84 @@
+import os
+import re
+from pathlib import Path
+
+import aiofiles
 from httpx import AsyncClient
-from nonebot import on_startswith
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageSegment
+from nonebot import on_regex
+from nonebot.adapters.onebot.v11 import (
+    Bot,
+    GroupMessageEvent,
+    MessageEvent,
+    MessageSegment,
+)
+from xxhash import xxh32_hexdigest
 
 from util.config import config
+from util.permission import ADMIN
 
-speak = on_startswith("迪拉熊说：")
+tts = on_regex(r"^(迪拉熊|dlx)(说：?|say|speak|t[2t][as])", re.I)
+tts_dev = on_regex(
+    r"^(迪拉熊|dlx)dev(说：?|say|speak|t[2t][as])", re.I, permission=ADMIN
+)
 
 
-@speak.handle()
-async def _(event: GroupMessageEvent):
+@tts.handle()
+async def _(event: MessageEvent):
+    msg = event.get_plaintext()
+    match = re.fullmatch(
+        r"^(?:迪拉熊|dlx)(?:说：?|say|speak|t[2t][as])(.+)", msg, re.I | re.S
+    )
+    if not match:
+        return
+
+    text = match.group(1)
+    audio = await text_to_speech(text)
+    await tts.finish(MessageSegment.record(audio))
+
+
+@tts_dev.handle()
+async def _(bot: Bot, event: MessageEvent):
+    msg = event.get_plaintext()
+    match = re.fullmatch(
+        r"^(?:迪拉熊|dlx)dev(?:说：?|say|speak|t[2t][as])(.+)", msg, re.I | re.S
+    )
+    if not match:
+        return
+
+    text = match.group(1)
+    audio = await text_to_speech(text)
+    hexhash = xxh32_hexdigest(audio)
+    file_name = f"{hexhash}.mp3"
+    file_path = Path("./Cache/") / "TTS" / file_name
+    async with aiofiles.open(file_path, "wb") as f:
+        await f.write(audio)
+
+    if isinstance(event, GroupMessageEvent):
+        await bot.call_api(
+            "upload_group_file",
+            group_id=event.group_id,
+            file=file_path.absolute().as_posix(),
+            name=file_name,
+        )
+    else:
+        await bot.call_api(
+            "upload_private_file",
+            user_id=event.user_id,
+            file=file_path.absolute().as_posix(),
+            name=file_name,
+        )
+
+    os.remove(file_path)
+
+
+async def text_to_speech(text: str) -> bytes:
     headers = {
         "Authorization": f"Bearer {config.tts_api_key}",
         "Content-Type": "application/json",
     }
-
     payload = {
         "model": config.tts_model,
-        "text": event.get_plaintext()[5:],
+        "text": text,
         "voice_setting": {
             "voice_id": config.tts_voice_id,
             "english_normalization": True,
@@ -33,6 +95,6 @@ async def _(event: GroupMessageEvent):
         audio_info = resp.json()
 
     if (data := audio_info.get("data")) and (audio := data.get("audio")):
-        await speak.finish(MessageSegment.record(bytes.fromhex(audio)))
+        return bytes.fromhex(audio)
 
     raise Exception(audio_info["base_resp"]["status_msg"])

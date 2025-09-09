@@ -32,6 +32,9 @@ async def _(bot: Bot, event: MessageEvent):
         qqid = event.user_id
         chat_type = "private"
         msg_text = await gen_message(event, bot)
+        if msg_text.startswith("[自动回复]"):
+            return
+
         message = (
             f'<message time="{now.isoformat()}" sender_id="{qqid}" sender_name="{
                 escape(event.sender.nickname)
