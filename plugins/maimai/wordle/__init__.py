@@ -37,8 +37,8 @@ pass_game = on_regex(r"^(结束(猜歌|开字母)|将大局逆转吧)$")
 info_tip = on_regex(r"^(提示|提醒|信息)\s*[1-5]?$")
 pic_tip = on_regex(r"^(封面|曲绘|图片?)\s*[1-5]?$")
 aud_tip = on_regex(r"^(音(乐|频)|(乐|歌)曲|片段)\s*[1-5]?$")
-rank = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母)(排行榜?|榜)$", re.I)
-rank_i = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母)(个人)?排名$", re.I)
+rank = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母|k(zm)?)(排行榜?|榜|rank)$", re.I)
+rankth = on_regex(r"^(迪拉熊|dlx)(猜歌|开字母|k(zm)?)((个人)?排名|th)$", re.I)
 
 
 # 根据乐曲别名查询乐曲id列表
@@ -549,7 +549,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     await rank.send(msg)
 
 
-@rank_i.handle()
+@rankth.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
     user_id = event.get_user_id()
     scores = await ranking.avg_scores()
@@ -604,4 +604,4 @@ async def _(bot: Bot, event: GroupMessageEvent):
         "\r\n"
         "长时间未参与游戏将暂时不会计入排行榜mai~重新结算10次就可以重新上榜啦~"
     )
-    await rank_i.send(MessageSegment.text(msg), at_sender=True)
+    await rankth.send(MessageSegment.text(msg), at_sender=True)

@@ -105,7 +105,7 @@ async def _(event: GroupMessageEvent):
 
 
 @list_all.handle()
-async def _(bot: Bot, event: GroupMessageEvent):
+async def _(bot: Bot):
     all_arcade_ids = await arcadeManager.all_arcade_ids()
     all_arcade_count = len(all_arcade_ids)
     if all_arcade_count < 1:

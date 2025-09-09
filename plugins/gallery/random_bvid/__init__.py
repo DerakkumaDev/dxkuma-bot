@@ -4,7 +4,12 @@ import re
 import orjson as json
 from httpx import AsyncClient
 from nonebot import on_regex
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
+from nonebot.adapters.onebot.v11 import (
+    Bot,
+    GroupMessageEvent,
+    MessageEvent,
+    MessageSegment,
+)
 
 from util.config import config
 from util.permission import ADMIN
@@ -71,7 +76,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
 
 @add_bv.handle()
-async def _(event: GroupMessageEvent):
+async def _(event: MessageEvent):
     msg = event.get_plaintext()
     bvids = re.findall(r"BV[A-Za-z0-9]{10}", msg)
     for bvid in bvids:
@@ -80,7 +85,7 @@ async def _(event: GroupMessageEvent):
 
 
 @remove_bv.handle()
-async def _(event: GroupMessageEvent):
+async def _(event: MessageEvent):
     msg = event.get_plaintext()
     bvids = re.findall(r"BV[A-Za-z0-9]{10}", msg)
     for bvid in bvids:
