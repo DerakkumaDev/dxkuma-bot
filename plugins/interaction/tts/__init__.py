@@ -38,14 +38,17 @@ async def _(event: MessageEvent):
 
 @tts_dev.handle()
 async def _(bot: Bot, event: MessageEvent):
-    msg = event.get_plaintext()
-    match = re.fullmatch(
-        r"^(?:迪拉熊|dlx)dev(?:说：?|say|speak|t[2t][as])(.+)", msg, re.I | re.S
-    )
-    if not match:
+    msg = str(event.get_message())
+    if not (
+        match := re.fullmatch(
+            r"^(?:迪拉熊|dlx)dev(?:说：?|say|speak|t[2t][as])(.+)", msg, re.I | re.S
+        )
+    ):
         return
 
-    text = match.group(1)
+    if not (text := match.group(1)):
+        return
+
     audio = await text_to_speech(text)
     hexhash = xxh32_hexdigest(audio)
     file_name = f"{hexhash}.mp3"
