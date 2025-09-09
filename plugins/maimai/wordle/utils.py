@@ -49,7 +49,7 @@ async def generate_message_state(
     char_all_open = list()
     for game_content in game_data["game_contents"]:
         if game_content["is_correct"]:
-            game_state.append(f"{game_content['index']}. {game_content['title']} ✔︎")
+            game_state.append(f"{game_content['index']}. {game_content['title']} ✓")
             continue
         display_title = str()
         is_all_open = True
@@ -112,7 +112,7 @@ async def generate_message_state(
                     game_content["music_id"],
                 )
             )
-            game_state.append(f"{game_content['index']}. {game_content['title']} ✔︎")
+            game_state.append(f"{game_content['index']}. {game_content['title']} ✓")
         else:
             game_state.append(f"{game_content['index']}. {display_title}")
 
@@ -170,7 +170,7 @@ def generate_success_state(game_data: dict) -> str:
     for game_content in game_data["game_contents"]:
         game_state.append(
             f"{game_content['index']}. {game_content['title']} {
-                '✔︎' if game_content['is_correct'] else '❌︎'
+                '✓' if game_content['is_correct'] else '✕'
             }"
         )
     return "\r\n".join(game_state)
