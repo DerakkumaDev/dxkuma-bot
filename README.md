@@ -32,9 +32,9 @@ git clone xxx.git derakkuma-bot
 
 cd derakkuma-bot
 
-pip install -r requirements.txt
+uv sync
 
-python start.py
+uv run start.py
 ```
 
 ## 依赖列表
