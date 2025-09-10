@@ -32,8 +32,15 @@ async def _(event: MessageEvent):
         return
 
     text = match.group(1)
-    audio = await text_to_speech(text)
-    await tts.finish(MessageSegment.record(audio))
+    audio, _, usage_characters = await text_to_speech(text)
+    await tts.send(MessageSegment.record(audio))
+    stars_left = "∞"
+    await tts.send(
+        MessageSegment.text(
+            f"本次消耗了{usage_characters}颗星星mai~你现在还有{stars_left}颗星星哦~"
+        ),
+        at_sender=True,
+    )
 
 
 @tts_dev.handle()
@@ -49,7 +56,7 @@ async def _(bot: Bot, event: MessageEvent):
     if not (text := match.group(1)):
         return
 
-    audio = await text_to_speech(text)
+    audio, subtitle_file, _ = await text_to_speech(text)
     hexhash = xxh32_hexdigest(audio)
     file_name = f"{hexhash}.mp3"
     file_path = Path("./Cache/") / "TTS" / file_name
@@ -73,8 +80,11 @@ async def _(bot: Bot, event: MessageEvent):
 
     os.remove(file_path)
 
+    if subtitle_file:
+        await tts.send(f"字幕文件下载链接：{subtitle_file}")
 
-async def text_to_speech(text: str) -> bytes:
+
+async def text_to_speech(text: str) -> tuple[bytes, str, int]:
     headers = {
         "Authorization": f"Bearer {config.tts_api_key}",
         "Content-Type": "application/json",
@@ -97,7 +107,14 @@ async def text_to_speech(text: str) -> bytes:
         )
         audio_info = resp.json()
 
-    if (data := audio_info.get("data")) and (audio := data.get("audio")):
-        return bytes.fromhex(audio)
+    data = audio_info.get("data", dict())
+    if not (audio := data.get("audio")):
+        raise Exception(audio_info["base_resp"]["status_msg"])
 
-    raise Exception(audio_info["base_resp"]["status_msg"])
+    subtitle_file = data.get("subtitle_file")
+    extra_info = audio_info.get("extra_info", dict())
+    usage_characters = extra_info.get("usage_characters", 1)
+    if usage_characters <= 0:
+        usage_characters = 1
+
+    return bytes.fromhex(audio), subtitle_file, usage_characters
