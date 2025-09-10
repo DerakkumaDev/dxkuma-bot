@@ -1,6 +1,5 @@
+from asyncio import Semaphore
 from enum import Enum, unique
-
-from anyio import Semaphore
 
 from .config import config
 

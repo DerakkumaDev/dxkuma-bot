@@ -5,7 +5,7 @@ from nonebot import on_message
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
 from nonebot.rule import to_me
 
-from .tasks import outtime_check, request_queues, times
+from .tasks import on_done, outtime_check, request_queues, times
 from .utils import escape, gen_message
 
 handler = on_message(to_me(), priority=1000)
@@ -50,4 +50,5 @@ async def _(bot: Bot, event: MessageEvent):
     messages = request_queues.setdefault(chat_id, list())
     messages.append(message)
     times[chat_id] = event.time
-    asyncio.create_task(outtime_check(bot, chat_type, qqid))
+    task = asyncio.create_task(outtime_check(bot, chat_type, qqid))
+    task.add_done_callback(on_done)

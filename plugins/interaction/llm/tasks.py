@@ -1,10 +1,12 @@
 import asyncio
+import traceback
 from asyncio import Task
 from datetime import datetime
 
-import anyio
 import numpy as np
-from nonebot.adapters.onebot.v11 import Bot
+from nonebot import get_bot
+from nonebot.adapters.onebot.v11 import Bot, MessageSegment
+from nonebot.exception import AdapterException
 from volcenginesdkarkruntime._exceptions import ArkBadRequestError, ArkNotFoundError
 
 from util.config import config
@@ -21,7 +23,7 @@ times: dict[str, int] = dict()
 
 
 async def outtime_check(bot: Bot, chat_type: str, qq_id: int):
-    await anyio.sleep(OUTTIME)
+    await asyncio.sleep(OUTTIME)
     now = datetime.now()
     chat_id = f"{qq_id}.{chat_type[0]}"
     if chat_id in request_queue_tasks and not request_queue_tasks[chat_id].done():
@@ -41,6 +43,7 @@ async def outtime_check(bot: Bot, chat_type: str, qq_id: int):
         return
 
     task = asyncio.create_task(request_queue_task(bot, chat_type, qq_id))
+    task.add_done_callback(on_done)
     request_queue_tasks[chat_id] = task
 
 
@@ -184,6 +187,7 @@ async def push_and_start_sending(
     queue.append(reply)
     if chat_id not in response_queue_tasks or response_queue_tasks[chat_id].done():
         task = asyncio.create_task(response_queue_task(bot, chat_type, qq_id))
+        task.add_done_callback(on_done)
         response_queue_tasks[chat_id] = task
 
 
@@ -199,4 +203,13 @@ async def response_queue_task(bot: Bot, chat_type: str, qq_id: int):
             await bot.send_private_msg(user_id=qq_id, message=message)
 
         times = rng.integers(10, 30) / 10
-        await anyio.sleep(float(times))
+        await asyncio.sleep(float(times))
+
+
+def on_done(task: Task):
+    if not (exception := task.exception()) or isinstance(exception, AdapterException):
+        return
+    bot = get_bot()
+    trace = str().join(traceback.format_exception(exception)).replace("\\n", "\r\n")
+    msg = MessageSegment.text(trace)
+    asyncio.run(bot.send_msg(group_id=config.dev_group, message=msg))

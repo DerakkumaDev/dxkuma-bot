@@ -5,7 +5,6 @@ import re
 from pathlib import Path
 
 import aiofiles
-import anyio
 from PIL import Image, UnidentifiedImageError
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
@@ -94,7 +93,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         msg_id = send_msg["message_id"]
 
         async def delete_msg_after_delay():
-            await anyio.sleep(10)
+            await asyncio.sleep(10)
             await bot.delete_msg(message_id=msg_id)
 
         asyncio.create_task(delete_msg_after_delay())
