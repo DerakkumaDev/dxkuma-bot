@@ -68,7 +68,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     now = datetime.datetime.fromtimestamp(event.time)
     if type == "nsfw":
         if os.path.exists("./data/nsfw_lock"):
-            await rand_pic.finish("由于该账号被警告，该功能暂时关闭，稍后再试mai~")
+            await rand_pic.finish("由于账号被警告，这个功能暂时无法使用了mai~")
     elif group_id != config.special_group:  # 不被限制的 group_id
         while len(groups[group_id]) > 0:
             t = groups[group_id][0]

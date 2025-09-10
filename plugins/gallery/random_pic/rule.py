@@ -3,8 +3,10 @@ import re
 from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from nonebot.internal.rule import Rule
 from nonebot.typing import T_State
+from xxhash import xxh32_hexdigest
 
 from util.config import config
+from util.lock import locks
 
 
 class NSFWRule:
@@ -26,6 +28,10 @@ class NSFWRule:
 
         if event.self_id in config.nsfw_allowed:
             # type 为 'nsfw' 且为指定机器人
+            return True
+
+        key = xxh32_hexdigest(f"{event.time}_{event.group_id}_{event.real_seq}")
+        if key not in locks or locks[key].count <= 1:
             return True
 
         return False
