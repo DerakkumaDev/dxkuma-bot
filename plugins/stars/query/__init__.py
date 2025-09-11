@@ -7,6 +7,7 @@ from numpy import random
 from util.stars import stars
 
 query = on_regex(r"^查星星$", re.I)
+query_detail = on_regex(r"^查?星星明细$", re.I)
 
 replies_posi = [
     lambda _: "可以给迪拉熊吃一颗吗mai？（可怜）",
@@ -33,5 +34,18 @@ async def _(event: GroupMessageEvent):
     elif balance < 0:
         reply = rng.choice(replies_posi)
         await query.finish(f"你还欠迪拉熊{balance}颗★mai！{reply(balance)}")
-    else:
-        await query.finish("你还没有★哦~")
+
+    await query.send("你还没有★哦~")
+
+
+@query_detail.handle()
+async def _(event: GroupMessageEvent):
+    qq = event.get_user_id()
+    details = await stars.list_actions(qq, 5)
+    details_text = "\r\n".join(
+        f"{detail['created_at'].strftime('%-y/%-m/%-d %-H:%-M%z')} {detail['change']}★ {
+            detail['cause']
+        }"
+        for detail in details
+    )
+    await query.send(f"你最近{len(details)}次的明细是——\r\n{details_text}")
