@@ -18,8 +18,8 @@ from ..rank.database import ranking
 
 rand_pic = on_regex(r"^(随机)?(迪拉熊|dlx)((涩|色|瑟)图|st)?$", re.I)
 
-LIMIT_MINUTES = 1
-LIMIT_TIMES = 10
+LIMIT_MINUTES = 2
+LIMIT_TIMES = 6
 
 groups: dict[int, list[datetime.datetime]] = dict()
 
