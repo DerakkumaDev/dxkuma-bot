@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import DateTime, String
 from sqlalchemy.dialects.postgresql import insert
@@ -15,24 +15,19 @@ class WordleTimes(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=datetime.now
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone(timedelta(hours=8))),
     )
-
-    @property
-    def game_date(self) -> date:
-        return date(self.year, self.month, self.day)
 
 
 class Times:
     @with_transaction
-    async def add(
-        self, user_id: str, year: int, month: int, day: int, **kwargs
-    ) -> None:
+    async def add(self, user_id: str, time: int, **kwargs) -> None:
         session: AsyncSession = kwargs["session"]
 
-        stmt = insert(WordleTimes).values(
-            user_id=user_id, created_at=date(year, month, day)
-        )
+        now = datetime.fromtimestamp(time, timezone(timedelta(hours=8)))
+        stmt = insert(WordleTimes).values(user_id=user_id, created_at=now)
         await session.execute(stmt)
 
     @with_transaction

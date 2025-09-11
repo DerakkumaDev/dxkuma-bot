@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any, Literal, Optional
 
 from sqlalchemy import Boolean, DateTime, Integer, String, update
@@ -31,7 +31,9 @@ class StarAction(Base):
     after_balance: Mapped[int] = mapped_column(Integer, nullable=False)
     cause: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=datetime.now
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone(timedelta(hours=8))),
     )
 
 
@@ -54,7 +56,7 @@ class Stars:
 
     @with_transaction
     async def apply_change(
-        self, qq: str, num: int, cause: str, time: datetime, **kwargs
+        self, qq: str, num: int, cause: str, time: int, **kwargs
     ) -> bool:
         if num == 0:
             return True
@@ -63,6 +65,7 @@ class Stars:
 
         before_balance: int
         after_balance: int
+        now = datetime.fromtimestamp(time, timezone(timedelta(hours=8)))
 
         sel_inf = select(StarBalance.is_infinite, StarBalance.balance).where(
             StarBalance.qq == qq
@@ -77,7 +80,7 @@ class Stars:
                 before_balance=before_balance,
                 after_balance=after_balance,
                 cause=cause,
-                created_at=time.date(),
+                created_at=now.date(),
             )
             await session.execute(action_stmt)
             return True
@@ -136,7 +139,7 @@ class Stars:
             before_balance=before_balance,
             after_balance=after_balance,
             cause=cause,
-            created_at=time.date(),
+            created_at=now.date(),
         )
         await session.execute(action_stmt)
 

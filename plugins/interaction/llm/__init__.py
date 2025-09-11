@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 from nonebot import on_message
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
@@ -13,7 +13,7 @@ handler = on_message(to_me(), priority=1000)
 
 @handler.handle()
 async def _(bot: Bot, event: MessageEvent):
-    now = datetime.fromtimestamp(event.time)
+    now = datetime.fromtimestamp(event.time, timezone(timedelta(hours=8)))
     if isinstance(event, GroupMessageEvent):
         qqid = event.group_id
         chat_type = "group"

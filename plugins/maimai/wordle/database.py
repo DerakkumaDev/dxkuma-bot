@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import orjson
@@ -32,7 +32,9 @@ class WordleGame(Base):
         String(10), unique=True, nullable=False, index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=datetime.now
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone(timedelta(hours=8))),
     )
 
     open_chars: Mapped[list["WordleOpenChar"]] = relationship(
@@ -125,7 +127,9 @@ class OpenChars:
         record = result.scalar_one_or_none()
 
         if record:
-            if datetime.now() - record.updated_at > timedelta(hours=12):
+            if datetime.now(
+                timezone(timedelta(hours=8))
+            ) - record.updated_at > timedelta(hours=12):
                 await session.delete(record)
                 await session.flush()
             else:
@@ -133,7 +137,9 @@ class OpenChars:
 
         game_data = await self._generate_game_data()
 
-        stmt = insert(WordleGame).values(group_id=group_id, updated_at=datetime.now())
+        stmt = insert(WordleGame).values(
+            group_id=group_id, updated_at=datetime.now(timezone(timedelta(hours=8)))
+        )
         stmt = stmt.on_conflict_do_update(
             index_elements=["group_id"],
             set_={
@@ -205,7 +211,9 @@ class OpenChars:
         if not record:
             return False, None
 
-        if datetime.now() - record.updated_at > timedelta(hours=12):
+        if datetime.now(timezone(timedelta(hours=8))) - record.updated_at > timedelta(
+            hours=12
+        ):
             await session.delete(record)
             await session.flush()
             return False, None
@@ -234,7 +242,7 @@ class OpenChars:
 
                 content.opc_times += 1
 
-        record.updated_at = datetime.now()
+        record.updated_at = datetime.now(timezone(timedelta(hours=8)))
 
         await session.flush()
         with session.no_autoflush:
@@ -253,7 +261,9 @@ class OpenChars:
         if not record:
             return None
 
-        if datetime.now() - record.updated_at > timedelta(hours=12):
+        if datetime.now(timezone(timedelta(hours=8))) - record.updated_at > timedelta(
+            hours=12
+        ):
             await session.delete(record)
             await session.flush()
             return None
@@ -274,7 +284,9 @@ class OpenChars:
         if not record:
             return False
 
-        if datetime.now() - record.updated_at > timedelta(hours=12):
+        if datetime.now(timezone(timedelta(hours=8))) - record.updated_at > timedelta(
+            hours=12
+        ):
             await session.delete(record)
             await session.flush()
             return False
@@ -317,7 +329,7 @@ class OpenChars:
         else:
             return False
 
-        record.updated_at = datetime.now()
+        record.updated_at = datetime.now(timezone(timedelta(hours=8)))
         await session.flush()
         return True
 
@@ -356,7 +368,9 @@ class OpenChars:
         if not record:
             return False
 
-        if datetime.now() - record.updated_at > timedelta(hours=12):
+        if datetime.now(timezone(timedelta(hours=8))) - record.updated_at > timedelta(
+            hours=12
+        ):
             await session.delete(record)
             await session.flush()
             return False
@@ -378,7 +392,7 @@ class OpenChars:
         elif counter_type == "opc_times":
             content.opc_times += 1
 
-        record.updated_at = datetime.now()
+        record.updated_at = datetime.now(timezone(timedelta(hours=8)))
         await session.flush()
         return True
 
@@ -436,7 +450,9 @@ class OpenChars:
         if not record:
             return False
 
-        if datetime.now() - record.updated_at > timedelta(hours=12):
+        if datetime.now(timezone(timedelta(hours=8))) - record.updated_at > timedelta(
+            hours=12
+        ):
             await session.delete(record)
             await session.flush()
             return False

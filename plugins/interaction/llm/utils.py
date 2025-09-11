@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from nonebot.adapters.onebot.v11 import (
@@ -145,7 +145,9 @@ async def gen_message_segment(
         messages = list()
         for message in forward_messages:
             now = datetime.fromtimestamp(
-                message.get("time", datetime.now().timestamp())
+                message.get(
+                    "time", datetime.now(timezone(timedelta(hours=8))).timestamp()
+                )
             )
             sender = message.get("sender", dict())
             msg_text = str().join(

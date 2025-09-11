@@ -1,4 +1,4 @@
-import datetime
+from datetime import date
 
 from sqlalchemy import Date, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import insert
@@ -18,7 +18,7 @@ class RankingRecord(Base):
     sfw_count: Mapped[int] = mapped_column(Integer, default=0)
     nsfw_count: Mapped[int] = mapped_column(Integer, default=0)
     video_count: Mapped[int] = mapped_column(Integer, default=0)
-    created_at: Mapped[datetime.date] = mapped_column(Date, default=datetime.date.today)
+    created_at: Mapped[date] = mapped_column(Date, default=date.today)
 
     __table_args__ = (UniqueConstraint("qq", "week_key", name="uq_qq_week_key"),)
 
@@ -30,7 +30,7 @@ class Ranking:
 
     @property
     def now(self) -> str:
-        today = datetime.date.today()
+        today = date.today()
 
         # 获取当前年份
         year = today.year
@@ -75,7 +75,7 @@ class Ranking:
             count_increment["video_count"] = 1
 
         stmt = insert(RankingRecord).values(
-            qq=qq, week_key=time, **count_increment, created_at=datetime.date.today()
+            qq=qq, week_key=time, **count_increment, created_at=date.today()
         )
         stmt = stmt.on_conflict_do_update(
             constraint="uq_qq_week_key",

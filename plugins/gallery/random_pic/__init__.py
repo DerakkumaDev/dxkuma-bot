@@ -1,7 +1,7 @@
 import asyncio
-import datetime
 import os
 import re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import aiofiles
@@ -21,7 +21,7 @@ rand_pic = on_regex(r"^(随机)?(迪拉熊|dlx)((涩|色|瑟)图|st)?$", re.I)
 LIMIT_MINUTES = 2
 LIMIT_TIMES = 6
 
-groups: dict[int, list[datetime.datetime]] = dict()
+groups: dict[int, list[datetime]] = dict()
 
 
 def check_image(imgpath: Path | str):
@@ -67,7 +67,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
             MessageSegment.image(Path("./Static/Gallery/0.png")),
         )
         await rand_pic.finish(msg)
-    now = datetime.datetime.fromtimestamp(event.time)
+    now = datetime.fromtimestamp(event.time, timezone(timedelta(hours=8)))
     if type == "nsfw":
         if event.self_id not in config.nsfw_allowed:
             key = xxh32_hexdigest(f"{event.time}_{event.group_id}_{event.real_seq}")
@@ -84,7 +84,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     elif group_id != config.special_group:  # 不被限制的 group_id
         while len(groups[group_id]) > 0:
             t = groups[group_id][0]
-            if now - t < datetime.timedelta(minutes=LIMIT_MINUTES):
+            if now - t < timedelta(minutes=LIMIT_MINUTES):
                 break
             groups[group_id].pop(0)
         if len(groups[group_id]) >= LIMIT_TIMES:

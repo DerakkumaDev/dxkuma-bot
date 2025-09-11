@@ -1,7 +1,7 @@
 import asyncio
 import traceback
 from asyncio import Task
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 from nonebot import get_bot
@@ -24,7 +24,7 @@ times: dict[str, int] = dict()
 
 async def outtime_check(bot: Bot, chat_type: str, qq_id: int):
     await asyncio.sleep(OUTTIME)
-    now = datetime.now()
+    now = datetime.now(timezone(timedelta(hours=8)))
     chat_id = f"{qq_id}.{chat_type[0]}"
     if chat_id in request_queue_tasks and not request_queue_tasks[chat_id].done():
         return

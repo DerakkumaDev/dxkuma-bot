@@ -1,9 +1,16 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import nanoid
 from rapidfuzz import fuzz, process
-from sqlalchemy import BigInteger, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    BigInteger,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -45,7 +52,11 @@ class ArcadeLastAction(Base):
     )
     group_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
     operator_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    action_time: Mapped[int] = mapped_column(Integer, nullable=False)
+    action_time: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone(timedelta(hours=8))),
+    )
     before_count: Mapped[int] = mapped_column(Integer, nullable=False)
 
     arcade: Mapped["Arcade"] = relationship("Arcade", back_populates="last_action")
@@ -102,14 +113,15 @@ class ArcadeManager:
         if last_action is None:
             return await self._arcade_to_dict(arcade_record, session)
 
-        last_action_time = datetime.fromtimestamp(last_action.action_time)
-        now = datetime.now()
-        today = datetime(now.year, now.month, now.day, 4, 0, 0, 0)
+        last_action_time = last_action.action_time.astimezone(
+            timezone(timedelta(hours=4))
+        )
+        now = datetime.now(timezone(timedelta(hours=4)))
 
-        if last_action_time >= today or now.hour < 4:
+        if last_action_time.date() > now.date():
             return await self._arcade_to_dict(arcade_record, session)
 
-        await self.reset(arcade_id, int(today.timestamp()), session)
+        await self.reset(arcade_id, int(now.timestamp()), session)
         return await self._arcade_to_dict(arcade_record, session)
 
     @with_transaction
@@ -332,17 +344,18 @@ class ArcadeManager:
         last_action_result = await session.execute(last_action_stmt)
         last_action = last_action_result.scalar_one_or_none()
 
+        now = datetime.fromtimestamp(time, timezone(timedelta(hours=8)))
         if last_action:
             last_action.group_id = group_id
             last_action.operator_id = operator
-            last_action.action_time = time
+            last_action.action_time = now
             last_action.before_count = before
         else:
             stmt = insert(ArcadeLastAction).values(
                 arcade_id=arcade_id,
                 group_id=group_id,
                 operator_id=operator,
-                action_time=time,
+                action_time=now,
                 before_count=before,
             )
             stmt = stmt.on_conflict_do_update(
@@ -374,10 +387,11 @@ class ArcadeManager:
             last_action_result = await session.execute(last_action_stmt)
             last_action = last_action_result.scalar_one_or_none()
 
+            now = datetime.fromtimestamp(time, timezone(timedelta(hours=8)))
             if last_action:
                 last_action.group_id = -1
                 last_action.operator_id = -1
-                last_action.action_time = time
+                last_action.action_time = now
                 last_action.before_count = arcade.count
             else:
                 stmt = insert(ArcadeLastAction).values(

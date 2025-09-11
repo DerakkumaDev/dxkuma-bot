@@ -1,3 +1,4 @@
+from datetime import timedelta, timezone
 import re
 
 from nonebot import on_regex
@@ -43,9 +44,11 @@ async def _(event: GroupMessageEvent):
     qq = event.get_user_id()
     details = await stars.list_actions(qq, 5)
     details_text = "\r\n".join(
-        f"{detail['created_at'].strftime('%-y/%-m/%-d %-H:%-M%z')} {detail['change']}★ {
-            detail['cause']
-        }"
+        f"{
+            detail['created_at']
+            .astimezone(timezone(timedelta(hours=8)))
+            .strftime('%-y/%-m/%-d %-H:%-M%z')
+        } {detail['change']}★ {detail['cause']}"
         for detail in details
     )
     await query.send(f"你最近{len(details)}次的明细是——\r\n{details_text}")

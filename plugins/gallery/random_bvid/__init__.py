@@ -1,5 +1,5 @@
-import datetime
 import re
+from datetime import datetime, timedelta, timezone
 
 import orjson as json
 from httpx import AsyncClient
@@ -20,10 +20,10 @@ rand_bv = on_regex(r"^(随机)?(迪拉熊|dlx)(视频|sp|v)$", re.I)
 add_bv = on_regex(r"^(加视频|jsp)(\s*BV[A-Za-z0-9]{10})+$", re.I, permission=ADMIN)
 remove_bv = on_regex(r"^(删视频|jsp)(\s*BV[A-Za-z0-9]{10})+$", re.I, permission=ADMIN)
 
-LIMIT_MINUTES = 1
-LIMIT_TIMES = 5
+LIMIT_MINUTES = 2
+LIMIT_TIMES = 6
 
-groups: dict[int, list[datetime.datetime]] = dict()
+groups: dict[int, list[datetime]] = dict()
 
 
 @rand_bv.handle()
@@ -31,11 +31,11 @@ async def _(bot: Bot, event: GroupMessageEvent):
     group_id = event.group_id
     qq = event.get_user_id()
     groups.setdefault(group_id, list())
-    now = datetime.datetime.fromtimestamp(event.time)
+    now = datetime.fromtimestamp(event.time, timezone(timedelta(hours=8)))
     if group_id != config.special_group:  # 不被限制的 group_id
         while len(groups[group_id]) > 0:
             t = groups[group_id][0]
-            if now - t < datetime.timedelta(minutes=LIMIT_MINUTES):
+            if now - t < timedelta(minutes=LIMIT_MINUTES):
                 break
             groups[group_id].pop(0)
 

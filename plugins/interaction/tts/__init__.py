@@ -1,6 +1,5 @@
 import os
 import re
-from datetime import datetime
 from pathlib import Path
 
 import aiofiles
@@ -28,7 +27,6 @@ tts_dev = on_regex(
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    now = datetime.fromtimestamp(event.time)
     match = re.fullmatch(
         r"^(?:迪拉熊|dlx)(?:说：?|say|speak|t[2t][as])(.+)", msg, re.I | re.S
     )
@@ -47,7 +45,7 @@ async def _(event: MessageEvent):
         await tts.finish(f"你还欠迪拉熊{-balance}颗★呢（哼）", at_sender=True)
 
     audio, _, usage_characters = await text_to_speech(text)
-    if not await stars.apply_change(qq, -usage_characters, "TTS请求", now):
+    if not await stars.apply_change(qq, -usage_characters, "TTS请求", event.time):
         raise
     balance = await stars.get_balance(qq)
     if balance == "inf":

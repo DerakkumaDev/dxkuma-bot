@@ -1,5 +1,4 @@
-from datetime import datetime
-
+from datetime import timedelta, timezone
 from nonebot.adapters.onebot.v11 import Bot
 
 
@@ -15,11 +14,10 @@ async def gen_message(bot: Bot, arcade: dict) -> str:
 
     messages.append(
         f"最后在{
-            datetime.strftime(
-                datetime.fromtimestamp(arcade['last_action']['time']),
-                '%Y年%m月%d日 %H:%M',
-            )
-        }（UTC+8）"
+            arcade['last_action']['time']
+            .astimezone(timezone(timedelta(hours=8)))
+            .strftime('%-y年%-m月%-d日 %-H:%-M%z')
+        }"
     )
     action, delta = num2action(arcade["count"], arcade["last_action"]["before"])
     if arcade["last_action"]["group"] < 0 and arcade["last_action"]["operator"] < 0:

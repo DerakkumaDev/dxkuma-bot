@@ -1,6 +1,5 @@
 import sys
 import unicodedata
-from datetime import datetime
 
 from pykakasi import kakasi
 
@@ -18,7 +17,6 @@ async def generate_message_state(
     if not game_data:
         raise
 
-    now = datetime.fromtimestamp(time)
     game_state = list()
     char_all_open = list()
     for game_content in game_data["game_contents"]:
@@ -65,7 +63,7 @@ async def generate_message_state(
                 game_content["aud_times"],
                 True,
             )
-            await times.add(user_id, now.year, now.month, now.day)
+            await times.add(user_id, time)
 
             for player in game_content["part"]:
                 if player == user_id:
@@ -79,7 +77,7 @@ async def generate_message_state(
                     game_content["aud_times"],
                     False,
                 )
-                await times.add(player, now.year, now.month, now.day)
+                await times.add(player, time)
 
             char_all_open.append(
                 (
@@ -105,7 +103,6 @@ async def check_music_id(
     if not game_data:
         return []
 
-    now = datetime.fromtimestamp(time)
     guess_success = list()
     for game_content in game_data["game_contents"]:
         if (
@@ -122,7 +119,7 @@ async def check_music_id(
                 game_content["aud_times"],
                 True,
             )
-            await times.add(user_id, now.year, now.month, now.day)
+            await times.add(user_id, time)
 
             for player in game_content["part"]:
                 if player == user_id:
@@ -136,7 +133,7 @@ async def check_music_id(
                     game_content["aud_times"],
                     False,
                 )
-                await times.add(player, now.year, now.month, now.day)
+                await times.add(player, time)
 
             guess_success.append(
                 (

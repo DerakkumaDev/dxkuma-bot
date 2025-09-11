@@ -2,7 +2,6 @@ import asyncio
 import math
 import os
 import re
-from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
@@ -157,7 +156,6 @@ async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
     user_id = event.get_user_id()
     msg = event.get_plaintext()
-    now = datetime.fromtimestamp(event.time)
     match = re.fullmatch(r"开\s*(.+)", msg)
     if not match:
         return
@@ -192,7 +190,7 @@ async def _(event: GroupMessageEvent):
                         await fd.write(await resp.aread())
 
             star = int(rng.integers(15, 35))
-            await stars.apply_change(user_id, star, "开字母猜中歌曲", now)
+            await stars.apply_change(user_id, star, "开字母猜中歌曲", event.time)
             await open_chars.send(
                 (
                     MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
@@ -229,7 +227,6 @@ async def _(event: GroupMessageEvent):
         return
 
     rng = random.default_rng()
-    now = datetime.fromtimestamp(event.time)
     for i, title, id in guess_success:
         cover_path = f"./Cache/Jacket/{id % 10000}.png"
         if not os.path.exists(cover_path):
@@ -241,7 +238,7 @@ async def _(event: GroupMessageEvent):
                     await fd.write(await resp.aread())
 
         star = int(rng.integers(15, 35))
-        await stars.apply_change(user_id, star, "开字母猜中歌曲", now)
+        await stars.apply_change(user_id, star, "开字母猜中歌曲", event.time)
         await all_message_handle.send(
             (
                 MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
@@ -265,9 +262,9 @@ async def _(event: GroupMessageEvent):
     if not await openchars.is_gaming(group_id):
         return
 
+    await pass_game.send(await generate_success_state(group_id))
     await openchars.game_over(group_id)
 
-    await pass_game.send(await generate_success_state(group_id))
     await pass_game.send("迪拉熊帮大家揭晓答案啦mai~")
 
 
