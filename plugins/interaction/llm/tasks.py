@@ -179,9 +179,14 @@ async def push_and_start_sending(
         if not reply.endswith("）"):
             reply += "）"
     elif reply[-4:-1] != "mai":
-        if reply.endswith(("，", "。", "？", "！")):
-            reply = reply[:-1]
-        reply += "mai~"
+        start = reply[:-1]
+        end = reply[-1]
+        if end in "，。":
+            end = "~"
+        if end == "…" and start.endswith("…"):
+            start = start[:-1]
+            end = "……"
+        reply = start + "mai" + end
     chat_id = f"{qq_id}.{chat_type[0]}"
     queue = response_queues.setdefault(chat_id, list())
     queue.append(reply)
