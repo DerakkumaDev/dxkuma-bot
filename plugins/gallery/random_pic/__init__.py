@@ -9,12 +9,14 @@ from PIL import Image, UnidentifiedImageError
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 from numpy import random
+from xxhash import xxh32_hexdigest
 
 from util.config import config
-from .rule import nsfw
+from util.exceptions import SkipedException
+from util.lock import locks
 from ..rank.database import ranking
 
-rand_pic = on_regex(r"^(随机)?(迪拉熊|dlx)((涩|色|瑟)图|st)?$", re.I, nsfw())
+rand_pic = on_regex(r"^(随机)?(迪拉熊|dlx)((涩|色|瑟)图|st)?$", re.I)
 
 LIMIT_MINUTES = 1
 LIMIT_TIMES = 10
@@ -67,6 +69,16 @@ async def _(bot: Bot, event: GroupMessageEvent):
         await rand_pic.finish(msg)
     now = datetime.datetime.fromtimestamp(event.time)
     if type == "nsfw":
+        if event.self_id not in config.nsfw_allowed:
+            key = xxh32_hexdigest(f"{event.time}_{event.group_id}_{event.real_seq}")
+            if key in locks and locks[key].count > 1:
+                raise SkipedException
+            await rand_pic.finish(
+                (
+                    MessageSegment.text("迪拉熊不准你看！"),
+                    MessageSegment.image(Path("./Static/Gallery/0.png")),
+                )
+            )
         if os.path.exists("./data/nsfw_lock"):
             await rand_pic.finish("由于账号被警告，这个功能暂时无法使用了mai~")
     elif group_id != config.special_group:  # 不被限制的 group_id

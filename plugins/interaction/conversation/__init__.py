@@ -78,16 +78,12 @@ async def _(event: GroupMessageEvent):
 @cum.handle()
 async def _(event: GroupMessageEvent):
     rng = random.default_rng()
-    key = xxh32_hexdigest(f"{event.time}_{event.group_id}_{event.real_seq}")
-    if (
-        key in locks
-        and locks[key].count > 1
-        and event.self_id not in config.nsfw_allowed
-    ):
-        raise SkipedException
-
     i = 0
-    if event.self_id in config.nsfw_allowed:
+    key = xxh32_hexdigest(f"{event.time}_{event.group_id}_{event.real_seq}")
+    if event.self_id not in config.nsfw_allowed:
+        if key in locks and locks[key].count > 1:
+            raise SkipedException
+    else:
         i = rng.choice([0, 1], p=[0.1, 0.9])
 
     msg = MessageSegment.image(Path(f"./Static/Cum/{i}.png"))
