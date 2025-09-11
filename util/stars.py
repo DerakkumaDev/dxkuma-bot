@@ -31,7 +31,7 @@ class StarAction(Base):
     after_balance: Mapped[int] = mapped_column(Integer, nullable=False)
     cause: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.now
+        DateTime(timezone=True), nullable=False, default=datetime.now
     )
 
 
