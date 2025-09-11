@@ -56,6 +56,7 @@ async def generate_message_state(
                 is_all_open = False
         if is_all_open:
             await openchars.mark_content_as_correct(group_id, game_content["index"])
+
             await ranking.add_score(
                 user_id,
                 game_content["opc_times"],
@@ -65,9 +66,11 @@ async def generate_message_state(
                 True,
             )
             await times.add(user_id, now.year, now.month, now.day)
+
             for player in game_content["part"]:
                 if player == user_id:
                     continue
+
                 await ranking.add_score(
                     player,
                     game_content["opc_times"],
@@ -104,42 +107,45 @@ async def check_music_id(
 
     now = datetime.fromtimestamp(time)
     guess_success = list()
-    for music_id in music_ids:
-        for game_content in game_data["game_contents"]:
-            if (
-                int(music_id) == game_content["music_id"]
-                and not game_content["is_correct"]
-            ):
-                await openchars.mark_content_as_correct(group_id, game_content["index"])
+    for game_content in game_data["game_contents"]:
+        if (
+            not game_content["is_correct"]
+            and str(game_content["music_id"]) in music_ids
+        ):
+            await openchars.mark_content_as_correct(group_id, game_content["index"])
+
+            await ranking.add_score(
+                user_id,
+                game_content["opc_times"],
+                len(game_content["tips"]),
+                game_content["pic_times"],
+                game_content["aud_times"],
+                True,
+            )
+            await times.add(user_id, now.year, now.month, now.day)
+
+            for player in game_content["part"]:
+                if player == user_id:
+                    continue
+
                 await ranking.add_score(
-                    user_id,
+                    player,
                     game_content["opc_times"],
                     len(game_content["tips"]),
                     game_content["pic_times"],
                     game_content["aud_times"],
-                    True,
+                    False,
                 )
-                await times.add(user_id, now.year, now.month, now.day)
-                for player in game_content["part"]:
-                    if player == user_id:
-                        continue
-                    await ranking.add_score(
-                        player,
-                        game_content["opc_times"],
-                        len(game_content["tips"]),
-                        game_content["pic_times"],
-                        game_content["aud_times"],
-                        False,
-                    )
-                    await times.add(player, now.year, now.month, now.day)
+                await times.add(player, now.year, now.month, now.day)
 
-                guess_success.append(
-                    (
-                        game_content["index"],
-                        game_content["title"],
-                        game_content["music_id"],
-                    )
+            guess_success.append(
+                (
+                    game_content["index"],
+                    game_content["title"],
+                    game_content["music_id"],
                 )
+            )
+
     return guess_success
 
 

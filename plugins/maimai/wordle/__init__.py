@@ -262,8 +262,7 @@ async def _(event: GroupMessageEvent):
 @pass_game.handle()
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
-    game_data = await openchars.get_game_data(group_id)
-    if not game_data:
+    if not await openchars.is_gaming(group_id):
         return
 
     await openchars.game_over(group_id)
