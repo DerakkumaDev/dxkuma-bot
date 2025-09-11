@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Literal, Optional
 
-from sqlalchemy import Boolean, Date, Integer, String, update
+from sqlalchemy import Boolean, DateTime, Integer, String, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -31,7 +31,7 @@ class StarAction(Base):
     after_balance: Mapped[int] = mapped_column(Integer, nullable=False)
     cause: Mapped[str] = mapped_column(String(128), nullable=False)
     created_at: Mapped[datetime] = mapped_column(
-        Date, nullable=False, default=datetime.now
+        DateTime, nullable=False, default=datetime.now
     )
 
 

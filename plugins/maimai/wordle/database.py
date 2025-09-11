@@ -32,7 +32,7 @@ class WordleGame(Base):
         String(10), unique=True, nullable=False, index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=lambda: datetime.now()
+        DateTime, nullable=False, default=datetime.now
     )
 
     open_chars: Mapped[list["WordleOpenChar"]] = relationship(
