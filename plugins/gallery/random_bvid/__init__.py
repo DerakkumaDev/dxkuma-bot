@@ -75,7 +75,10 @@ async def _(bot: Bot, event: GroupMessageEvent):
     groups[group_id].append(now)
     await ranking.update_count(qq=qq, type="video")
     star, method = await stars.give_rewards(qq, 10, 30, "欣赏迪拉熊视频", event.time)
-    await rand_bv.send(f"迪拉熊奖励你{star}颗★mai~", at_sender=True)
+    msg = f"迪拉熊奖励你{star}颗★mai~"
+    if method & 0b1_0000:
+        msg += "今日首次奖励翻倍哦~"
+    await rand_bv.send(msg, at_sender=True)
 
 
 @add_bv.handle()

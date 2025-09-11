@@ -40,6 +40,28 @@ class StarAction(Base):
 
 class Stars:
     @with_transaction
+    async def _is_first_reward_today(self, qq: str, time: int, **kwargs) -> bool:
+        session: AsyncSession = kwargs["session"]
+
+        tz = timezone(timedelta(hours=8))
+        now = datetime.fromtimestamp(time, tz)
+        day_start = datetime(now.year, now.month, now.day, tzinfo=tz)
+        day_end = day_start + timedelta(days=1)
+
+        first_reward_stmt = (
+            select(StarAction.id)
+            .where(
+                StarAction.qq == qq,
+                StarAction.created_at >= day_start,
+                StarAction.created_at < day_end,
+                StarAction.after_balance > StarAction.before_balance,
+            )
+            .limit(1)
+        )
+        first_reward_result = await session.execute(first_reward_stmt)
+        return first_reward_result.first() is None
+
+    @with_transaction
     async def get_balance(self, qq: str, **kwargs) -> int | Literal["inf"]:
         session: AsyncSession = kwargs["session"]
 
@@ -204,15 +226,21 @@ class Stars:
         rng = random.default_rng()
         star = int(rng.integers(min, max))
         method = rng.choice(range(4), p=[0.91, 0.01, 0.03, 0.05])
-        if method == 1:
+        if method == 0b0001:
             star *= 2
             if star < 100:
                 star = int(rng.integers(100, 200))
-                method = 4
-        elif method == 2:
+                method = 0b0100
+        elif method == 0b0010:
             star = 50
-        elif method == 3:
+        elif method == 0b0011:
             star = 101
+
+        is_first_reward_today = await self._is_first_reward_today(qq, time)
+        if is_first_reward_today:
+            star *= 2
+            method |= 0b1_0000
+
         await self.apply_change(qq, star, cause, time)
         return star, method
 

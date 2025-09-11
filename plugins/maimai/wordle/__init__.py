@@ -190,11 +190,14 @@ async def _(event: GroupMessageEvent):
             star, method = await stars.give_rewards(
                 user_id, 15, 35, "开字母猜中歌曲", event.time
             )
+            msg = f"迪拉熊奖励你{star}颗★mai~"
+            if method & 0b1_0000:
+                msg += "今日首次奖励翻倍哦~"
             await open_chars.send(
                 (
                     MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
                     MessageSegment.image(Path(cover_path)),
-                    MessageSegment.text(f"{title}\r\n\r\n迪拉熊奖励你{star}颗★mai~"),
+                    MessageSegment.text(f"{title}\r\n\r\n{msg}"),
                 ),
                 at_sender=True,
             )
@@ -238,11 +241,14 @@ async def _(event: GroupMessageEvent):
         star, method = await stars.give_rewards(
             user_id, 15, 35, "开字母猜中歌曲", event.time
         )
+        msg = f"迪拉熊奖励你{star}颗★mai~"
+        if method & 0b1_0000:
+            msg += "今日首次奖励翻倍哦~"
         await all_message_handle.send(
             (
                 MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
                 MessageSegment.image(Path(cover_path)),
-                MessageSegment.text(f"{title}\r\n\r\n迪拉熊奖励你{star}颗★mai~"),
+                MessageSegment.text(f"{title}\r\n\r\n{msg}"),
             ),
             at_sender=True,
         )
