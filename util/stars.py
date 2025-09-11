@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal, Optional
 
+from numpy import random
 from sqlalchemy import Boolean, DateTime, Integer, String, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -80,7 +81,7 @@ class Stars:
                 before_balance=before_balance,
                 after_balance=after_balance,
                 cause=cause,
-                created_at=now.date(),
+                created_at=now,
             )
             await session.execute(action_stmt)
             return True
@@ -139,7 +140,7 @@ class Stars:
             before_balance=before_balance,
             after_balance=after_balance,
             cause=cause,
-            created_at=now.date(),
+            created_at=now,
         )
         await session.execute(action_stmt)
 
@@ -196,6 +197,24 @@ class Stars:
         )
         await session.execute(ins_stmt)
         return True
+
+    async def give_rewards(
+        self, qq: str, min: int, max: int, cause: str, time: int
+    ) -> tuple[int, int]:
+        rng = random.default_rng()
+        star = int(rng.integers(min, max))
+        method = rng.choice(range(4), p=[0.91, 0.01, 0.03, 0.05])
+        if method == 1:
+            star *= 2
+            if star < 100:
+                star = int(rng.integers(100, 200))
+                method = 4
+        elif method == 2:
+            star = 50
+        elif method == 3:
+            star = 101
+        await self.apply_change(qq, star, cause, time)
+        return star, method
 
 
 stars = Stars()

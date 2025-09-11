@@ -13,6 +13,7 @@ from nonebot.adapters.onebot.v11 import (
 
 from util.config import config
 from util.permission import ADMIN
+from util.stars import stars
 from .database import bvidList
 from ..rank.database import ranking
 
@@ -73,6 +74,8 @@ async def _(bot: Bot, event: GroupMessageEvent):
     await rand_bv.send(MessageSegment.json(json.dumps(mini_app_ark["data"]).decode()))
     groups[group_id].append(now)
     await ranking.update_count(qq=qq, type="video")
+    star, method = await stars.give_rewards(qq, 10, 30, "欣赏迪拉熊视频", event.time)
+    await rand_bv.send(f"迪拉熊奖励你{star}颗★mai~", at_sender=True)
 
 
 @add_bv.handle()

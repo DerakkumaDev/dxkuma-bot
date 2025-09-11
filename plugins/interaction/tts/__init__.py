@@ -45,7 +45,7 @@ async def _(event: MessageEvent):
         await tts.finish(f"你还欠迪拉熊{-balance}颗★呢（哼）", at_sender=True)
 
     audio, _, usage_characters = await text_to_speech(text)
-    if not await stars.apply_change(qq, -usage_characters, "TTS请求", event.time):
+    if not await stars.apply_change(qq, -usage_characters, "让迪拉熊说话", event.time):
         raise
     balance = await stars.get_balance(qq)
     if balance == "inf":

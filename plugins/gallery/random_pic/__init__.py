@@ -14,6 +14,7 @@ from xxhash import xxh32_hexdigest
 from util.config import config
 from util.exceptions import SkipedException
 from util.lock import locks
+from util.stars import stars
 from ..rank.database import ranking
 
 rand_pic = on_regex(r"^(随机)?(迪拉熊|dlx)((涩|色|瑟)图|st)?$", re.I)
@@ -101,6 +102,8 @@ async def _(bot: Bot, event: GroupMessageEvent):
         send_msg = await rand_pic.send(MessageSegment.image(await fd.read()))
     groups[group_id].append(now)
     await ranking.update_count(qq=qq, type=type)
+    star, method = await stars.give_rewards(qq, 10, 30, "欣赏迪拉熊美图", event.time)
+    await rand_pic.send(f"迪拉熊奖励你{star}颗★mai~", at_sender=True)
     if type == "nsfw":
         msg_id = send_msg["message_id"]
 
