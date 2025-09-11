@@ -2,6 +2,7 @@ import asyncio
 import math
 import os
 import re
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 
@@ -12,6 +13,7 @@ from PIL import Image
 from httpx import AsyncClient
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
+from numpy import random
 from rapidfuzz import fuzz, process
 
 from util.data import (
@@ -20,6 +22,7 @@ from util.data import (
     get_alias_list_ycn,
     get_music_data_lxns,
 )
+from util.stars import stars
 from .database import openchars
 from .ranking import ranking
 from .times import times
@@ -153,6 +156,7 @@ async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
     user_id = event.get_user_id()
     msg = event.get_plaintext()
+    now = datetime.fromtimestamp(event.time)
     match = re.fullmatch(r"开\s*(.+)", msg)
     if not match:
         return
@@ -162,6 +166,7 @@ async def _(event: GroupMessageEvent):
     if game_data is None:
         return
 
+    rng = random.default_rng()
     if not not_opened:
         await open_chars.finish(
             (
@@ -185,11 +190,13 @@ async def _(event: GroupMessageEvent):
                     async with aiofiles.open(cover_path, "wb") as fd:
                         await fd.write(await resp.aread())
 
+            star = int(rng.integers(15, 35))
+            await stars.apply_change(user_id, star, "开字母猜中歌曲", now)
             await open_chars.send(
                 (
                     MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
                     MessageSegment.image(Path(cover_path)),
-                    MessageSegment.text(title),
+                    MessageSegment.text(f"{title}\r\n\r\n同时获得了{star}颗★mai~"),
                 ),
                 at_sender=True,
             )
@@ -224,6 +231,8 @@ async def _(event: GroupMessageEvent):
     if not guess_success:
         return
 
+    rng = random.default_rng()
+    now = datetime.fromtimestamp(event.time)
     for i, title, id in guess_success:
         cover_path = f"./Cache/Jacket/{id % 10000}.png"
         if not os.path.exists(cover_path):
@@ -234,11 +243,13 @@ async def _(event: GroupMessageEvent):
                 async with aiofiles.open(cover_path, "wb") as fd:
                     await fd.write(await resp.aread())
 
+        star = int(rng.integers(15, 35))
+        await stars.apply_change(user_id, star, "开字母猜中歌曲", now)
         await all_message_handle.send(
             (
                 MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
                 MessageSegment.image(Path(cover_path)),
-                MessageSegment.text(title),
+                MessageSegment.text(f"{title}\r\n\r\n同时获得了{star}颗★mai~"),
             ),
             at_sender=True,
         )

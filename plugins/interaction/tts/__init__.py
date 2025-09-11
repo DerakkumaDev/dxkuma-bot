@@ -1,5 +1,6 @@
 import os
 import re
+from datetime import datetime
 from pathlib import Path
 
 import aiofiles
@@ -15,6 +16,7 @@ from xxhash import xxh32_hexdigest
 
 from util.config import config
 from util.permission import ADMIN
+from util.stars import stars
 
 tts = on_regex(r"^(迪拉熊|dlx)(说：?|say|speak|t[2t][as])", re.I)
 tts_dev = on_regex(
@@ -24,23 +26,40 @@ tts_dev = on_regex(
 
 @tts.handle()
 async def _(event: MessageEvent):
+    qq = event.get_user_id()
     msg = event.get_plaintext()
+    now = datetime.fromtimestamp(event.time)
     match = re.fullmatch(
         r"^(?:迪拉熊|dlx)(?:说：?|say|speak|t[2t][as])(.+)", msg, re.I | re.S
     )
     if not match:
         return
 
-    text = match.group(1)
+    if not (text := match.group(1)):
+        return
+
+    balance = await stars.get_balance(qq)
+    if balance == "inf":
+        pass
+    elif balance == 0:
+        await tts.finish("你没有★了哦~", at_sender=True)
+    elif balance < 0:
+        await tts.finish(f"你还欠迪拉熊{-balance}颗★呢（哼）", at_sender=True)
+
     audio, _, usage_characters = await text_to_speech(text)
+    if not await stars.apply_change(qq, -usage_characters, "TTS请求", now):
+        raise
+    balance = await stars.get_balance(qq)
+    if balance == "inf":
+        msg = f"迪拉熊拿走了{usage_characters}颗★mai~你现在还有∞颗★哦~"
+    elif balance > 0:
+        msg = f"迪拉熊拿走了{usage_characters}颗★mai~你现在还有{balance}颗★哦~"
+    elif balance < 0:
+        msg = f"迪拉熊拿走了{usage_characters}颗★mai~你现在欠迪拉熊{-balance}颗★了mai！"
+    else:
+        msg = f"迪拉熊拿走了{usage_characters}颗★mai~你现在没有★了mai~"
     await tts.send(MessageSegment.record(audio))
-    stars_left = "∞"
-    await tts.send(
-        MessageSegment.text(
-            f"本次消耗了{usage_characters}颗星星mai~你现在还有{stars_left}颗星星哦~"
-        ),
-        at_sender=True,
-    )
+    await tts.send(msg, at_sender=True)
 
 
 @tts_dev.handle()

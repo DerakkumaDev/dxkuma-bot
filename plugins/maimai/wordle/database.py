@@ -10,7 +10,6 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
-    delete,
 )
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
