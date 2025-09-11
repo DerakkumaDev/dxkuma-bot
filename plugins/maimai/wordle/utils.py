@@ -2,54 +2,28 @@ import sys
 import unicodedata
 from datetime import datetime
 
-from numpy import random
 from pykakasi import kakasi
 
-from util.data import get_music_data_lxns
+from .database import openchars
 from .ranking import ranking
 from .times import times
 
 kks = kakasi()
 
 
-def check_game_over(game_data: dict) -> bool:
-    return all(
-        [game_content["is_correct"] for game_content in game_data["game_contents"]]
-    )
-
-
-async def generate_game_data() -> dict:
-    rng = random.default_rng()
-    game_data = {"open_chars": list()}
-    game_contents = list()
-    while len(game_contents) <= 4:
-        music = rng.choice((await get_music_data_lxns())["songs"])
-        game_contents.append(
-            {
-                "index": len(game_contents) + 1,
-                "title": music["title"],
-                "music_id": music["id"],
-                "is_correct": False,
-                "tips": list(),
-                "pic_times": 0,
-                "aud_times": 0,
-                "opc_times": 0,
-                "part": list(),
-            }
-        )
-    game_data["game_contents"] = game_contents
-    return game_data
-
-
 async def generate_message_state(
-    game_data: dict, user_id: str, time: int
+    group_id: str, user_id: str, time: int
 ) -> tuple[bool, str, list]:
+    game_data = await openchars.get_game_data(group_id)
+    if not game_data:
+        raise
+
     now = datetime.fromtimestamp(time)
     game_state = list()
     char_all_open = list()
     for game_content in game_data["game_contents"]:
         if game_content["is_correct"]:
-            game_state.append(f"{game_content['index']}. {game_content['title']} ✓")
+            game_state.append(f"✓ {game_content['index']}. {game_content['title']}")
             continue
         display_title = str()
         is_all_open = True
@@ -81,8 +55,7 @@ async def generate_message_state(
                     display_title += "◇"
                 is_all_open = False
         if is_all_open:
-            game_content["is_correct"] = True
-
+            await openchars.mark_content_as_correct(group_id, game_content["index"])
             await ranking.add_score(
                 user_id,
                 game_content["opc_times"],
@@ -112,17 +85,23 @@ async def generate_message_state(
                     game_content["music_id"],
                 )
             )
-            game_state.append(f"{game_content['index']}. {game_content['title']} ✓")
+            game_state.append(f"✓ {game_content['index']}. {game_content['title']}")
         else:
-            game_state.append(f"{game_content['index']}. {display_title}")
+            game_state.append(f"? {game_content['index']}. {display_title}")
 
-    is_game_over = check_game_over(game_data)
+    is_game_over = all(
+        [game_content["is_correct"] for game_content in game_data["game_contents"]]
+    )
     return is_game_over, "\r\n".join(game_state), char_all_open
 
 
 async def check_music_id(
-    game_data: dict, music_ids: list[str], user_id: str, time: int
+    group_id: str, music_ids: list[str], user_id: str, time: int
 ) -> list:
+    game_data = await openchars.get_game_data(group_id)
+    if not game_data:
+        return []
+
     now = datetime.fromtimestamp(time)
     guess_success = list()
     for music_id in music_ids:
@@ -131,8 +110,7 @@ async def check_music_id(
                 int(music_id) == game_content["music_id"]
                 and not game_content["is_correct"]
             ):
-                game_content["is_correct"] = True
-
+                await openchars.mark_content_as_correct(group_id, game_content["index"])
                 await ranking.add_score(
                     user_id,
                     game_content["opc_times"],
@@ -165,28 +143,19 @@ async def check_music_id(
     return guess_success
 
 
-def generate_success_state(game_data: dict) -> str:
+async def generate_success_state(group_id: str) -> str:
+    game_data = await openchars.get_game_data(group_id)
+    if not game_data:
+        raise
+
     game_state = list()
     for game_content in game_data["game_contents"]:
         game_state.append(
-            f"{game_content['index']}. {game_content['title']} {
-                '✓' if game_content['is_correct'] else '✕'
+            f"{'✓' if game_content['is_correct'] else '✕'} {game_content['index']}. {
+                game_content['title']
             }"
         )
     return "\r\n".join(game_state)
-
-
-def check_char_in_text(text: str, char: str) -> bool:
-    text = text.casefold()
-    if char.casefold() in text:
-        return True
-
-    for c in kks.convert(char):
-        for v in c.values():
-            if v.casefold() in text:
-                return True
-
-    return False
 
 
 def get_version_name(s: int, song_list: dict) -> str:
@@ -196,3 +165,5 @@ def get_version_name(s: int, song_list: dict) -> str:
         v = versions[i]
         if v["version"] <= s < versions[i + 1]["version"]:
             return v["title"]
+
+    return str(s)

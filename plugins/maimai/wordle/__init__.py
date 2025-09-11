@@ -130,8 +130,8 @@ async def find_songid_by_alias(name, song_list):
 async def _(event: GroupMessageEvent):
     group_id = str(event.group_id)
     user_id = event.get_user_id()
-    game_data = await openchars.start(group_id)
-    _, game_state, _ = await generate_message_state(game_data, user_id, event.time)
+    await openchars.start(group_id)
+    _, game_state, _ = await generate_message_state(group_id, user_id, event.time)
 
     await start_open_chars.send(
         "要开始了哟~\r\n"
@@ -139,6 +139,7 @@ async def _(event: GroupMessageEvent):
         "□——字母或数字\r\n"
         "◎——假名或汉字\r\n"
         "◇——符号\r\n"
+        "\r\n"
         "发送“开[文字]”开出字母\r\n"
         "发送“[歌名/别名]”尝试猜歌\r\n"
         "发送“提示（序号）”获取提示（每首5次机会）\r\n"
@@ -177,7 +178,7 @@ async def _(event: GroupMessageEvent):
         )
 
     is_game_over, game_state, char_all_open = await generate_message_state(
-        game_data, user_id, event.time
+        group_id, user_id, event.time
     )
     if char_all_open:
         for i, title, id in char_all_open:
@@ -196,7 +197,7 @@ async def _(event: GroupMessageEvent):
                 (
                     MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
                     MessageSegment.image(Path(cover_path)),
-                    MessageSegment.text(f"{title}\r\n\r\n同时获得了{star}颗★mai~"),
+                    MessageSegment.text(f"{title}\r\n\r\n迪拉熊奖励你{star}颗★mai~"),
                 ),
                 at_sender=True,
             )
@@ -222,12 +223,8 @@ async def _(event: GroupMessageEvent):
     if not music_ids:
         return
 
-    game_data = await openchars.get_game_data(group_id)
-    if not game_data:
-        return
-
     user_id = event.get_user_id()
-    guess_success = await check_music_id(game_data, music_ids, user_id, event.time)
+    guess_success = await check_music_id(group_id, music_ids, user_id, event.time)
     if not guess_success:
         return
 
@@ -249,20 +246,17 @@ async def _(event: GroupMessageEvent):
             (
                 MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
                 MessageSegment.image(Path(cover_path)),
-                MessageSegment.text(f"{title}\r\n\r\n同时获得了{star}颗★mai~"),
+                MessageSegment.text(f"{title}\r\n\r\n迪拉熊奖励你{star}颗★mai~"),
             ),
             at_sender=True,
         )
     is_game_over, game_state, _ = await generate_message_state(
-        game_data, user_id, event.time
+        group_id, user_id, event.time
     )
     await all_message_handle.send(game_state)
     if is_game_over:
         await openchars.game_over(group_id)
         await open_chars.send("全部答对啦，恭喜mai~🎉")
-    else:
-        for i, _, _ in guess_success:
-            await openchars.mark_content_as_correct(group_id, i)
 
 
 @pass_game.handle()
@@ -274,7 +268,7 @@ async def _(event: GroupMessageEvent):
 
     await openchars.game_over(group_id)
 
-    await pass_game.send(generate_success_state(game_data))
+    await pass_game.send(await generate_success_state(group_id))
     await pass_game.send("迪拉熊帮大家揭晓答案啦mai~")
 
 
@@ -577,7 +571,8 @@ async def _(bot: Bot, event: GroupMessageEvent):
             break
 
     if index >= 0:
-        current_score, current_index = leaderboard[0][1], 0
+        leaderboard_output.append("你在排行榜上的位置是——")
+        current_score, current_index = leaderboard[0][1], 1
         h_count = 2 if index > 2 else index
         t_count = 2 if len(leaderboard) - index > 2 else len(leaderboard) - index - 1
         pand = h_count + t_count
@@ -596,23 +591,21 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
             user_name = (await bot.get_stranger_info(user_id=qq))["nickname"]
             if i == index:
-                rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 1000000) / 1000000:.4%}"
+                rank_str = f"> {current_index}. {user_name}：{math.trunc(achi * 1000000) / 1000000:.4%} × {_times}"
             else:
                 rank_str = f"{current_index}. {user_name}：{math.trunc(achi * 1000000) / 1000000:.4%} × {_times}"
 
             leaderboard_output.append(rank_str)
-
-        leaderboard_output.append(f"\r\n游玩次数：{leaderboard[index][2]}")
     else:
-        leaderboard_output.append("你现在还没有上榜mai~")
+        leaderboard_output.append("你还没有上榜mai~")
         achi, _times = await ranking.get_score(user_id)
-        leaderboard_output.append(f"\r\n游玩次数：{_times}")
+        leaderboard_output.append(
+            f"?. {math.trunc(achi * 1000000) / 1000000:.4%} × {_times}"
+        )
 
     msg = "\r\n".join(leaderboard_output)
     msg = (
-        "你在排行榜上的位置是——\r\n"
         f"{msg}\r\n"
-        "\r\n"
         "长时间未参与游戏将暂时不会计入排行榜mai~重新结算10次就可以重新上榜啦~"
     )
     await rankth.send(MessageSegment.text(msg), at_sender=True)

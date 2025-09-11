@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import orjson
+from numpy import random
+from pykakasi import kakasi
 from sqlalchemy import (
     Boolean,
     DateTime,
@@ -16,8 +18,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from util.data import get_music_data_lxns
 from util.database import Base, with_transaction
-from .utils import check_char_in_text, generate_game_data
+
+kks = kakasi()
 
 
 class WordleGame(Base):
@@ -78,6 +82,40 @@ class WordleGameContent(Base):
 
 
 class OpenChars:
+    async def _generate_game_data(self) -> dict:
+        rng = random.default_rng()
+        game_data = {"open_chars": list()}
+        game_contents = list()
+        while len(game_contents) <= 4:
+            music = rng.choice((await get_music_data_lxns())["songs"])
+            game_contents.append(
+                {
+                    "index": len(game_contents) + 1,
+                    "title": music["title"],
+                    "music_id": music["id"],
+                    "is_correct": False,
+                    "tips": list(),
+                    "pic_times": 0,
+                    "aud_times": 0,
+                    "opc_times": 0,
+                    "part": list(),
+                }
+            )
+        game_data["game_contents"] = game_contents
+        return game_data
+
+    def _check_char_in_text(self, text: str, char: str) -> bool:
+        text = text.casefold()
+        if char.casefold() in text:
+            return True
+
+        for c in kks.convert(char):
+            for v in c.values():
+                if v.casefold() in text:
+                    return True
+
+        return False
+
     @with_transaction
     async def start(self, group_id: str, **kwargs) -> dict:
         session: AsyncSession = kwargs["session"]
@@ -93,7 +131,7 @@ class OpenChars:
             else:
                 return await self._build_game_data(record, session)
 
-        game_data = await generate_game_data()
+        game_data = await self._generate_game_data()
 
         stmt = insert(WordleGame).values(group_id=group_id, updated_at=datetime.now())
         stmt = stmt.on_conflict_do_update(
@@ -188,7 +226,7 @@ class OpenChars:
         game_contents = result.scalars().all()
 
         for content in game_contents:
-            if check_char_in_text(content.title, chars):
+            if self._check_char_in_text(content.title, chars):
                 part_list = orjson.loads(content.part) if content.part else list()
                 if user_id not in part_list:
                     part_list.append(user_id)
