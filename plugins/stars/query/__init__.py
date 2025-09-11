@@ -1,0 +1,37 @@
+import re
+
+from nonebot import on_regex
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
+from numpy import random
+
+from util.stars import stars
+
+query = on_regex(r"^查星星$", re.I)
+
+replies_posi = [
+    lambda _: "可以给迪拉熊吃一颗吗mai？（可怜）",
+    lambda stars: f"迪拉熊帮你把★放在下面啦~\r\n{'★' * stars}"
+    if stars < 66
+    else "好多★呀，迪拉熊要数不过来了mai~（晕）",
+]
+
+replies_nega = [
+    lambda _: "你欠迪拉熊的什么时候还mai！（怒）",
+]
+
+
+@query.handle()
+async def _(event: GroupMessageEvent):
+    rng = random.default_rng()
+    qq = event.get_user_id()
+    balance = await stars.get_balance(qq)
+    if balance == "inf":
+        await query.finish("你现在有∞颗★哦~")
+    elif balance > 0:
+        reply = rng.choice(replies_posi)
+        await query.finish(f"你现在有{balance}颗★哦~{reply(balance)}")
+    elif balance < 0:
+        reply = rng.choice(replies_posi)
+        await query.finish(f"你还欠迪拉熊{balance}颗★mai！{reply(balance)}")
+    else:
+        await query.finish("你还没有★哦~")

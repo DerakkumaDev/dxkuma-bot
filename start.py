@@ -29,5 +29,6 @@ if __name__ == "__main__":
     nonebot.load_plugins("plugins/maimai")
     nonebot.load_plugins("plugins/gallery")
     nonebot.load_plugins("plugins/interaction")
+    nonebot.load_plugins("plugins/stars")
 
     nonebot.run()
