@@ -50,7 +50,7 @@ def format_songid(id):
     return id_str.zfill(6)
 
 
-async def music_info(song_data):
+async def chart_info(song_data):
     # 底图
     bg = Image.open("./Static/Maimai/Chart/background.png")
 
@@ -247,7 +247,7 @@ async def music_info(song_data):
     return img_bytes
 
 
-async def play_info(data, song_data):
+async def score_info(data, song_data):
     records = data[song_data["id"]]
     # 底图
     bg = Image.open("./Static/Maimai/Score/background.png")
@@ -470,7 +470,7 @@ async def play_info(data, song_data):
     return img_bytes
 
 
-async def utage_music_info(song_data, index=0):
+async def utage_chart_info(song_data, index=0):
     # 底图
     bg = Image.open("./Static/Maimai/Chart/background_utage.png")
 
@@ -634,7 +634,7 @@ async def utage_music_info(song_data, index=0):
     return img_bytes
 
 
-async def score_info(song_data, index):
+async def achv_info(song_data, index):
     # 底图
     bg = Image.open("./Static/Maimai/Achievements/background.png")
 
