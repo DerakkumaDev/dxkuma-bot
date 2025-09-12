@@ -484,7 +484,7 @@ async def music_to_part(
     s_ra_str = "No."
     s_ra_str2 = str(song_id)
     ttf = ImageFont.truetype(ttf_bold_path, size=34)
-    ds_str = str(ds_str).split(".")
+    ds_str = ds_str.split(".")
     text_position = (376, 215)
     text_content = f"{ds_str[0]}."
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
@@ -633,10 +633,10 @@ def rating_tj(b35max, b35min, b15max, b15min):
     b15max_diff = b15max - b15min
     b15min_diff = rng.integers(1, 6)
 
-    draw.text((155, 64), font=ttf, text=f"+{str(b35max_diff)}", fill=(255, 255, 255))
-    draw.text((155, 104), font=ttf, text=f"+{str(b35min_diff)}", fill=(255, 255, 255))
-    draw.text((155, 170), font=ttf, text=f"+{str(b15max_diff)}", fill=(255, 255, 255))
-    draw.text((155, 210), font=ttf, text=f"+{str(b15min_diff)}", fill=(255, 255, 255))
+    draw.text((155, 64), font=ttf, text=f"+{b35max_diff}", fill=(255, 255, 255))
+    draw.text((155, 104), font=ttf, text=f"+{b35min_diff}", fill=(255, 255, 255))
+    draw.text((155, 170), font=ttf, text=f"+{b15max_diff}", fill=(255, 255, 255))
+    draw.text((155, 210), font=ttf, text=f"+{b15min_diff}", fill=(255, 255, 255))
 
     b35max_ra_sssp = rating_proc(b35max, "sssp")
     b35min_ra_sssp = rating_proc((b35min + b35min_diff), "sssp")

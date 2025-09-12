@@ -112,7 +112,7 @@ async def chart_info(song_data):
         )
 
     # id
-    ttf = ImageFont.truetype(ttf_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf_bold_path, size=26)
     id_position = (239, 872)
     drawtext.text(
         id_position,
@@ -132,7 +132,7 @@ async def chart_info(song_data):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=26)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
     drawtext.text(
@@ -143,7 +143,7 @@ async def chart_info(song_data):
         fill=(53, 74, 164),
     )
     # 谱面类型
-    ttf = ImageFont.truetype(ttf_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf_bold_path, size=26)
     song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
@@ -310,7 +310,7 @@ async def score_info(data, song_data):
         )
 
     # id
-    ttf = ImageFont.truetype(ttf_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf_bold_path, size=26)
     id_position = (239, 872)
     drawtext.text(
         id_position,
@@ -330,7 +330,7 @@ async def score_info(data, song_data):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=26)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
     drawtext.text(
@@ -341,7 +341,7 @@ async def score_info(data, song_data):
         fill=(53, 74, 164),
     )
     # 谱面类型
-    ttf = ImageFont.truetype(ttf_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf_bold_path, size=26)
     song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
@@ -534,7 +534,7 @@ async def utage_chart_info(song_data, index=0):
         )
 
     # id
-    ttf = ImageFont.truetype(ttf_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf_bold_path, size=26)
     id_position = (239, 872)
     drawtext.text(
         id_position,
@@ -554,7 +554,7 @@ async def utage_chart_info(song_data, index=0):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=26)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
     drawtext.text(
@@ -565,7 +565,7 @@ async def utage_chart_info(song_data, index=0):
         fill=(53, 74, 164),
     )
     # 谱面类型
-    ttf = ImageFont.truetype(ttf_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf_bold_path, size=26)
     song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
@@ -696,7 +696,7 @@ async def achv_info(song_data, index):
         )
 
     # id
-    ttf = ImageFont.truetype(ttf_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf_bold_path, size=26)
     id_position = (239, 872)
     drawtext.text(
         id_position,
@@ -716,7 +716,7 @@ async def achv_info(song_data, index):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=26)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
     drawtext.text(
@@ -727,7 +727,7 @@ async def achv_info(song_data, index):
         fill=(53, 74, 164),
     )
     # 谱面类型
-    ttf = ImageFont.truetype(ttf_bold_path, size=28)
+    ttf = ImageFont.truetype(ttf_bold_path, size=26)
     song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)

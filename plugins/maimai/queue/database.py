@@ -119,9 +119,8 @@ class ArcadeManager:
         now = datetime.now(timezone(timedelta(hours=4)))
 
         if last_action_time.date() > now.date():
-            return await self._arcade_to_dict(arcade_record, session)
+            await self.reset(arcade_id, int(now.timestamp()), session)
 
-        await self.reset(arcade_id, int(now.timestamp()), session)
         return await self._arcade_to_dict(arcade_record, session)
 
     @with_transaction

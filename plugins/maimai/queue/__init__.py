@@ -262,7 +262,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     if len(messages) < 1:
         return
 
-    await list_count.send(f"\r\n{'\r\n\r\n'.join(messages)}", at_sender=True)
+    await list_count.send("\r\n\r\n".join(messages))
 
 
 @change_count.handle()

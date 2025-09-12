@@ -51,7 +51,7 @@ async def _(event: GroupMessageEvent):
         MessageSegment.text("迪拉熊也喜欢你mai~❤️"),
         MessageSegment.image(Path("./Static/LikeYou/0.png")),
     )
-    await wxhn.send(msg, at_sender=True)
+    await wxhn.send(msg)
 
 
 @roll.handle()

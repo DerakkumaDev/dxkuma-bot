@@ -2,7 +2,6 @@ import os
 
 import aiofiles
 from nonebot import on_fullmatch
-from nonebot.adapters.onebot.v11 import MessageEvent
 
 from util.permission import ADMIN
 
@@ -11,7 +10,7 @@ unlock = on_fullmatch("解st", ignorecase=True, permission=ADMIN)
 
 
 @block.handle()
-async def _(event: MessageEvent):
+async def _():
     async with aiofiles.open("./data/nsfw_lock", "w"):
         pass
 
@@ -19,7 +18,7 @@ async def _(event: MessageEvent):
 
 
 @unlock.handle()
-async def _(event: MessageEvent):
+async def _():
     if os.path.exists("./data/nsfw_lock"):
         os.remove("./data/nsfw_lock")
 

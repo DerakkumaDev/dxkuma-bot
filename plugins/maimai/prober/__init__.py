@@ -482,9 +482,7 @@ async def _(bot: Bot, event: MessageEvent):
     sender_qq = event.user_id
     target_qq = event.get_user_id()
     user_info = await bot.get_stranger_info(user_id=sender_qq)
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -601,11 +599,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @ani50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -706,11 +702,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @ap50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -793,11 +787,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @fc50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -880,11 +872,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @fit50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -969,11 +959,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @best40.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -1046,11 +1034,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @rate50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -1135,11 +1121,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @dxs50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -1224,11 +1208,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @star50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -1316,12 +1298,10 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @cf50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     sender_qq = event.get_user_id()
     target_qq = None
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == sender_qq:
             continue
@@ -1451,11 +1431,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @sd50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue
@@ -1538,11 +1516,9 @@ async def _(bot: Bot, event: MessageEvent):
 
 
 @all50.handle()
-async def _(bot: Bot, event: MessageEvent):
+async def _(event: MessageEvent):
     target_qq = event.get_user_id()
-    for message in event.get_message():
-        if message.type != "at":
-            continue
+    for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
         if target_qq == event.get_user_id():
             continue

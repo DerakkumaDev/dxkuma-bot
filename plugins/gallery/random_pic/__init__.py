@@ -121,6 +121,6 @@ async def _(bot: Bot, event: GroupMessageEvent):
                 "哼哼，迪拉熊的魅力这么大嘛，但是也要注意节制mai~"
             )
 
-        await rand_pic.send(msg)
+        await rand_pic.send(msg, at_sender=True)
 
     groups[group_id].append(now)

@@ -112,7 +112,6 @@ async def text_to_speech(text: str) -> tuple[bytes, str, int]:
         "voice_setting": {
             "voice_id": config.tts_voice_id,
             "english_normalization": True,
-            "latex_read": True,
         },
         "pronunciation_dict": {"tone": ["maimai/(mai1)(mai1)"]},
         "language_boost": "auto",
