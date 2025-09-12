@@ -412,16 +412,6 @@ async def play_info(data, song_data):
             continue
 
         score = scores[0]
-        if score["ra"] <= 0:
-            drawtext.text(
-                (dsra_x, dsra_y),
-                f"{song_data['ds'][i]}->---",
-                font=ttf,
-                fill=color,
-                anchor="mm",
-            )
-            continue
-
         achieve = str(score["achievements"])
         if "." not in achieve:
             achieve = f"{achieve}.0"
@@ -431,7 +421,7 @@ async def play_info(data, song_data):
         ds = song_data["ds"][i]
         fc = score["fc"]
         fs = score["fs"]
-        ra = str(score["ra"])
+        ra = score["ra"]
         rate = score["rate"]
 
         # 达成率
@@ -463,6 +453,9 @@ async def play_info(data, song_data):
             drawtext = ImageDraw.Draw(bg)
 
         # 定数->ra
+        if ra <= 0:
+            ra = "---"
+
         ttf = ImageFont.truetype(ttf_bold_path, size=20)
         drawtext.text(
             (dsra_x, dsra_y), f"{ds}->{ra}", font=ttf, fill=color, anchor="mm"
