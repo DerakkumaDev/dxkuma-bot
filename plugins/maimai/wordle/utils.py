@@ -105,10 +105,7 @@ async def check_music_id(
 
     guess_success = list()
     for game_content in game_data["game_contents"]:
-        if (
-            not game_content["is_correct"]
-            and str(game_content["music_id"]) in music_ids
-        ):
+        if not game_content["is_correct"] and game_content["music_id"] in music_ids:
             await openchars.mark_content_as_correct(group_id, game_content["index"])
 
             await ranking.add_score(

@@ -61,34 +61,35 @@ async def find_songid_by_alias(name, song_list):
 
     alias_map = dict()
 
-    async def process_lxns(alias_map: dict[str, list[str]]):
+    async def process_lxns(alias_map: dict[str, list[int]]):
         alias_list = await get_alias_list_lxns()
         for info in alias_list["aliases"]:
-            song_id = str(info["song_id"])
+            song_id = info["song_id"]
             for alias in info["aliases"]:
                 alias_map.setdefault(alias, list())
                 if song_id in alias_map[alias]:
                     continue
                 alias_map[alias].append(song_id)
 
-    async def process_xray(alias_map: dict[str, list[str]]):
+    async def process_xray(alias_map: dict[str, list[int]]):
         alias_list = await get_alias_list_xray()
         for song_id, info in alias_list.items():
             if len(song_id) == 5:
                 song_id = song_id[-4:]
+            song_id = int(song_id)
             for alias in info:
                 alias_map.setdefault(alias, list())
                 if song_id in alias_map[alias]:
                     continue
                 alias_map[alias].append(song_id)
 
-    async def process_ycn(alias_map: dict[str, list[str]]):
+    async def process_ycn(alias_map: dict[str, list[int]]):
         alias_list = await get_alias_list_ycn()
         for info in alias_list["content"]:
             if 10000 < info["SongID"] < 20000:
-                song_id = str(info["SongID"] % 10000)
+                song_id = info["SongID"] % 10000
             else:
-                song_id = str(info["SongID"])
+                song_id = info["SongID"]
             for alias in info["Alias"]:
                 alias_map.setdefault(alias, list())
                 if song_id in alias_map[alias]:
@@ -204,10 +205,11 @@ async def _(event: GroupMessageEvent):
                 at_sender=True,
             )
 
-    await open_chars.send(game_state)
     if is_game_over:
         await openchars.game_over(group_id)
-        await open_chars.send("全部答对啦，恭喜mai~🎉")
+        await open_chars.send(f"全部答对啦，恭喜mai~🎉\r\n{game_state}")
+    else:
+        await open_chars.send(game_state)
 
 
 @all_message_handle.handle()
@@ -259,10 +261,11 @@ async def _(event: GroupMessageEvent):
     is_game_over, game_state, _ = await generate_message_state(
         group_id, user_id, event.time
     )
-    await all_message_handle.send(game_state)
     if is_game_over:
         await openchars.game_over(group_id)
-        await open_chars.send("全部答对啦，恭喜mai~🎉")
+        await all_message_handle.send(f"全部答对啦，恭喜mai~🎉\r\n{game_state}")
+    else:
+        await all_message_handle.send(game_state)
 
 
 @pass_game.handle()
@@ -271,10 +274,9 @@ async def _(event: GroupMessageEvent):
     if not await openchars.is_gaming(group_id):
         return
 
-    await pass_game.send(await generate_success_state(group_id))
+    game_state = await generate_success_state(group_id)
     await openchars.game_over(group_id)
-
-    await pass_game.send("迪拉熊帮大家揭晓答案啦mai~")
+    await pass_game.send(f"迪拉熊帮大家揭晓答案啦mai~\r\n{game_state}")
 
 
 @info_tip.handle()
