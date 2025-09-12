@@ -31,21 +31,6 @@ groups: dict[int, list[datetime]] = dict()
 async def _(bot: Bot, event: GroupMessageEvent):
     group_id = event.group_id
     qq = event.get_user_id()
-    groups.setdefault(group_id, list())
-    now = datetime.fromtimestamp(event.time, timezone(timedelta(hours=8)))
-    if group_id != config.special_group:  # 不被限制的 group_id
-        while len(groups[group_id]) > 0:
-            t = groups[group_id][0]
-            if now - t < timedelta(minutes=LIMIT_MINUTES):
-                break
-            groups[group_id].pop(0)
-
-        if len(groups[group_id]) >= LIMIT_TIMES:
-            msg = MessageSegment.text(
-                "迪拉熊提醒你：注意不要过度刷屏，给别人带来困扰mai~再试一下吧~"
-            )
-            await rand_bv.finish(msg)
-
     while True:
         bvid = await bvidList.random_bvid()
         headers = {"User-Agent": f"kumabot/{config.version[0]}.{config.version[1]}"}
@@ -72,8 +57,8 @@ async def _(bot: Bot, event: GroupMessageEvent):
         webUrl=f"https://www.bilibili.com/video/{bvid}/",
     )
     await rand_bv.send(MessageSegment.json(json.dumps(mini_app_ark["data"]).decode()))
-    groups[group_id].append(now)
     await ranking.update_count(qq=qq, type="video")
+
     star, method, extend = await stars.give_rewards(
         qq, 5, 25, "欣赏迪拉熊视频", event.time
     )
@@ -83,6 +68,21 @@ async def _(bot: Bot, event: GroupMessageEvent):
     if method & 0b1_0000:
         msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
     await rand_bv.send(msg, at_sender=True)
+
+    groups.setdefault(group_id, list())
+    now = datetime.fromtimestamp(event.time, timezone(timedelta(hours=8)))
+    while len(groups[group_id]) > 0:
+        t = groups[group_id][0]
+        if now - t < timedelta(minutes=LIMIT_MINUTES):
+            break
+
+        groups[group_id].pop(0)
+
+    if len(groups[group_id]) >= LIMIT_TIMES:
+        msg = MessageSegment.text("迪拉熊提醒你：注意不要过度刷屏，给别人带来困扰mai~")
+        await rand_bv.send(msg)
+
+    groups[group_id].append(now)
 
 
 @add_bv.handle()
