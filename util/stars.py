@@ -222,15 +222,14 @@ class Stars:
 
     async def give_rewards(
         self, qq: str, min: int, max: int, cause: str, time: int
-    ) -> tuple[int, int]:
+    ) -> tuple[int, int, int]:
         rng = random.default_rng()
         star = int(rng.integers(min, max))
+        extend = 0
         method = rng.choice(range(4), p=[0.91, 0.01, 0.03, 0.05])
         if method == 0b0001:
-            star *= 2
-            if star < 100:
-                star = int(rng.integers(100, 200))
-                method = 0b0100
+            extend = int(rng.integers(100, 200))
+            method = 0b0100
         elif method == 0b0010:
             star = 50
         elif method == 0b0011:
@@ -238,11 +237,11 @@ class Stars:
 
         is_first_reward_today = await self._is_first_reward_today(qq, time)
         if is_first_reward_today:
-            star *= 2
+            extend = int(rng.integers(50, 100))
             method |= 0b1_0000
 
-        await self.apply_change(qq, star, cause, time)
-        return star, method
+        await self.apply_change(qq, star + extend, cause, time)
+        return star, method, extend
 
 
 stars = Stars()

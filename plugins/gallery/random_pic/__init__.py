@@ -102,10 +102,14 @@ async def _(bot: Bot, event: GroupMessageEvent):
         send_msg = await rand_pic.send(MessageSegment.image(await fd.read()))
     groups[group_id].append(now)
     await ranking.update_count(qq=qq, type=type)
-    star, method = await stars.give_rewards(qq, 10, 30, "欣赏迪拉熊美图", event.time)
+    star, method, extend = await stars.give_rewards(
+        qq, 5, 25, "欣赏迪拉熊美图", event.time
+    )
     msg = f"迪拉熊奖励你{star}颗★mai~"
+    if method & 0b0001:
+        msg += f"人品大爆发，迪拉熊额外送你{extend}颗★哦~"
     if method & 0b1_0000:
-        msg += "今日首次奖励翻倍哦~"
+        msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
     await rand_pic.send(msg, at_sender=True)
     if type == "nsfw":
         msg_id = send_msg["message_id"]

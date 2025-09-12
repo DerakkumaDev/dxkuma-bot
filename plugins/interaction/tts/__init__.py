@@ -49,13 +49,13 @@ async def _(event: MessageEvent):
         raise
     balance = await stars.get_balance(qq)
     if balance == "inf":
-        msg = f"迪拉熊拿走了{usage_characters}颗★mai~你现在还有∞颗★哦~"
+        msg = f"迪拉熊吃掉了{usage_characters}颗★mai~你现在还有∞颗★哦~"
     elif balance > 0:
-        msg = f"迪拉熊拿走了{usage_characters}颗★mai~你现在还有{balance}颗★哦~"
+        msg = f"迪拉熊吃掉了{usage_characters}颗★mai~你现在还有{balance}颗★哦~"
     elif balance < 0:
-        msg = f"迪拉熊拿走了{usage_characters}颗★mai~你现在欠迪拉熊{-balance}颗★了mai！"
+        msg = f"迪拉熊吃掉了{usage_characters}颗★mai~你现在欠迪拉熊{-balance}颗★了mai！"
     else:
-        msg = f"迪拉熊拿走了{usage_characters}颗★mai~你现在没有★了mai~"
+        msg = f"迪拉熊吃掉了{usage_characters}颗★mai~你现在没有★了mai~"
     await tts.send(MessageSegment.record(audio))
     await tts.send(msg, at_sender=True)
 

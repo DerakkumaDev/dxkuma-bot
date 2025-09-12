@@ -187,12 +187,14 @@ async def _(event: GroupMessageEvent):
                     async with aiofiles.open(cover_path, "wb") as fd:
                         await fd.write(await resp.aread())
 
-            star, method = await stars.give_rewards(
+            star, method, extend = await stars.give_rewards(
                 user_id, 15, 35, "开字母猜中歌曲", event.time
             )
             msg = f"迪拉熊奖励你{star}颗★mai~"
+            if method & 0b0001:
+                msg += f"人品大爆发，迪拉熊额外送你{extend}颗★哦~"
             if method & 0b1_0000:
-                msg += "今日首次奖励翻倍哦~"
+                msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
             await open_chars.send(
                 (
                     MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
@@ -238,12 +240,14 @@ async def _(event: GroupMessageEvent):
                 async with aiofiles.open(cover_path, "wb") as fd:
                     await fd.write(await resp.aread())
 
-        star, method = await stars.give_rewards(
+        star, method, extend = await stars.give_rewards(
             user_id, 15, 35, "开字母猜中歌曲", event.time
         )
         msg = f"迪拉熊奖励你{star}颗★mai~"
+        if method & 0b0001:
+            msg += f"人品大爆发，迪拉熊额外送你{extend}颗★哦~"
         if method & 0b1_0000:
-            msg += "今日首次奖励翻倍哦~"
+            msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
         await all_message_handle.send(
             (
                 MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
