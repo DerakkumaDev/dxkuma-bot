@@ -4,7 +4,3 @@ class ContinuedException(Exception):
 
 class ProcessedException(Exception):
     pass
-
-
-class SkipedException(Exception):
-    pass

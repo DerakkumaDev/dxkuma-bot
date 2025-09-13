@@ -1,8 +1,10 @@
 import sys
 import unicodedata
 
+from nonebot.exception import IgnoredException
 from pykakasi import kakasi
 
+from util.exceptions import ProcessedException
 from .database import openchars
 from .ranking import ranking
 from .times import times
@@ -15,7 +17,7 @@ async def generate_message_state(
 ) -> tuple[bool, str, list]:
     game_data = await openchars.get_game_data(group_id)
     if not game_data:
-        raise
+        raise IgnoredException(ProcessedException)
 
     game_state = list()
     char_all_open = list()
@@ -146,7 +148,7 @@ async def check_music_id(
 async def generate_success_state(group_id: str) -> str:
     game_data = await openchars.get_game_data(group_id)
     if not game_data:
-        raise
+        raise IgnoredException(ProcessedException)
 
     game_state = list()
     for game_content in game_data["game_contents"]:

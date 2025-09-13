@@ -12,7 +12,7 @@ from numpy import random
 from xxhash import xxh32_hexdigest
 
 from util.config import config
-from util.exceptions import SkipedException
+from util.exceptions import ContinuedException
 from util.lock import locks
 from util.stars import stars
 from ..rank.database import ranking
@@ -71,7 +71,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         if event.self_id not in config.nsfw_allowed:
             key = xxh32_hexdigest(f"{event.time}_{event.group_id}_{event.real_seq}")
             if key in locks and locks[key].count > 1:
-                raise SkipedException
+                raise ContinuedException
             await rand_pic.finish(
                 (
                     MessageSegment.text("迪拉熊不准你看！"),

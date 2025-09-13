@@ -9,7 +9,7 @@ from nonebot.message import run_postprocessor
 from starlette.websockets import WebSocketDisconnect
 
 from util.config import config
-from util.exceptions import ContinuedException, SkipedException
+from util.exceptions import ContinuedException
 
 PICPATH = "./Static/Gallery/SFW/"
 
@@ -22,7 +22,6 @@ async def _(event: Event, exception: Optional[Exception]):
             HTTPError,
             AdapterException,
             ContinuedException,
-            SkipedException,
             WebSocketDisconnect,
         ),
     ):

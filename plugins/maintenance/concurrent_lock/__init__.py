@@ -13,7 +13,7 @@ from nonebot.message import event_postprocessor, event_preprocessor, run_postpro
 from xxhash import xxh32_hexdigest
 
 from util.config import config
-from util.exceptions import ContinuedException, ProcessedException, SkipedException
+from util.exceptions import ContinuedException, ProcessedException
 from util.lock import Lock, States, locks
 
 
@@ -58,10 +58,6 @@ async def _(
             event.real_seq if isinstance(event, GroupMessageEvent) else event.user_id
         }"
     )
-    if isinstance(exception, SkipedException):
-        locks[key].state = States.SKIPED
-        return
-
     if isinstance(exception, ContinuedException):
         locks[key].state = States.CONTINUED
         return

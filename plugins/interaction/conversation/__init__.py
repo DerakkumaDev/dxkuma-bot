@@ -8,7 +8,7 @@ from numpy import random
 from xxhash import xxh32_hexdigest
 
 from util.config import config
-from util.exceptions import SkipedException
+from util.exceptions import ContinuedException
 from util.lock import locks
 
 xc = on_regex(r"^([香想]草|xc)(迪拉熊|dlx)$", re.I)
@@ -82,7 +82,7 @@ async def _(event: GroupMessageEvent):
     key = xxh32_hexdigest(f"{event.time}_{event.group_id}_{event.real_seq}")
     if event.self_id not in config.nsfw_allowed:
         if key in locks and locks[key].count > 1:
-            raise SkipedException
+            raise ContinuedException
     else:
         i = rng.choice([0, 1], p=[0.1, 0.9])
 

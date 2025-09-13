@@ -9,7 +9,6 @@ class States(Enum):
     PROCESSING = 0
     PROCESSED = 1
     CONTINUED = 2
-    SKIPED = 3
 
 
 class Lock(object):
