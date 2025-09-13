@@ -80,7 +80,7 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
             )
             break
         except ArkNotFoundError as ex:
-            print(ex)
+            await exception_report(ex)
             response = await client.context.create(
                 model=config.llm_model,
                 messages=[{"role": "system", "content": system_prompt}],
@@ -89,7 +89,7 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
             context_id = response.id
             await contextManager.set_contextid(chat_id, context_id)
         except ArkBadRequestError as ex:
-            print(ex)
+            await exception_report(ex)
             if ex.code == "InvalidParameter.PreviousResponseNotFound":
                 response = await client.context.create(
                     model=config.llm_model,
@@ -217,7 +217,12 @@ async def response_queue_task(bot: Bot, chat_type: str, qq_id: int):
 def on_done(task: Task):
     if not (exception := task.exception()) or isinstance(exception, AdapterException):
         return
+
+    asyncio.run(exception_report(exception))
+
+
+async def exception_report(ex):
     bot = get_bot()
-    trace = str().join(traceback.format_exception(exception)).replace("\\n", "\r\n")
+    trace = str().join(traceback.format_exception(ex)).replace("\\n", "\r\n")
     msg = MessageSegment.text(trace)
-    asyncio.run(bot.send_msg(group_id=config.dev_group, message=msg))
+    await bot.send_msg(group_id=config.dev_group, message=msg)
