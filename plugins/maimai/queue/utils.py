@@ -12,11 +12,12 @@ async def gen_message(bot: Bot, arcade: dict) -> str:
     else:
         messages.append("当前无人排卡")
 
+    messages.append(str())
     messages.append(
         f"最后在{
             arcade['last_action']['time']
             .astimezone(timezone(timedelta(hours=8)))
-            .strftime('%-y年%-m月%-d日 %-H:%-M%z')
+            .strftime('%-y年%-m月%-d日 %-H:%M%z')
         }"
     )
     action, delta = num2action(arcade["count"], arcade["last_action"]["before"])
@@ -49,6 +50,7 @@ async def gen_message(bot: Bot, arcade: dict) -> str:
                 or operator.get('nickname', arcade['last_action']['operator'])
             }{action}{delta}卡"
         )
+    messages.append(str())
     if arcade["action_times"] > 0:
         messages.append(f"为今日（UTC+4）第{arcade['action_times']}次更新")
     else:

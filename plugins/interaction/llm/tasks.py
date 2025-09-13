@@ -79,8 +79,7 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
                 extra_headers={"x-is-encrypted": "true"},
             )
             break
-        except ArkNotFoundError as ex:
-            await exception_report(ex)
+        except ArkNotFoundError:
             response = await client.context.create(
                 model=config.llm_model,
                 messages=[{"role": "system", "content": system_prompt}],

@@ -57,7 +57,7 @@ async def _(event: GroupMessageEvent):
         f"{
             detail['created_at']
             .astimezone(timezone(timedelta(hours=8)))
-            .strftime('%-y/%-m/%-d %-H:%-M%z')
+            .strftime('%-y/%-m/%-d %-H:%M%z')
         } {detail['change']}★ {detail['cause']}"
         for detail in details
     )
