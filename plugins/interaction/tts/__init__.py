@@ -17,9 +17,9 @@ from util.config import config
 from util.permission import ADMIN
 from util.stars import stars
 
-tts = on_regex(r"^(迪拉熊|dlx)(说：?|say|speak|t[2t][as])", re.I)
+tts = on_regex(r"^(迪拉熊|dlx)(说：?|say|speak|t[2t][as])\s*.", re.I)
 tts_dev = on_regex(
-    r"^(迪拉熊|dlx)dev(说：?|say|speak|t[2t][as])", re.I, permission=ADMIN
+    r"^(迪拉熊|dlx)dev(说：?|say|speak|t[2t][as])\s*.", re.I, permission=ADMIN
 )
 
 

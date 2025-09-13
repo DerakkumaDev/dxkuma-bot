@@ -15,7 +15,7 @@ xc = on_regex(r"^([香想]草|xc)(迪拉熊|dlx)$", re.I)
 wxhn = on_regex(r"^(迪拉熊|dlx)我喜欢你$", re.I)
 roll = on_regex(r"是.+还是.", rule=to_me())
 cum = on_fullmatch("dlxcum", ignorecase=True)
-eatbreak = on_regex(r"绝赞(给|请)你吃|(给|请)你吃绝赞", rule=to_me())
+eatbreak = on_regex(r"^(绝赞(给|请)你吃|(给|请)你吃绝赞)$", rule=to_me())
 
 conversations = {
     1: "变态！！！",

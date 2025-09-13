@@ -66,11 +66,11 @@ chartinfo = on_regex(
     r"((dx|sd|标准?)\s*)?.+是什么歌？?)$",
     re.I,
 )
-scoreinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?)\s*)?.+$", re.I)
+scoreinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?)\s*)?.", re.I)
 achvinfo = on_regex(
-    r"^(achv|分数列?表)\s*(绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?.+$", re.I
+    r"^(achv|分数列?表)\s*(绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?.", re.I
 )
-songreq = on_regex(r"^(迪拉熊|dlx)?点歌\s*.+$", re.I)
+songreq = on_regex(r"^(迪拉熊|dlx)?点歌\s*.", re.I)
 randsong = on_regex(
     r"^(rand|随(歌|个|首|张))\s*(绿|黄|红|紫|白)?\s*\d+(\.\d|\+)?$", re.I
 )
@@ -100,7 +100,7 @@ allow_other_on = on_regex(r"^(迪拉熊|dlx)?(开启?|启用|允许)代查$")
 allow_other_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用|禁止)代查$")
 
 set_source = on_regex(r"^(迪拉熊|dlx)?((切|更)?换|设置)(数据)?源\s*(落雪|水鱼)$")
-set_token = on_regex(r"^(迪拉熊|dlx)?(绑定|bind)\s*(落雪|水鱼)\s*.+$")
+set_token = on_regex(r"^(迪拉熊|dlx)?(绑定|bind)\s*(落雪|水鱼)\s*.")
 
 
 # 根据乐曲别名查询乐曲id列表

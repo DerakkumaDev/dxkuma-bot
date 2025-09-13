@@ -8,13 +8,13 @@ from .database import arcadeManager
 from .utils import gen_message
 
 all_help = on_regex(r"^(迪拉熊|dlx)([cp]k|[查排]卡)$", re.I)
-registering = on_regex(r"^注册机厅\s*.+$")
-binding = on_regex(r"^绑定机厅\s*.+$")
-unbinding = on_regex(r"^解绑机厅\s*.+$")
-search = on_regex(r"^搜索机厅\s*.+$")
+registering = on_regex(r"^注册机厅\s*.")
+binding = on_regex(r"^绑定机厅\s*.")
+unbinding = on_regex(r"^解绑机厅\s*.")
+search = on_regex(r"^搜索机厅\s*.")
 list_all = on_regex(r"^(所有|全部)机厅$", permission=ADMIN)
-add_alias = on_regex(r"^添加别(名|称)\s*.+?\s+.+$")
-remove_alias = on_regex(r"^删除别(名|称)\s*.+?\s+.+$")
+add_alias = on_regex(r"^添加别(名|称)\s*.+?\s+.")
+remove_alias = on_regex(r"^删除别(名|称)\s*.+?\s+.")
 list_count = on_regex(r"^(机厅|jt|看看|.+\s*)?有?(几(人|卡)?|多少(人|卡)|jr?)$", re.I)
 change_count = on_regex(
     r"^.+\s*(加|减|为|＋|－|＝|\+|-|=)?\s*\d+(人|卡)?$", block=False
