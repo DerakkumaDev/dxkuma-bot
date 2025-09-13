@@ -79,109 +79,123 @@ class Stars:
         return int(balance) if balance is not None else INITIAL_STAR_BALANCE
 
     @with_transaction
-    async def apply_change(
-        self, qq: str, num: int, cause: str, time: int, **kwargs
-    ) -> bool:
-        if num == 0:
-            return True
-
+    async def _get_user_balance_info(self, qq: str, **kwargs) -> tuple[bool, int]:
         session: AsyncSession = kwargs["session"]
 
-        before_balance: int
-        after_balance: int
-        now = datetime.fromtimestamp(time, timezone(timedelta(hours=8)))
-
-        sel_inf = select(StarBalance.is_infinite, StarBalance.balance).where(
+        stmt = select(StarBalance.is_infinite, StarBalance.balance).where(
             StarBalance.qq == qq
         )
-        sel_res = await session.execute(sel_inf)
-        sel_row = sel_res.first()
-        if sel_row and bool(sel_row[0]):
-            before_balance = sel_row[1]
-            after_balance = sel_row[1]
-            action_stmt = insert(StarAction).values(
-                qq=qq,
-                before_balance=before_balance,
-                after_balance=after_balance,
-                cause=cause,
-                created_at=now,
-            )
-            await session.execute(action_stmt)
-            return True
+        result = await session.execute(stmt)
+        row = result.first()
+        if not row:
+            return False, INITIAL_STAR_BALANCE
+        return bool(row[0]), int(row[1]) if row[1] is not None else INITIAL_STAR_BALANCE
 
-        if num < 0:
+    @with_transaction
+    async def _ensure_user_exists(self, qq: str, **kwargs) -> None:
+        session: AsyncSession = kwargs["session"]
+
+        ins_stmt = insert(StarBalance).values(
+            qq=qq, balance=INITIAL_STAR_BALANCE, is_infinite=False
+        )
+        ins_stmt = ins_stmt.on_conflict_do_nothing(index_elements=["qq"])
+        await session.execute(ins_stmt)
+
+    @with_transaction
+    async def _deduct_balance(self, qq: str, amount: int, **kwargs) -> Optional[int]:
+        session: AsyncSession = kwargs["session"]
+
+        ins_stmt = insert(StarBalance).values(
+            qq=qq, balance=INITIAL_STAR_BALANCE, is_infinite=False
+        )
+        ins_stmt = ins_stmt.on_conflict_do_nothing(index_elements=["qq"])
+        await session.execute(ins_stmt)
+
+        upd_stmt = (
+            update(StarBalance)
+            .where(StarBalance.qq == qq, StarBalance.balance > 0)
+            .values(balance=StarBalance.balance - amount)
+            .returning(StarBalance.balance)
+        )
+        upd_result = await session.execute(upd_stmt)
+        upd_row = upd_result.first()
+        return int(upd_row[0]) if upd_row else None
+
+    @with_transaction
+    async def _add_balance(self, qq: str, amount: int, **kwargs) -> int:
+        session: AsyncSession = kwargs["session"]
+
+        ins_stmt = insert(StarBalance).values(
+            qq=qq, balance=INITIAL_STAR_BALANCE, is_infinite=False
+        )
+        ins_stmt = ins_stmt.on_conflict_do_nothing(index_elements=["qq"])
+        await session.execute(ins_stmt)
+
+        upd_stmt = (
+            update(StarBalance)
+            .where(StarBalance.qq == qq)
+            .values(balance=StarBalance.balance + amount)
+            .returning(StarBalance.balance)
+        )
+        upd_result = await session.execute(upd_stmt)
+        upd_row = upd_result.first()
+
+        if upd_row:
+            after_balance = int(upd_row[0])
+            if after_balance > MAX_STAR_BALANCE:
+                after_balance = MAX_STAR_BALANCE
+                limit_upd_stmt = (
+                    update(StarBalance)
+                    .where(StarBalance.qq == qq)
+                    .values(balance=MAX_STAR_BALANCE)
+                )
+                await session.execute(limit_upd_stmt)
+            return after_balance
+        else:
+            new_balance = INITIAL_STAR_BALANCE + amount
+            if new_balance > MAX_STAR_BALANCE:
+                new_balance = MAX_STAR_BALANCE
+
             ins_stmt = insert(StarBalance).values(
-                qq=qq, balance=INITIAL_STAR_BALANCE, is_infinite=False
+                qq=qq, balance=new_balance, is_infinite=False
             )
-            ins_stmt = ins_stmt.on_conflict_do_nothing(index_elements=["qq"])
+            ins_stmt = ins_stmt.on_conflict_do_update(
+                index_elements=["qq"],
+                set_={"balance": StarBalance.balance + ins_stmt.excluded.balance},
+            )
             await session.execute(ins_stmt)
 
-            upd_stmt = (
-                update(StarBalance)
-                .where(StarBalance.qq == qq, StarBalance.balance > 0)
-                .values(balance=StarBalance.balance + num)
-                .returning(StarBalance.balance)
+            sel_stmt = select(StarBalance.balance).where(StarBalance.qq == qq)
+            sel_result = await session.execute(sel_stmt)
+            sel_row = sel_result.first()
+            after_balance = (
+                int(sel_row[0]) if sel_row and sel_row[0] is not None else new_balance
             )
-            upd_result = await session.execute(upd_stmt)
-            upd_row = upd_result.first()
-            if not upd_row:
-                return False
-            after_balance = int(upd_row[0])
-            before_balance = after_balance - num
-        else:
-            upd_stmt = (
-                update(StarBalance)
-                .where(StarBalance.qq == qq)
-                .values(balance=StarBalance.balance + num)
-                .returning(StarBalance.balance)
-            )
-            upd_result = await session.execute(upd_stmt)
-            upd_row = upd_result.first()
-            if upd_row:
-                after_balance = int(upd_row[0])
-                if after_balance > MAX_STAR_BALANCE:
-                    after_balance = MAX_STAR_BALANCE
-                    limit_upd_stmt = (
-                        update(StarBalance)
-                        .where(StarBalance.qq == qq)
-                        .values(balance=MAX_STAR_BALANCE)
-                    )
-                    await session.execute(limit_upd_stmt)
-                before_balance = after_balance - num
-            else:
-                new_balance = INITIAL_STAR_BALANCE + num
-                if new_balance > MAX_STAR_BALANCE:
-                    new_balance = MAX_STAR_BALANCE
 
-                ins_stmt = insert(StarBalance).values(
-                    qq=qq, balance=new_balance, is_infinite=False
+            if after_balance > MAX_STAR_BALANCE:
+                after_balance = MAX_STAR_BALANCE
+                limit_upd_stmt = (
+                    update(StarBalance)
+                    .where(StarBalance.qq == qq)
+                    .values(balance=MAX_STAR_BALANCE)
                 )
-                ins_stmt = ins_stmt.on_conflict_do_update(
-                    index_elements=["qq"],
-                    set_={"balance": StarBalance.balance + ins_stmt.excluded.balance},
-                )
-                await session.execute(ins_stmt)
+                await session.execute(limit_upd_stmt)
 
-                sel_stmt = select(StarBalance.balance).where(StarBalance.qq == qq)
-                sel_result = await session.execute(sel_stmt)
-                sel_row = sel_result.first()
-                after_balance = (
-                    int(sel_row[0])
-                    if sel_row and sel_row[0] is not None
-                    else new_balance
-                )
+            return after_balance
 
-                if after_balance > MAX_STAR_BALANCE:
-                    after_balance = MAX_STAR_BALANCE
-                    limit_upd_stmt = (
-                        update(StarBalance)
-                        .where(StarBalance.qq == qq)
-                        .values(balance=MAX_STAR_BALANCE)
-                    )
-                    await session.execute(limit_upd_stmt)
+    @with_transaction
+    async def _record_action(
+        self,
+        qq: str,
+        before_balance: int,
+        after_balance: int,
+        cause: str,
+        time: int,
+        **kwargs,
+    ) -> None:
+        session: AsyncSession = kwargs["session"]
 
-                before_balance = after_balance - num
-
+        now = datetime.fromtimestamp(time, timezone(timedelta(hours=8)))
         action_stmt = insert(StarAction).values(
             qq=qq,
             before_balance=before_balance,
@@ -191,6 +205,27 @@ class Stars:
         )
         await session.execute(action_stmt)
 
+    async def apply_change(self, qq: str, num: int, cause: str, time: int) -> bool:
+        if num == 0:
+            return True
+
+        is_infinite, current_balance = await self._get_user_balance_info(qq)
+
+        if is_infinite:
+            await self._record_action(qq, current_balance, current_balance, cause, time)
+            return True
+
+        if num < 0:
+            await self._ensure_user_exists(qq)
+            after_balance = await self._deduct_balance(qq, abs(num))
+            if after_balance is None:
+                return False
+            before_balance = after_balance + num
+        else:
+            after_balance = await self._add_balance(qq, num)
+            before_balance = after_balance - num
+
+        await self._record_action(qq, before_balance, after_balance, cause, time)
         return True
 
     @with_transaction

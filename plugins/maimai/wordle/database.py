@@ -131,7 +131,6 @@ class OpenChars:
                 timezone(timedelta(hours=8))
             ) - record.updated_at > timedelta(hours=12):
                 await session.delete(record)
-                await session.flush()
             else:
                 return await self._build_game_data(record, session)
 
@@ -147,7 +146,6 @@ class OpenChars:
             },
         )
         await session.execute(stmt)
-        await session.flush()
 
         stmt = select(WordleGame).where(WordleGame.group_id == group_id)
         result = await session.execute(stmt)
@@ -215,7 +213,6 @@ class OpenChars:
             hours=12
         ):
             await session.delete(record)
-            await session.flush()
             return False, None
 
         stmt = insert(WordleOpenChar).values(game_id=record.id, char=chars.casefold())
@@ -243,10 +240,7 @@ class OpenChars:
                 content.opc_times += 1
 
         record.updated_at = datetime.now(timezone(timedelta(hours=8)))
-
-        await session.flush()
-        with session.no_autoflush:
-            game_data = await self._build_game_data(record, session)
+        game_data = await self._build_game_data(record, session)
 
         return True, game_data
 
@@ -265,7 +259,6 @@ class OpenChars:
             hours=12
         ):
             await session.delete(record)
-            await session.flush()
             return None
 
         return await self._build_game_data(record, session)
@@ -288,7 +281,6 @@ class OpenChars:
             hours=12
         ):
             await session.delete(record)
-            await session.flush()
             return False
 
         stmt = select(WordleGameContent).where(
@@ -330,7 +322,6 @@ class OpenChars:
             return False
 
         record.updated_at = datetime.now(timezone(timedelta(hours=8)))
-        await session.flush()
         return True
 
     @with_transaction
@@ -372,7 +363,6 @@ class OpenChars:
             hours=12
         ):
             await session.delete(record)
-            await session.flush()
             return False
 
         stmt = select(WordleGameContent).where(
@@ -393,7 +383,6 @@ class OpenChars:
             content.opc_times += 1
 
         record.updated_at = datetime.now(timezone(timedelta(hours=8)))
-        await session.flush()
         return True
 
     @with_transaction
@@ -454,7 +443,6 @@ class OpenChars:
             hours=12
         ):
             await session.delete(record)
-            await session.flush()
             return False
 
         return True
