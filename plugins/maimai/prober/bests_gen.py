@@ -7,7 +7,6 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from httpx import AsyncClient
 
-from util.config import config as Config
 from .Config import (
     font_path,
     maimai_Class,
@@ -23,7 +22,7 @@ from .Config import (
     maimai_Static,
 )
 from .GLOBAL_CONSTANT import exclude_list, version_df_maps
-from .draw import paste, text
+from .draw import paste
 
 ratings = {
     "app": [1.01, 22.4, 15.0],

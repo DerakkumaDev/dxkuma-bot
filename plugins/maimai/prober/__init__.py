@@ -37,7 +37,13 @@ from .bests_gen import (
 from .database import user_config_manager
 from .diving_fish import get_player_record, get_player_records
 from .limekuma_client import BestsApiClient, ListApiClient
-from .musicInfo import achv_info, chart_info, score_info, utage_chart_info
+from .info_gen import (
+    achv_info,
+    chart_info,
+    score_info,
+    utage_chart_info,
+    utage_score_info,
+)
 
 best50 = on_regex(r"^dlxb?50$", re.I)
 ani50 = on_regex(r"^dlxani(50)?$", re.I)
@@ -2092,7 +2098,10 @@ async def _(event: MessageEvent):
             MessageSegment.image(Path("./Static/maimai/-1.png")),
         )
         await scoreinfo.finish(msg, at_sender=True)
-    img = await score_info(data, song_info)
+    if song_info["basic_info"]["genre"] == "宴会場":
+        img = await utage_score_info(data, song_info)
+    else:
+        img = await score_info(data, song_info)
     msg = MessageSegment.image(img)
     await scoreinfo.send(msg, at_sender=True)
 

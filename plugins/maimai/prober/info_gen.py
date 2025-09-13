@@ -7,7 +7,6 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from httpx import AsyncClient
 
-from util.config import config
 from util.data import get_chart_stats
 from .Config import (
     font_path,
@@ -17,7 +16,7 @@ from .Config import (
     maimai_Version,
 )
 from .bests_gen import get_fit_diff
-from .draw import paste, text
+from .draw import paste
 
 # 字体路径
 ttf_black_path = font_path / "rounded-x-mplus-1p-heavy.ttf"
@@ -112,7 +111,7 @@ async def chart_info(song_data):
         )
 
     # id
-    ttf = ImageFont.truetype(ttf_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
     id_position = (239, 872)
     drawtext.text(
         id_position,
@@ -132,7 +131,7 @@ async def chart_info(song_data):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=25)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
     drawtext.text(
@@ -143,7 +142,7 @@ async def chart_info(song_data):
         fill=(53, 74, 164),
     )
     # 谱面类型
-    ttf = ImageFont.truetype(ttf_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
     song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
@@ -284,7 +283,7 @@ async def score_info(data, song_data):
         ):
             truncated_title = truncated_title[:-1].strip()
         drawtext.text(
-            title_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
+            title_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
         )
 
     # 绘制曲师
@@ -306,11 +305,11 @@ async def score_info(data, song_data):
         ):
             truncated_title = truncated_title[:-1].strip()
         drawtext.text(
-            artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
+            artist_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
         )
 
     # id
-    ttf = ImageFont.truetype(ttf_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
     id_position = (239, 872)
     drawtext.text(
         id_position,
@@ -330,7 +329,7 @@ async def score_info(data, song_data):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=25)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
     drawtext.text(
@@ -341,7 +340,7 @@ async def score_info(data, song_data):
         fill=(53, 74, 164),
     )
     # 谱面类型
-    ttf = ImageFont.truetype(ttf_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
     song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
@@ -351,7 +350,7 @@ async def score_info(data, song_data):
     song_ver = song_data["basic_info"]["from"]
     song_ver = Image.open(maimai_Version / f"{song_ver}.png")
     song_ver = resize_image(song_ver, 0.8)
-    bg = paste(bg, song_ver, (860, 760))
+    bg = paste(bg, song_ver, (860, 768))
     drawtext = ImageDraw.Draw(bg)
 
     # 绘制成绩
@@ -508,7 +507,7 @@ async def utage_chart_info(song_data, index=0):
         ):
             truncated_title = truncated_title[:-1].strip()
         drawtext.text(
-            title_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
+            title_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
         )
 
     # 绘制曲师
@@ -530,11 +529,11 @@ async def utage_chart_info(song_data, index=0):
         ):
             truncated_title = truncated_title[:-1].strip()
         drawtext.text(
-            artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
+            artist_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
         )
 
     # id
-    ttf = ImageFont.truetype(ttf_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
     id_position = (239, 872)
     drawtext.text(
         id_position,
@@ -554,7 +553,7 @@ async def utage_chart_info(song_data, index=0):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=25)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
     drawtext.text(
@@ -565,7 +564,7 @@ async def utage_chart_info(song_data, index=0):
         fill=(53, 74, 164),
     )
     # 谱面类型
-    ttf = ImageFont.truetype(ttf_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
     song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
@@ -634,6 +633,195 @@ async def utage_chart_info(song_data, index=0):
     return img_bytes
 
 
+async def utage_score_info(data, song_data):
+    records = data[song_data["id"]]
+    # 底图
+    bg = Image.open("./Static/Maimai/Score/background_utage.png")
+
+    # 歌曲封面
+    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
+    if not os.path.exists(cover_path):
+        async with AsyncClient(http2=True) as session:
+            resp = await session.get(
+                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
+            )
+            async with aiofiles.open(cover_path, "wb") as fd:
+                await fd.write(await resp.aread())
+    cover = Image.open(cover_path).resize((295, 295))
+    bg = paste(bg, cover, (204, 440))
+    drawtext = ImageDraw.Draw(bg)
+
+    # 绘制标题
+    song_title = song_data["title"]
+    ttf = ImageFont.truetype(ttf_bold_path, size=40)
+    title_position = (545, 626)
+    max_width = 565
+    ellipsis = "…"
+    # 检查文本的宽度是否超过最大宽度
+    if ttf.getlength(song_title) <= max_width:
+        # 文本未超过最大宽度,直接绘制
+        drawtext.text(title_position, song_title, font=ttf, fill=(0, 0, 0))
+    else:
+        # 文本超过最大宽度,截断并添加省略符号
+        truncated_title = song_title
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
+        drawtext.text(
+            title_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
+        )
+
+    # 绘制曲师
+    song_artist = song_data["basic_info"]["artist"]
+    ttf = ImageFont.truetype(ttf_regular_path, size=30)
+    artist_position = (545, 694)
+    max_width = 565
+    ellipsis = "…"
+    # 检查文本的宽度是否超过最大宽度
+    if ttf.getlength(song_artist) <= max_width:
+        # 文本未超过最大宽度,直接绘制
+        drawtext.text(artist_position, song_artist, font=ttf, fill=(0, 0, 0))
+    else:
+        # 文本超过最大宽度,截断并添加省略符号
+        truncated_title = song_artist
+        while (
+            ttf.getlength(f"{truncated_title}{ellipsis}") > max_width
+            and len(truncated_title) > 0
+        ):
+            truncated_title = truncated_title[:-1].strip()
+        drawtext.text(
+            artist_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
+        )
+
+    # id
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
+    id_position = (239, 872)
+    drawtext.text(
+        id_position,
+        song_data["id"],
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
+    # bpm
+    song_bpm = str(song_data["basic_info"]["bpm"])
+    bpm_position = (341, 872)
+    drawtext.text(
+        bpm_position,
+        song_bpm,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
+    # 分类
+    ttf = ImageFont.truetype(ttf2_bold_path, size=25)
+    song_genre = song_data["basic_info"]["genre"]
+    genre_position = (544, 872)
+    drawtext.text(
+        genre_position,
+        song_genre,
+        anchor="mm",
+        font=ttf,
+        fill=(53, 74, 164),
+    )
+    # 谱面类型
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
+    song_type = song_data["type"]
+    type_path = maimai_MusicType / f"{song_type}.png"
+    type = Image.open(type_path)
+    type = resize_image(type, 0.7)
+    bg = paste(bg, type, (694, 852))
+    # version
+    song_ver = song_data["basic_info"]["from"]
+    song_ver = Image.open(maimai_Version / f"{song_ver}.png")
+    song_ver = resize_image(song_ver, 0.8)
+    bg = paste(bg, song_ver, (860, 768))
+    drawtext = ImageDraw.Draw(bg)
+
+    # 绘制成绩
+    level = song_data["level"][0].replace("?", str())
+    level_x = 229
+    level_y = 1100
+    achieve_x = 471
+    achieve_y = 1102
+    rate_x = 646
+    rate_y = 1074
+    fc_x = 809
+    fc_y = 1060
+    fs_x = 895
+    fs_y = 1060
+    dsra_x = 1047
+    dsra_y = 1102
+    color = (131, 19, 158)
+
+    # 等级
+    ttf = ImageFont.truetype(ttf_black_path, size=50)
+    drawtext.text((level_x, level_y), level, font=ttf, fill=color, anchor="mm")
+
+    if not records:
+        ttf = ImageFont.truetype(ttf_bold_path, size=20)
+        drawtext.text(
+            (dsra_x, dsra_y),
+            song_data["ds"][0],
+            font=ttf,
+            fill=color,
+            anchor="mm",
+        )
+        return
+
+    score = records[0]
+    achieve = str(score["achievements"])
+    if "." not in achieve:
+        achieve = f"{achieve}.0"
+    achieve1, achieve2 = achieve.split(".")
+    achieve2 = (achieve2.ljust(4, "0"))[:4]
+    achieve = f"{achieve1}.{achieve2}%"
+    ds = song_data["ds"][0]
+    fc = score["fc"]
+    fs = score["fs"]
+    rate = score["rate"]
+
+    # 达成率
+    ttf = ImageFont.truetype(ttf_bold_path, size=43)
+    drawtext.text((achieve_x, achieve_y), achieve, font=ttf, fill=color, anchor="mm")
+
+    # 评价
+    rate_path = f"./Static/Maimai/Rate/{rate}.png"
+    rate = Image.open(rate_path)
+    rate = resize_image(rate, 0.5)
+    bg = paste(bg, rate, (rate_x, rate_y))
+    drawtext = ImageDraw.Draw(bg)
+
+    # fc & fs
+    if fc:
+        fc_path = maimai_Static / f"playicon_{fc}.png"
+        fc = Image.open(fc_path)
+        fc = resize_image(fc, 0.33)
+        bg = paste(bg, fc, (fc_x, fc_y))
+        drawtext = ImageDraw.Draw(bg)
+
+    if fs:
+        fs_path = maimai_Static / f"playicon_{fs}.png"
+        fs = Image.open(fs_path)
+        fs = resize_image(fs, 0.33)
+        bg = paste(bg, fs, (fs_x, fs_y))
+        drawtext = ImageDraw.Draw(bg)
+
+    # 定数
+    ttf = ImageFont.truetype(ttf_bold_path, size=20)
+    drawtext.text((dsra_x, dsra_y), str(ds), font=ttf, fill=color, anchor="mm")
+
+    img_byte_arr = BytesIO()
+    bg = bg.convert("RGB")
+    bg.save(img_byte_arr, format="JPEG")
+    img_byte_arr.seek(0)
+    img_bytes = img_byte_arr.getvalue()
+
+    return img_bytes
+
+
 async def achv_info(song_data, index):
     # 底图
     bg = Image.open("./Static/Maimai/Achievements/background.png")
@@ -670,7 +858,7 @@ async def achv_info(song_data, index):
         ):
             truncated_title = truncated_title[:-1].strip()
         drawtext.text(
-            title_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
+            title_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
         )
 
     # 绘制曲师
@@ -692,11 +880,11 @@ async def achv_info(song_data, index):
         ):
             truncated_title = truncated_title[:-1].strip()
         drawtext.text(
-            artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
+            artist_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
         )
 
     # id
-    ttf = ImageFont.truetype(ttf_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
     id_position = (239, 872)
     drawtext.text(
         id_position,
@@ -716,7 +904,7 @@ async def achv_info(song_data, index):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf2_bold_path, size=25)
     song_genre = song_data["basic_info"]["genre"]
     genre_position = (544, 872)
     drawtext.text(
@@ -727,7 +915,7 @@ async def achv_info(song_data, index):
         fill=(53, 74, 164),
     )
     # 谱面类型
-    ttf = ImageFont.truetype(ttf_bold_path, size=26)
+    ttf = ImageFont.truetype(ttf_bold_path, size=25)
     song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
@@ -844,7 +1032,7 @@ async def achv_info(song_data, index):
         ):
             truncated_title = truncated_title[:-1].strip()
         drawtext.text(
-            artist_position, truncated_title + ellipsis, font=ttf, fill=(0, 0, 0)
+            artist_position, f"{truncated_title}{ellipsis}", font=ttf, fill=(0, 0, 0)
         )
 
     img_byte_arr = BytesIO()
