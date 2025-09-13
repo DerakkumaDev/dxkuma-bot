@@ -12,6 +12,7 @@ from util.database import Base, with_transaction
 
 
 INITIAL_STAR_BALANCE = 101
+MAX_STAR_BALANCE = 5000
 
 
 class StarBalance(Base):
@@ -138,10 +139,22 @@ class Stars:
             upd_row = upd_result.first()
             if upd_row:
                 after_balance = int(upd_row[0])
+                if after_balance > MAX_STAR_BALANCE:
+                    after_balance = MAX_STAR_BALANCE
+                    limit_upd_stmt = (
+                        update(StarBalance)
+                        .where(StarBalance.qq == qq)
+                        .values(balance=MAX_STAR_BALANCE)
+                    )
+                    await session.execute(limit_upd_stmt)
                 before_balance = after_balance - num
             else:
+                new_balance = INITIAL_STAR_BALANCE + num
+                if new_balance > MAX_STAR_BALANCE:
+                    new_balance = MAX_STAR_BALANCE
+
                 ins_stmt = insert(StarBalance).values(
-                    qq=qq, balance=INITIAL_STAR_BALANCE + num, is_infinite=False
+                    qq=qq, balance=new_balance, is_infinite=False
                 )
                 ins_stmt = ins_stmt.on_conflict_do_update(
                     index_elements=["qq"],
@@ -153,8 +166,20 @@ class Stars:
                 sel_result = await session.execute(sel_stmt)
                 sel_row = sel_result.first()
                 after_balance = (
-                    int(sel_row[0]) if sel_row and sel_row[0] is not None else num
+                    int(sel_row[0])
+                    if sel_row and sel_row[0] is not None
+                    else new_balance
                 )
+
+                if after_balance > MAX_STAR_BALANCE:
+                    after_balance = MAX_STAR_BALANCE
+                    limit_upd_stmt = (
+                        update(StarBalance)
+                        .where(StarBalance.qq == qq)
+                        .values(balance=MAX_STAR_BALANCE)
+                    )
+                    await session.execute(limit_upd_stmt)
+
                 before_balance = after_balance - num
 
         action_stmt = insert(StarAction).values(
@@ -226,19 +251,19 @@ class Stars:
         rng = random.default_rng()
         star = int(rng.integers(min, max))
         extend = 0
-        method = rng.choice(range(4), p=[0.91, 0.01, 0.03, 0.05])
-        if method == 0b0001:
+        method = rng.choice(range(0b0000_0100), p=[0.91, 0.01, 0.03, 0.05])
+        if method == 0b0000_0001:
             extend = int(rng.integers(100, 200))
-            method = 0b0100
-        elif method == 0b0010:
+            method = 0b0000_0100
+        elif method == 0b0000_0010:
             star = 50
-        elif method == 0b0011:
+        elif method == 0b0000_0011:
             star = 101
 
         is_first_reward_today = await self._is_first_reward_today(qq, time)
         if is_first_reward_today:
             extend = int(rng.integers(50, 100))
-            method |= 0b1_0000
+            method |= 0b0001_0000
 
         await self.apply_change(qq, star + extend, cause, time)
         return star, method, extend

@@ -63,9 +63,9 @@ async def _(bot: Bot, event: GroupMessageEvent):
         qq, 5, 25, "欣赏迪拉熊视频", event.time
     )
     msg = f"迪拉熊奖励你{star}颗★mai~"
-    if method & 0b0001:
+    if method == 0b0000_0001:
         msg += f"人品大爆发，迪拉熊额外送你{extend}颗★哦~"
-    if method & 0b1_0000:
+    if method & 0b0001_0000:
         msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
     await rand_bv.send(msg, at_sender=True)
 

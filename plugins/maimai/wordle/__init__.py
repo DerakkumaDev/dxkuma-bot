@@ -192,9 +192,9 @@ async def _(event: GroupMessageEvent):
                 user_id, 15, 35, "开字母猜中歌曲", event.time
             )
             msg = f"迪拉熊奖励你{star}颗★mai~"
-            if method & 0b0001:
+            if method == 0b0000_0001:
                 msg += f"人品大爆发，迪拉熊额外送你{extend}颗★哦~"
-            if method & 0b1_0000:
+            if method & 0b0001_0000:
                 msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
             await open_chars.send(
                 (
@@ -246,9 +246,9 @@ async def _(event: GroupMessageEvent):
             user_id, 15, 35, "开字母猜中歌曲", event.time
         )
         msg = f"迪拉熊奖励你{star}颗★mai~"
-        if method & 0b0001:
+        if method == 0b0000_0001:
             msg += f"人品大爆发，迪拉熊额外送你{extend}颗★哦~"
-        if method & 0b1_0000:
+        if method & 0b0001_0000:
             msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
         await all_message_handle.send(
             (
