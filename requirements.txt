@@ -443,14 +443,14 @@ propcache==0.3.2 \
     --hash=sha256:fad3b2a085ec259ad2c2842666b2a0a49dea8463579c606426128925af1ed725 \
     --hash=sha256:fd3e6019dc1261cd0291ee8919dd91fbab7b169bb76aeef6c716833a3f65d206
     # via yarl
-protobuf==6.32.0 \
-    --hash=sha256:501fe6372fd1c8ea2a30b4d9be8f87955a64d6be9c88a973996cef5ef6f0abf1 \
-    --hash=sha256:75a2aab2bd1aeb1f5dc7c5f33bcb11d82ea8c055c9becbb41c26a8c43fd7092c \
-    --hash=sha256:84f9e3c1ff6fb0308dbacb0950d8aa90694b0d0ee68e75719cb044b7078fe741 \
-    --hash=sha256:a81439049127067fc49ec1d36e25c6ee1d1a2b7be930675f919258d03c04e7d2 \
-    --hash=sha256:a8bdbb2f009cfc22a36d031f22a625a38b615b5e19e558a7b756b3279723e68e \
-    --hash=sha256:ba377e5b67b908c8f3072a57b63e2c6a4cbd18aea4ed98d2584350dbf46f2783 \
-    --hash=sha256:d52691e5bee6c860fff9a1c86ad26a13afbeb4b168cd4445c922b7e2cf85aaf0
+protobuf==6.32.1 \
+    --hash=sha256:2601b779fc7d32a866c6b4404f9d42a3f67c5b9f3f15b4db3cccabe06b95c346 \
+    --hash=sha256:2f5b80a49e1eb7b86d85fcd23fe92df154b9730a725c3b38c4e43b9d77018bf4 \
+    --hash=sha256:a8a32a84bc9f2aad712041b8b366190f71dde248926da517bde9e832e4412085 \
+    --hash=sha256:b00a7d8c25fa471f16bc8153d0e53d6c9e827f0953f3c09aaa4331c718cae5e1 \
+    --hash=sha256:b1864818300c297265c83a4982fd3169f97122c299f56a56e2445c3698d34710 \
+    --hash=sha256:d8c7e6eb619ffdf105ee4ab76af5a68b60a9d0f66da3ea12d1640e6d8dab7281 \
+    --hash=sha256:ee2469e4a021474ab9baafea6cd070e5bf27c7d29433504ddea1a4ee5850f68d
     # via
     #   googleapis-common-protos
     #   grpcio-tools
@@ -482,9 +482,9 @@ pycparser==2.23 ; implementation_name != 'PyPy' \
     --hash=sha256:78816d4f24add8f10a06d6f05b4d424ad9e96cfebf68a4ddc99c65c0720d00c2 \
     --hash=sha256:e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934
     # via cffi
-pydantic==2.11.7 \
-    --hash=sha256:d989c3c6cb79469287b1569f7447a17848c998458d49ebe294e975b9baf0f0db \
-    --hash=sha256:dde5df002701f6de26248661f6835bbe296a47bf73990135c7d07ce741b9623b
+pydantic==2.11.8 \
+    --hash=sha256:3d080f4a3ac6bde98e959ba552124d46be9f565b7be67769e49fcb286bae1bfb \
+    --hash=sha256:830ec4cccc3cf21be1ef5aec1d3348a179c92a61a7dab0e59837f9cc9fa93351
     # via
     #   fastapi
     #   nonebot-adapter-onebot
@@ -521,9 +521,9 @@ pykakasi==2.3.0 \
     --hash=sha256:26d21b090048ff45c6a4d8e962426b7951767216008ec30358e8a9d74af77f29 \
     --hash=sha256:fa052a8e63f59fb8d6569abbe719a8c9f9daf15ed27a67a56ab1705f0f67b0a1
     # via kumabot
-pyparsing==3.2.3 \
-    --hash=sha256:a749938e02d6fd0b59b356ca504a24982314bb090c383e3cf201c95ef7e2bfcf \
-    --hash=sha256:b9c13f1ab8b3b542f72e28f634bad4de758ab3ce4546e4301970ad6fa77c38be
+pyparsing==3.2.4 \
+    --hash=sha256:91d0fcde680d42cd031daf3a6ba20da3107e08a75de50da58360e7d94ab24d36 \
+    --hash=sha256:fff89494f45559d0f2ce46613b419f632bbb6afbdaed49696d322bcf98a58e99
     # via pyhocon
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
@@ -666,9 +666,9 @@ uvloop==0.21.0 ; platform_python_implementation != 'PyPy' and sys_platform != 'c
     --hash=sha256:bfd55dfcc2a512316e65f16e503e9e450cab148ef11df4e4e679b5e8253a5281 \
     --hash=sha256:f3df876acd7ec037a3d005b3ab85a7e4110422e4d9c1571d4fc89b0fc41b6816
     # via uvicorn
-volcengine-python-sdk==4.0.17 \
-    --hash=sha256:6c3e5e85bd339086ab209a20fa375bf50cf5fe98ed683b18a945f26e0a33eba0 \
-    --hash=sha256:a0fb904d3eb373e7e2f38bd2344baa06e3c16cc76e3cbac78c8e73e13d59e7c7
+volcengine-python-sdk==4.0.20 \
+    --hash=sha256:84d93df423cd7c318f762d3ddf046eafcc031c796a3d037401ffe33f4f24c643 \
+    --hash=sha256:ac48a7b7110f175fa9387f1ec1d256ba302f224d671a54ced3a6f761545e97e8
     # via kumabot
 watchfiles==1.1.0 \
     --hash=sha256:12b0a02a91762c08f7264e2e79542f76870c3040bbc847fb67410ab81474932a \
