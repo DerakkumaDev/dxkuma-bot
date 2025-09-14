@@ -3,12 +3,12 @@ from datetime import datetime, timedelta, timezone
 
 from nonebot import on_message
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
-from nonebot.rule import to_me
 
+from util.rule import at_me
 from .tasks import on_done, outtime_check, request_queues, times
 from .utils import escape, gen_message
 
-handler = on_message(to_me(), priority=1000)
+handler = on_message(at_me(), priority=1000)
 
 
 @handler.handle()

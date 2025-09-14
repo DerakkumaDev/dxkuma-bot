@@ -1,8 +1,13 @@
 import re
 
 from nonebot.adapters import Event
+from nonebot.adapters.onebot.v11 import MessageEvent
 from nonebot.consts import REGEX_MATCHED
+from nonebot.internal.rule import Rule
+from nonebot.params import EventToMe
 from nonebot.typing import T_State
+
+from util.config import config
 
 
 class RegexRule:
@@ -37,8 +42,38 @@ class RegexRule:
             text = event.get_plaintext()
         except Exception:
             return False
+        if event.is_tome():
+            return False
         if matched := re.search(self.regex, text.strip(), self.flags):
             state[REGEX_MATCHED] = matched
             return True
         else:
             return False
+
+
+class AtMeRule:
+    """检查事件是否与机器人有关。"""
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "AtMe()"
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, AtMeRule)
+
+    def __hash__(self) -> int:
+        return hash((self.__class__,))
+
+    async def __call__(self, event: Event, to_me: bool = EventToMe()) -> bool:
+        return to_me and (
+            not isinstance(event, MessageEvent)
+            or not event.reply
+            or (event.reply.sender.user_id) not in config.bots
+        )
+
+
+def at_me() -> Rule:
+    """匹配与机器人有关的事件。"""
+
+    return Rule(AtMeRule())
