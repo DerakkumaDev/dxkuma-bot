@@ -11,7 +11,7 @@ query = on_regex(r"^查星星$", re.I)
 query_detail = on_regex(r"^查?星星明细$", re.I)
 
 replies_posi: list = [
-    lambda _: "可以给迪拉熊吃一颗吗mai？（可怜）",
+    lambda _: "可以给迪拉熊吃几颗吗mai？（可怜）",
     lambda stars: f"迪拉熊帮你把★放在下面啦~\r\n{'★' * stars}"
     if stars < 66
     else "好多★呀，迪拉熊要数不过来了mai~（晕）",

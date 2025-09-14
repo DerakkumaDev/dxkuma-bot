@@ -27,7 +27,7 @@ async def _(bot: Bot):
     msg = (
         "本周迪拉熊厨力最高的人是——\r\n"
         f"{msg}\r\n"
-        f"迪拉熊给上面每个宝宝一个大大的拥抱~\r\n"
+        f"迪拉熊给上面每位宝宝大大的拥抱~\r\n"
         "（迪拉熊只记得住一周内的积分）\r\n"
         "\r\n"
         f"图库：{len(os.listdir(ranking.pic_path))}:{
