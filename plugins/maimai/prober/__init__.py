@@ -36,7 +36,6 @@ from .bests_gen import (
 )
 from .database import user_config_manager
 from .diving_fish import get_player_record, get_player_records
-from .limekuma_client import BestsApiClient, ListApiClient
 from .info_gen import (
     achv_info,
     chart_info,
@@ -44,6 +43,7 @@ from .info_gen import (
     utage_chart_info,
     utage_score_info,
 )
+from .limekuma_client import BestsApiClient, ListApiClient
 
 best50 = on_regex(r"^dlxb?50$", re.I)
 ani50 = on_regex(r"^dlxani(50)?$", re.I)
@@ -1869,6 +1869,7 @@ async def _(event: MessageEvent):
                     params["token"] = config.df_token
                     params["qq"] = int(qq)
                     params["plate"] = int(plate)
+                    params["icon"] = int(icon)
                     gen = client.get_from_diving_fish(**params)
                 else:
                     return
