@@ -68,7 +68,7 @@ chartinfo = on_regex(
 )
 scoreinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?|宴)\s*)?.", re.I)
 achvinfo = on_regex(
-    r"^(achv|分数列?表)\s*((绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?|[左右]\s*).",
+    r"^(achv|分数列?表)\s*((绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?|([左右]\s*)?).",
     re.I,
 )
 songreq = on_regex(r"^(迪拉熊|dlx)?点歌\s*.", re.I)
@@ -434,7 +434,9 @@ async def get_info_by_name(name, music_type, songList):
             song_info = find_song_by_id(song_id, songList)
             if not song_info:
                 rep_ids.remove(song_id)
-                other_id = str(id_int + 10000)
+                other_id = (
+                    str(id_int + 10000) if id_int < 10000 else str(id_int % 10000)
+                )
                 song_info = find_song_by_id(other_id, songList)
                 if not song_info:
                     continue
@@ -446,7 +448,9 @@ async def get_info_by_name(name, music_type, songList):
                 if not check_type(song_info, music_type):
                     rep_ids.remove(song_id)
                     continue
-                if song_info["type"] == "DX":
+                if song_info["basic_info"]["genre"] == "宴会場":
+                    continue
+                elif song_info["type"] == "DX":
                     other_id = str(id_int % 10000)
                 elif song_info["type"] == "SD":
                     other_id = str(id_int + 10000)
@@ -2043,6 +2047,23 @@ async def _(event: MessageEvent):
             at_sender=True,
         )
     if song_info["basic_info"]["genre"] == "宴会場":
+        chart_count = len(song_info["charts"])
+        if music_type == "宴" and chart_count < 2:
+            await chartinfo.finish(
+                (
+                    MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                ),
+                at_sender=True,
+            )
+        if not music_type and chart_count > 1:
+            await chartinfo.finish(
+                (
+                    MessageSegment.text("你没有告诉迪拉熊是哪一边的谱面mai~"),
+                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                ),
+                at_sender=True,
+            )
         img = await utage_chart_info(song_data=song_info, index=side_index)
     else:
         img = await chart_info(song_data=song_info)
@@ -2126,7 +2147,7 @@ async def _(event: MessageEvent):
 @achvinfo.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    pattern = r"(?:(绿|黄|红|紫|白)\s*(?:(dx|sd|标准?)\s*)?|([左右])\s*)(.+)"
+    pattern = r"^(?:achv|分数列?表)\s*(?:(绿|黄|红|紫|白)\s*(?:(dx|sd|标准?)\s*)?|(?:([左右])\s*)?)(.+)"
     match = re.search(pattern, msg, re.I)
     song = match.group(4)
     if not song:
@@ -2135,12 +2156,14 @@ async def _(event: MessageEvent):
     diff = match.group(1)
     if diff:
         type_index = "绿黄红紫白".index(diff)
+        music_type = match.group(2)
+    else:
+        music_type = "宴"
 
-    music_type = match.group(2)
+    type_index = 0
     side = match.group(3)
     if side:
         type_index = "左右".index(side)
-        music_type = "宴"
 
     songList = await get_music_data_df()
     result, song_info = await get_info_by_name(song, music_type, songList)
@@ -2164,15 +2187,35 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    chart_count = len(song_info["charts"])
-    if (
-        chart_count <= type_index
-        or (diff and song_info["basic_info"]["genre"] == "宴会場")
-        or (side and chart_count < 2)
-    ):
+    if diff and song_info["basic_info"]["genre"] == "宴会場":
         await achvinfo.finish(
             (
                 MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            ),
+            at_sender=True,
+        )
+    chart_count = len(song_info["charts"])
+    if chart_count <= type_index:
+        await achvinfo.finish(
+            (
+                MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            ),
+            at_sender=True,
+        )
+    if side and chart_count < 2:
+        await achvinfo.finish(
+            (
+                MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),
+                MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+            ),
+            at_sender=True,
+        )
+    if not side and chart_count > 1:
+        await achvinfo.finish(
+            (
+                MessageSegment.text("你没有告诉迪拉熊是哪一边的谱面mai~"),
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             ),
             at_sender=True,
