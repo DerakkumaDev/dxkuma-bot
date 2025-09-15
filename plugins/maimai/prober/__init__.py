@@ -482,7 +482,7 @@ async def get_info_by_name(name, music_type, songList):
 
 def check_type(song_info, music_type):
     if not music_type:
-        return False
+        return True
     if music_type.casefold() == "dx":
         if song_info["type"] == "DX":
             return True
