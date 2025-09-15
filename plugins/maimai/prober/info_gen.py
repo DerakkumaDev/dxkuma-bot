@@ -506,7 +506,7 @@ async def utage_chart_info(song_data, index=0):
     # 绘制标题
     song_title = song_data["title"]
     if len(song_data["charts"]) > 1:
-        song_title += f" [{index}]"
+        song_title = f"[{'左右'[index]}]{song_title}"
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
     title_position = (545, 626)
     max_width = 565
@@ -805,7 +805,7 @@ async def utage_score_info(data, song_data):
     drawtext.text((achieve_x, achieve_y), achieve, font=ttf, fill=color, anchor="mm")
 
     # 评价
-    if len(song_data["level"]) > 1:
+    if len(song_data["charts"]) > 1:
         achievements = score["achievements"] / 2
         for rank, achv in ranks:
             if achievements < achv:
@@ -865,6 +865,8 @@ async def achv_info(song_data, index):
 
     # 绘制标题
     song_title = song_data["title"]
+    if song_data["basic_info"]["genre"] == "宴会場" and len(song_data["charts"]) > 1:
+        song_title = f"[{'左右'[index]}]{song_title}"
     ttf = ImageFont.truetype(ttf_bold_path, size=40)
     title_position = (545, 626)
     max_width = 565
@@ -953,28 +955,33 @@ async def achv_info(song_data, index):
     drawtext = ImageDraw.Draw(bg)
 
     # 等级
-    level_label = ["Basic", "Advanced", "Expert", "Master", "ReMASTER"][index]
-    cover = Image.open(f"./Static/Maimai/Achievements/Level/{level_label}.png")
-    bg = paste(bg, cover, (164, 971))
-    drawtext = ImageDraw.Draw(bg)
-    ttf = ImageFont.truetype(ttf_black_path, size=36)
     song_level = song_data["level"][index]
-    level_color = [
-        (14, 117, 54),
-        (214, 148, 19),
-        (192, 33, 56),
-        (103, 20, 141),
-        (186, 126, 232),
-    ]
-    if "+" in song_level:
-        song_level = song_level.replace("+", str())
-        plus_path = maimai_Plus / f"{level_label}.png"
-        plus_icon = Image.open(plus_path)
-        bg = paste(bg, plus_icon, (302, 953))
+    if song_data["basic_info"]["genre"] == "宴会場":
+        cover = Image.open("./Static/Maimai/Achievements/Level/Utage.png")
+        bg = paste(bg, cover, (164, 952))
         drawtext = ImageDraw.Draw(bg)
-    drawtext.text(
-        (245, 1004), song_level, anchor="mm", font=ttf, fill=level_color[index]
-    )
+        level_color = (131, 19, 158)
+        song_level = song_level.replace("?", str())
+    else:
+        level_label = ["Basic", "Advanced", "Expert", "Master", "ReMASTER"][index]
+        cover = Image.open(f"./Static/Maimai/Achievements/Level/{level_label}.png")
+        bg = paste(bg, cover, (164, 971))
+        drawtext = ImageDraw.Draw(bg)
+        level_color = [
+            (14, 117, 54),
+            (214, 148, 19),
+            (192, 33, 56),
+            (103, 20, 141),
+            (186, 126, 232),
+        ][index]
+        if "+" in song_level:
+            song_level = song_level.replace("+", str())
+            plus_path = maimai_Plus / f"{level_label}.png"
+            plus_icon = Image.open(plus_path)
+            bg = paste(bg, plus_icon, (302, 953))
+            drawtext = ImageDraw.Draw(bg)
+    ttf = ImageFont.truetype(ttf_black_path, size=36)
+    drawtext.text((245, 1004), song_level, anchor="mm", font=ttf, fill=level_color)
 
     # 分数
     score_color = [(231, 144, 21), (227, 60, 117), (38, 143, 17), (130, 144, 203)]

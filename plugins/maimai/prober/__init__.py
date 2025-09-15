@@ -62,13 +62,14 @@ sunnlist = on_regex(r"^dlx(sunn?|cun|寸|🤏)(\s*\d+?)?$", re.I)
 locklist = on_regex(r"^dlx(suo|锁|🔒)(\s*\d+?)?$", re.I)
 
 chartinfo = on_regex(
-    r"^((chart|id|search|查歌)\s*((dx|sd|标准?)\s*)?.+|"
-    r"((dx|sd|标准?)\s*)?.+是什么歌？?)$",
+    r"^((chart|id|search|查歌)\s*((dx|sd|标准?|[左右]|宴)\s*)?.+|"
+    r"((dx|sd|标准?|宴)\s*)?.+是什么歌？?)$",
     re.I,
 )
-scoreinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?)\s*)?.", re.I)
+scoreinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?|宴)\s*)?.", re.I)
 achvinfo = on_regex(
-    r"^(achv|分数列?表)\s*(绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?.", re.I
+    r"^(achv|分数列?表)\s*((绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?|[左右]\s*).",
+    re.I,
 )
 songreq = on_regex(r"^(迪拉熊|dlx)?点歌\s*.", re.I)
 randsong = on_regex(
@@ -193,7 +194,10 @@ async def records_to_bests(
     dx = list()
     charts = await get_chart_stats()
     mask_enabled = False
-    default_k = lambda x: (x["ra"], x["ds"], x["achievements"])
+
+    def default_k(x):
+        return (x["ra"], x["ds"], x["achievements"])
+
     if not records:
         for song in songList:
             if len(song["id"]) > 5:
@@ -341,7 +345,9 @@ async def records_to_bests(
                 b.append(i)
         return sd, dx, mask_enabled
     if is_sd:
-        k = lambda x: (x["ra"] * (1 + x["diff"] / 10), x["ds"], x["achievements"])
+
+        def k(x):
+            return (x["ra"] * (1 + x["diff"] / 10), x["ds"], x["achievements"])
     else:
         k = default_k
     b35 = sorted(sd, key=k, reverse=True)[: 25 if is_old else 35]
@@ -400,7 +406,10 @@ async def compare_bests(sender_records, target_records, songList):
                 dx.append(other_record)
             else:
                 sd.append(other_record)
-    k = lambda x: (x["preferred"], x["ra"] - x["s_ra"], x["ds"], x["achievements"])
+
+    def k(x):
+        return (x["preferred"], x["ra"] - x["s_ra"], x["ds"], x["achievements"])
+
     b35 = sorted(sd, key=k, reverse=True)[:35]
     b15 = sorted(dx, key=k, reverse=True)[:15]
     return b35, b15, mask_enabled
@@ -473,14 +482,17 @@ async def get_info_by_name(name, music_type, songList):
 
 def check_type(song_info, music_type):
     if not music_type:
-        return True
+        return False
     if music_type.casefold() == "dx":
-        if song_info["type"] != "DX":
-            return False
+        if song_info["type"] == "DX":
+            return True
     elif music_type.casefold() == "sd" or music_type == "标准" or music_type == "标":
-        if song_info["type"] != "SD":
-            return False
-    return True
+        if song_info["type"] == "SD":
+            return True
+    elif music_type.casefold() == "宴":
+        if song_info["basic_info"]["genre"] == "宴会場":
+            return True
+    return False
 
 
 @best50.handle()
@@ -1992,18 +2004,22 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
     match = re.fullmatch(
-        r"(?:chart|id|search|查歌)\s*(?:(dx|sd|标准?)\s*)?(.+)|(?:(dx|sd|标准?)\s*)?(.+)是什么歌？?",
+        r"(?:chart|id|search|查歌)\s*(?:(dx|sd|标准?|[左右])\s*)?(.+)|(?:(dx|sd|标准?)\s*)?(.+)是什么歌？?",
         msg,
         re.I,
     )
     if not match:
         return
 
-    music_type = match.group(1) or match.group(3)
     song = match.group(2) or match.group(4)
     if not song:
         return
 
+    music_type = match.group(1) or match.group(3)
+    side_index = 0
+    if music_type and music_type in "左右":
+        side_index = "左右".index(music_type)
+        music_type = "宴"
     songList = await get_music_data_df()
     result, song_info = await get_info_by_name(song, music_type, songList)
     if result == 1:
@@ -2027,7 +2043,7 @@ async def _(event: MessageEvent):
             at_sender=True,
         )
     if song_info["basic_info"]["genre"] == "宴会場":
-        img = await utage_chart_info(song_data=song_info)
+        img = await utage_chart_info(song_data=song_info, index=side_index)
     else:
         img = await chart_info(song_data=song_info)
     msg = (
@@ -2110,13 +2126,21 @@ async def _(event: MessageEvent):
 @achvinfo.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    pattern = r"(绿|黄|红|紫|白)\s*(?:(dx|sd|标准?)\s*)?(.+)"
+    pattern = r"(?:(绿|黄|红|紫|白)\s*(?:(dx|sd|标准?)\s*)?|([左右])\s*)(.+)"
     match = re.search(pattern, msg, re.I)
-    type_index = ["绿", "黄", "红", "紫", "白"].index(match.group(1))
-    music_type = match.group(2)
-    song = match.group(3)
+    song = match.group(4)
     if not song:
         return
+
+    diff = match.group(1)
+    if diff:
+        type_index = "绿黄红紫白".index(diff)
+
+    music_type = match.group(2)
+    side = match.group(3)
+    if side:
+        type_index = "左右".index(side)
+        music_type = "宴"
 
     songList = await get_music_data_df()
     result, song_info = await get_info_by_name(song, music_type, songList)
@@ -2140,7 +2164,12 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    if len(song_info["level"]) <= type_index:
+    chart_count = len(song_info["charts"])
+    if (
+        chart_count <= type_index
+        or (diff and song_info["basic_info"]["genre"] == "宴会場")
+        or (side and chart_count < 2)
+    ):
         await achvinfo.finish(
             (
                 MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),
@@ -2207,7 +2236,7 @@ async def _(event: MessageEvent):
     match = re.search(pattern, msg)
     level_label = match.group(1)
     if level_label:
-        level_index = ["绿", "黄", "红", "紫", "白"].index(level_label)
+        level_index = "绿黄红紫白".index(level_label)
     else:
         level_index = None
     level = match.group(2)
