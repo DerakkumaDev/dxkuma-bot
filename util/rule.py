@@ -69,7 +69,7 @@ class AtMeRule:
         return to_me and (
             not isinstance(event, MessageEvent)
             or not event.reply
-            or (event.reply.sender.user_id) not in config.bots
+            or str(event.reply.sender.user_id) not in config.bots
         )
 
 
