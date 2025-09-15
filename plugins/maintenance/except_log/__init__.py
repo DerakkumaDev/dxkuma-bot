@@ -4,7 +4,7 @@ from typing import Optional
 from httpx import HTTPError
 from nonebot import get_bot
 from nonebot.adapters.onebot.v11 import Event, MessageEvent, MessageSegment
-from nonebot.exception import AdapterException
+from nonebot.exception import AdapterException, IgnoredException
 from nonebot.message import run_postprocessor
 from starlette.websockets import WebSocketDisconnect
 
@@ -21,6 +21,7 @@ async def _(event: Event, exception: Optional[Exception]):
         (
             HTTPError,
             AdapterException,
+            IgnoredException,
             ContinuedException,
             WebSocketDisconnect,
         ),
