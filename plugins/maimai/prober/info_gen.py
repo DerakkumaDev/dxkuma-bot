@@ -18,6 +18,23 @@ from .Config import (
 from .bests_gen import get_fit_diff
 from .draw import paste
 
+ranks = [
+    ("sssp", 100.5),
+    ("sss", 100),
+    ("ssp", 99.5),
+    ("ss", 99),
+    ("sp", 98),
+    ("s", 97),
+    ("aaa", 94),
+    ("aa", 90),
+    ("a", 80),
+    ("bbb", 75),
+    ("bb", 70),
+    ("b", 60),
+    ("c", 50),
+    ("d", 0),
+]
+
 # 字体路径
 ttf_black_path = font_path / "rounded-x-mplus-1p-heavy.ttf"
 ttf_bold_path = font_path / "rounded-x-mplus-1p-bold.ttf"
@@ -788,6 +805,13 @@ async def utage_score_info(data, song_data):
     drawtext.text((achieve_x, achieve_y), achieve, font=ttf, fill=color, anchor="mm")
 
     # 评价
+    if len(song_data["level"]) > 1:
+        achievements = score["achievements"] / 2
+        for rank, achv in ranks:
+            if achievements < achv:
+                continue
+            rate = rank
+            break
     rate_path = f"./Static/Maimai/Rate/{rate}.png"
     rate = Image.open(rate_path)
     rate = resize_image(rate, 0.5)
