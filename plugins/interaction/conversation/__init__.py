@@ -65,13 +65,13 @@ async def _(event: GroupMessageEvent):
             MessageSegment.text("就一个选项要迪拉熊怎么选mai~"),
             MessageSegment.image(Path("./Static/Roll/1.png")),
         )
-        await roll.finish(msg, at_sender=True)
+        await roll.finish(msg)
     output = rng.choice(roll_list)
     msg = (
         MessageSegment.text(f"迪拉熊建议你选择“{output}”mai~"),
         MessageSegment.image(Path("./Static/Roll/0.png")),
     )
-    await roll.send(msg, at_sender=True)
+    await roll.send(msg)
 
 
 @cum.handle()
@@ -95,4 +95,4 @@ async def _(event: GroupMessageEvent):
         MessageSegment.text("谢谢mai~"),
         MessageSegment.image(Path("./Static/EatBreak/0.png")),
     )
-    await eatbreak.send(msg, at_sender=True)
+    await eatbreak.send(msg)
