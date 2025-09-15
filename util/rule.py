@@ -1,7 +1,7 @@
 import re
 
 from nonebot.adapters import Event
-from nonebot.adapters.onebot.v11 import MessageEvent
+from nonebot.adapters.onebot.v11 import GroupMessageEvent
 from nonebot.consts import REGEX_MATCHED
 from nonebot.internal.rule import Rule
 from nonebot.params import EventToMe
@@ -42,7 +42,7 @@ class RegexRule:
             text = event.get_plaintext()
         except Exception:
             return False
-        if event.is_tome():
+        if event.at_me:
             return False
         if matched := re.search(self.regex, text.strip(), self.flags):
             state[REGEX_MATCHED] = matched
@@ -67,7 +67,7 @@ class AtMeRule:
 
     async def __call__(self, event: Event, to_me: bool = EventToMe()) -> bool:
         return to_me and (
-            not isinstance(event, MessageEvent)
+            not isinstance(event, GroupMessageEvent)
             or not event.reply
             or str(event.reply.sender.user_id) not in config.bots
         )

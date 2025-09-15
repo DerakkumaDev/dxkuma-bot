@@ -1,8 +1,9 @@
 import nonebot
 from nonebot import rule
-from nonebot.adapters.onebot.v11 import Adapter as V11Adapter
+from nonebot.adapters.onebot.v11 import Adapter as V11Adapter, bot
 
 from util.config import config
+from util.patch import _check_at_me
 from util.rule import RegexRule
 
 if __name__ == "__main__":
@@ -24,6 +25,8 @@ if __name__ == "__main__":
 
     # Patch NoneBot's regex rule
     rule.RegexRule = RegexRule
+    # Patch NoneBot's at check
+    bot._check_at_me = _check_at_me
 
     nonebot.load_plugins("plugins/maintenance")
     nonebot.load_plugins("plugins/maimai")
