@@ -2140,10 +2140,7 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    if (
-        song_info["basic_info"]["genre"] == "宴会場"
-        or len(song_info["level"]) <= type_index
-    ):
+    if len(song_info["level"]) <= type_index:
         await achvinfo.finish(
             (
                 MessageSegment.text("迪拉熊没有找到对得上的乐曲mai~"),

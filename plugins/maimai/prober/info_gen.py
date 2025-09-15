@@ -929,6 +929,10 @@ async def achv_info(song_data, index):
     drawtext = ImageDraw.Draw(bg)
 
     # 等级
+    level_label = ["Basic", "Advanced", "Expert", "Master", "ReMASTER"][index]
+    cover = Image.open(f"./Static/Maimai/Achievements/Level/{level_label}.png")
+    bg = paste(bg, cover, (164, 971))
+    drawtext = ImageDraw.Draw(bg)
     ttf = ImageFont.truetype(ttf_black_path, size=36)
     song_level = song_data["level"][index]
     level_color = [
@@ -940,13 +944,12 @@ async def achv_info(song_data, index):
     ]
     if "+" in song_level:
         song_level = song_level.replace("+", str())
-        level_label = ["Basic", "Advanced", "Expert", "Master", "ReMASTER"][index]
         plus_path = maimai_Plus / f"{level_label}.png"
         plus_icon = Image.open(plus_path)
         bg = paste(bg, plus_icon, (302, 953))
         drawtext = ImageDraw.Draw(bg)
     drawtext.text(
-        (251, 1000), song_level, anchor="mm", font=ttf, fill=level_color[index]
+        (245, 1004), song_level, anchor="mm", font=ttf, fill=level_color[index]
     )
 
     # 分数
