@@ -327,10 +327,10 @@ async def _(event: GroupMessageEvent):
             key=lambda x: x["level_value"],
             reverse=True,
         )[0]["note_designer"],
-        # "类型": lambda s: "、".join(
-        #     {"dx": "DX", "standard": "标准", "utage": "宴会场"}[k]
-        #     for k in [k for k, v in s["difficulties"].items() if len(v) > 0]
-        # ),
+        "类型": lambda s: "、".join(
+            {"dx": "DX", "standard": "标准", "utage": "宴会场"}[k]
+            for k in [k for k, v in s["difficulties"].items() if len(v) > 0]
+        ),
         "曲师": lambda s: s["artist"],
         "分类": lambda s: [
             genre["title"]
