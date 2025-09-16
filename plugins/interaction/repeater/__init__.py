@@ -8,4 +8,7 @@ m = on_message(repeater(), priority=10000)
 
 @m.handle()
 async def _(event: GroupMessageEvent):
-    await m.send(event.get_message())
+    try:
+        await m.send(event.get_message())
+    except Exception:
+        pass

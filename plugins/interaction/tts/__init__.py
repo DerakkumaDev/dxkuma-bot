@@ -1,26 +1,13 @@
-import os
 import re
-from pathlib import Path
 
-import aiofiles
 from httpx import AsyncClient
 from nonebot import on_regex
-from nonebot.adapters.onebot.v11 import (
-    Bot,
-    GroupMessageEvent,
-    MessageEvent,
-    MessageSegment,
-)
-from xxhash import xxh32_hexdigest
+from nonebot.adapters.onebot.v11 import MessageEvent, MessageSegment
 
 from util.config import config
-from util.permission import ADMIN
 from util.stars import stars
 
 tts = on_regex(r"^(迪拉熊|dlx)(说：?|say|speak|t[2t][as])\s*.", re.I)
-tts_dev = on_regex(
-    r"^(迪拉熊|dlx)dev(说：?|say|speak|t[2t][as])\s*.", re.I, permission=ADMIN
-)
 
 
 @tts.handle()
@@ -44,7 +31,7 @@ async def _(event: MessageEvent):
     elif balance < 0:
         await tts.finish(f"你还欠迪拉熊{-balance}颗★呢（哼）", at_sender=True)
 
-    audio, _, usage_characters = await text_to_speech(text)
+    audio, usage_characters = await text_to_speech(text)
     if not await stars.apply_change(qq, -usage_characters, "让迪拉熊说话", event.time):
         raise
     balance = await stars.get_balance(qq)
@@ -60,48 +47,7 @@ async def _(event: MessageEvent):
     await tts.send(msg, at_sender=True)
 
 
-@tts_dev.handle()
-async def _(bot: Bot, event: MessageEvent):
-    msg = str(event.get_message())
-    if not (
-        match := re.fullmatch(
-            r"^(?:迪拉熊|dlx)dev(?:说：?|say|speak|t[2t][as])(.+)", msg, re.I | re.S
-        )
-    ):
-        return
-
-    if not (text := match.group(1)):
-        return
-
-    audio, subtitle_file, _ = await text_to_speech(text)
-    hexhash = xxh32_hexdigest(audio)
-    file_name = f"{hexhash}.mp3"
-    file_path = Path("./Cache/") / "TTS" / file_name
-    async with aiofiles.open(file_path, "wb") as f:
-        await f.write(audio)
-
-    if isinstance(event, GroupMessageEvent):
-        await bot.call_api(
-            "upload_group_file",
-            group_id=event.group_id,
-            file=file_path.absolute().as_posix(),
-            name=file_name,
-        )
-    else:
-        await bot.call_api(
-            "upload_private_file",
-            user_id=event.user_id,
-            file=file_path.absolute().as_posix(),
-            name=file_name,
-        )
-
-    os.remove(file_path)
-
-    if subtitle_file:
-        await tts.send(f"字幕文件下载链接：{subtitle_file}")
-
-
-async def text_to_speech(text: str) -> tuple[bytes, str, int]:
+async def text_to_speech(text: str) -> tuple[bytes, int]:
     headers = {
         "Authorization": f"Bearer {config.tts_api_key}",
         "Content-Type": "application/json",
@@ -113,7 +59,7 @@ async def text_to_speech(text: str) -> tuple[bytes, str, int]:
             "voice_id": config.tts_voice_id,
             "english_normalization": True,
         },
-        "pronunciation_dict": {"tone": ["maimai/(mai1)(mai1)"]},
+        "pronunciation_dict": {"tone": ["mai/(mai1)"]},
         "language_boost": "auto",
     }
 
@@ -127,10 +73,9 @@ async def text_to_speech(text: str) -> tuple[bytes, str, int]:
     if not (audio := data.get("audio")):
         raise Exception(audio_info["base_resp"]["status_msg"])
 
-    subtitle_file = data.get("subtitle_file")
     extra_info = audio_info.get("extra_info", dict())
     usage_characters = extra_info.get("usage_characters", 1)
     if usage_characters <= 0:
         usage_characters = 1
 
-    return bytes.fromhex(audio), subtitle_file, usage_characters
+    return bytes.fromhex(audio), usage_characters
