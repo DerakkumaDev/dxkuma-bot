@@ -2154,13 +2154,13 @@ async def _(event: MessageEvent):
         return
 
     diff = match.group(1)
+    type_index = 0
     if diff:
         type_index = "绿黄红紫白".index(diff)
         music_type = match.group(2)
     else:
         music_type = "宴"
 
-    type_index = 0
     side = match.group(3)
     if side:
         type_index = "左右".index(side)
@@ -2212,7 +2212,7 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    if not side and chart_count > 1:
+    if not diff and not side and chart_count > 1:
         await achvinfo.finish(
             (
                 MessageSegment.text("你没有告诉迪拉熊是哪一边的谱面mai~"),

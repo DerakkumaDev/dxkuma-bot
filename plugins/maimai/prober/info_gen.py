@@ -222,7 +222,7 @@ async def chart_info(song_data):
     for i, chart in enumerate(song_charts):
         notes_y = 1200
         notes = chart["notes"]
-        if song_type == "SD":
+        if len(notes) < 5:
             notes.insert(3, 0)
         total_num = np.sum(notes)
         dx_num = total_num * 3
@@ -570,19 +570,16 @@ async def utage_chart_info(song_data, index=0):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=25)
-    song_genre = song_data["basic_info"]["genre"]
-    genre_position = (544, 872)
-    drawtext.text(
-        genre_position,
-        song_genre,
-        anchor="mm",
-        font=ttf,
-        fill=(53, 74, 164),
-    )
+    genre_path = "./Static/maimai/MusicType/Utage.png"
+    genre = Image.open(genre_path)
+    genre = resize_image(genre, 0.5)
+    bg = paste(bg, genre, (462, 830))
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=25)
-    song_type = song_data["type"]
+    if song_data["basic_info"]["genre"] == "宴会場":
+        song_type = ["SD", "DX"][int(song_data["id"][1])]
+    else:
+        song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
     type = resize_image(type, 0.7)
@@ -605,7 +602,7 @@ async def utage_chart_info(song_data, index=0):
     notes_x = 310
     notes_y = 1258
     notes = chart["notes"]
-    if song_type == "SD":
+    if len(notes) < 5:
         notes.insert(3, 0)
     for note in notes:
         if note > 0:
@@ -733,19 +730,16 @@ async def utage_score_info(data, song_data):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=25)
-    song_genre = song_data["basic_info"]["genre"]
-    genre_position = (544, 872)
-    drawtext.text(
-        genre_position,
-        song_genre,
-        anchor="mm",
-        font=ttf,
-        fill=(53, 74, 164),
-    )
+    genre_path = "./Static/maimai/MusicType/Utage.png"
+    genre = Image.open(genre_path)
+    genre = resize_image(genre, 0.5)
+    bg = paste(bg, genre, (462, 830))
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=25)
-    song_type = song_data["type"]
+    if song_data["basic_info"]["genre"] == "宴会場":
+        song_type = ["SD", "DX"][int(song_data["id"][1])]
+    else:
+        song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
     type = resize_image(type, 0.7)
@@ -930,19 +924,28 @@ async def achv_info(song_data, index):
         fill=(53, 74, 164),
     )
     # 分类
-    ttf = ImageFont.truetype(ttf2_bold_path, size=25)
-    song_genre = song_data["basic_info"]["genre"]
-    genre_position = (544, 872)
-    drawtext.text(
-        genre_position,
-        song_genre,
-        anchor="mm",
-        font=ttf,
-        fill=(53, 74, 164),
-    )
+    if song_data["basic_info"]["genre"] == "宴会場":
+        genre_path = "./Static/maimai/MusicType/Utage.png"
+        genre = Image.open(genre_path)
+        genre = resize_image(genre, 0.5)
+        bg = paste(bg, genre, (462, 830))
+    else:
+        ttf = ImageFont.truetype(ttf2_bold_path, size=25)
+        song_genre = song_data["basic_info"]["genre"]
+        genre_position = (544, 872)
+        drawtext.text(
+            genre_position,
+            song_genre,
+            anchor="mm",
+            font=ttf,
+            fill=(53, 74, 164),
+        )
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=25)
-    song_type = song_data["type"]
+    if song_data["basic_info"]["genre"] == "宴会場":
+        song_type = ["SD", "DX"][int(song_data["id"][1])]
+    else:
+        song_type = song_data["type"]
     type_path = maimai_MusicType / f"{song_type}.png"
     type = Image.open(type_path)
     type = resize_image(type, 0.7)
@@ -988,7 +991,7 @@ async def achv_info(song_data, index):
     ttf = ImageFont.truetype(ttf_bold_path, size=36)
     chart = song_data["charts"][index]
     notes = chart["notes"]
-    if song_type == "SD":
+    if len(notes) < 5:
         notes.insert(3, 0)
     type_weight = [1, 2, 3, 1, 5]
     sum_score = 0
@@ -1000,6 +1003,7 @@ async def achv_info(song_data, index):
         type_index = i if i < 5 else 4
         great_weight = 0.2
         good_weight = 0.5
+        ex_weight = 0
         if i > 3:
             ex_weight = [0, 0.25, 0.5][i - 4]
             great_weight = [0.2, 0.4, 0.5][i - 4]
