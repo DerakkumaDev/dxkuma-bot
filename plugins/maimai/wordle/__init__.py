@@ -179,14 +179,26 @@ async def _(event: GroupMessageEvent):
     )
     if char_all_open:
         for i, title, id in char_all_open:
-            cover_path = f"./Cache/Jacket/{id % 10000}.png"
+            song_id = id % 10000
+            cover_path = f"./Cache/Jacket/{song_id}.png"
             if not os.path.exists(cover_path):
                 async with AsyncClient(http2=True) as session:
                     resp = await session.get(
-                        f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
+                        f"https://assets2.lxns.net/maimai/jacket/{song_id}.png"
                     )
                     async with aiofiles.open(cover_path, "wb") as fd:
                         await fd.write(await resp.aread())
+
+            await open_chars.send(f"猜对啦~🎉第{i}首歌是——", at_sender=True)
+            await open_chars.send(
+                MessageSegment.music_custom(
+                    url=f"https://maimai.lxns.net/songs?game=maimai&song_id={song_id}",
+                    audio=f"https://assets2.lxns.net/maimai/music/{song_id}.mp3",
+                    title=title,
+                    content="来自迪拉熊Bot",
+                    img_url=f"https://assets2.lxns.net/maimai/jacket/{song_id}.png",
+                )
+            )
 
             star, method, extend = await stars.give_rewards(
                 user_id, 15, 35, "开字母猜中歌曲", event.time
@@ -196,20 +208,12 @@ async def _(event: GroupMessageEvent):
                 msg += f"人品大爆发，迪拉熊额外送你{extend}颗★哦~"
             if method & 0b0001_0000:
                 msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
-            await open_chars.send(
-                (
-                    MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
-                    MessageSegment.image(Path(cover_path)),
-                    MessageSegment.text(f"{title}\r\n\r\n{msg}"),
-                ),
-                at_sender=True,
-            )
+            await open_chars.send(msg, at_sender=True)
 
+    await open_chars.send(game_state)
     if is_game_over:
         await openchars.game_over(group_id)
-        await open_chars.send(f"全部答对啦，恭喜mai~🎉\r\n{game_state}")
-    else:
-        await open_chars.send(game_state)
+        await open_chars.send("全部答对啦，恭喜mai~🎉")
 
 
 @all_message_handle.handle()
@@ -233,14 +237,26 @@ async def _(event: GroupMessageEvent):
         return
 
     for i, title, id in guess_success:
-        cover_path = f"./Cache/Jacket/{id % 10000}.png"
+        song_id = id % 10000
+        cover_path = f"./Cache/Jacket/{song_id}.png"
         if not os.path.exists(cover_path):
             async with AsyncClient(http2=True) as session:
                 resp = await session.get(
-                    f"https://assets2.lxns.net/maimai/jacket/{id % 10000}.png"
+                    f"https://assets2.lxns.net/maimai/jacket/{song_id}.png"
                 )
                 async with aiofiles.open(cover_path, "wb") as fd:
                     await fd.write(await resp.aread())
+
+        await all_message_handle.send(f"猜对啦~🎉第{i}首歌是——", at_sender=True)
+        await all_message_handle.send(
+            MessageSegment.music_custom(
+                url=f"https://maimai.lxns.net/songs?game=maimai&song_id={song_id}",
+                audio=f"https://assets2.lxns.net/maimai/music/{song_id}.mp3",
+                title=title,
+                content="来自迪拉熊Bot",
+                img_url=f"https://assets2.lxns.net/maimai/jacket/{song_id}.png",
+            )
+        )
 
         star, method, extend = await stars.give_rewards(
             user_id, 15, 35, "开字母猜中歌曲", event.time
@@ -250,22 +266,15 @@ async def _(event: GroupMessageEvent):
             msg += f"人品大爆发，迪拉熊额外送你{extend}颗★哦~"
         if method & 0b0001_0000:
             msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
-        await all_message_handle.send(
-            (
-                MessageSegment.text(f"猜对啦~🎉第{i}首歌是——"),
-                MessageSegment.image(Path(cover_path)),
-                MessageSegment.text(f"{title}\r\n\r\n{msg}"),
-            ),
-            at_sender=True,
-        )
+        await all_message_handle.send(msg, at_sender=True)
+
     is_game_over, game_state, _ = await generate_message_state(
         group_id, user_id, event.time
     )
+    await all_message_handle.send(game_state)
     if is_game_over:
         await openchars.game_over(group_id)
-        await all_message_handle.send(f"全部答对啦，恭喜mai~🎉\r\n{game_state}")
-    else:
-        await all_message_handle.send(game_state)
+        await all_message_handle.send("全部答对啦，恭喜mai~🎉")
 
 
 @pass_game.handle()
@@ -276,7 +285,8 @@ async def _(event: GroupMessageEvent):
 
     game_state = await generate_success_state(group_id)
     await openchars.game_over(group_id)
-    await pass_game.send(f"迪拉熊帮大家揭晓答案啦mai~\r\n{game_state}")
+    await pass_game.send(game_state)
+    await pass_game.send("迪拉熊帮大家揭晓答案啦mai~")
 
 
 @info_tip.handle()

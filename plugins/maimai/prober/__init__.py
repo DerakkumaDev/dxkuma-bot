@@ -1899,9 +1899,9 @@ async def _(event: MessageEvent):
                 if err.code() == StatusCode.NOT_FOUND:
                     msg = (
                         MessageSegment.text(
-                            f"迪拉熊没有在{source_name}查分器上找到{
-                                '你' if qq == event.get_user_id() else '他'
-                            }的信息，可以试试发送“换源{
+                            f"迪拉熊没有在{
+                                source_name
+                            }查分器上找到你的信息，可以试试发送“换源{
                                 another_source_name
                             }”更换数据源mai~"
                         ),
@@ -1910,9 +1910,7 @@ async def _(event: MessageEvent):
                 elif err.code() == StatusCode.PERMISSION_DENIED:
                     msg = (
                         MessageSegment.text(
-                            f"{'你' if qq == event.get_user_id() else '他'}在{
-                                source_name
-                            }查分器启用了隐私或者没有同意{
+                            f"你在{source_name}查分器启用了隐私或者没有同意{
                                 source_name
                             }查分器的用户协议mai~"
                         ),
@@ -1920,11 +1918,12 @@ async def _(event: MessageEvent):
                     )
                 elif err.code() == StatusCode.UNAUTHENTICATED:
                     msg = (
-                        MessageSegment.text(
-                            f"{'你' if qq == event.get_user_id() else '他'}的{
-                                source_name
-                            }查分器绑定有点问题mai~"
-                        ),
+                        MessageSegment.text(f"你的{source_name}查分器绑定有点问题mai~"),
+                        MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+                    )
+                elif err.code() == StatusCode.OUT_OF_RANGE:
+                    msg = (
+                        MessageSegment.text("你的完成表没有这么多页mai~"),
                         MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                     )
                 else:
