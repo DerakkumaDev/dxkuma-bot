@@ -2,7 +2,6 @@ import asyncio
 import math
 import os
 import re
-import time
 from io import BytesIO
 from pathlib import Path
 
@@ -538,13 +537,6 @@ async def _(bot: Bot, event: MessageEvent):
     elif source == "diving-fish":
         source_name = "水鱼"
         another_source_name = "落雪"
-    await best50.send(
-        (
-            MessageSegment.at(sender_qq),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"),
-        )
-    )
     img_byte_arr = BytesIO()
     async with BestsApiClient() as client:
         try:
@@ -565,11 +557,7 @@ async def _(bot: Bot, event: MessageEvent):
                 gen = client.get_from_diving_fish(**params)
             else:
                 return
-            end_time = 0
-            start_time = time.perf_counter()
             async for b in gen:
-                if end_time <= 0:
-                    end_time = time.perf_counter()
                 img_byte_arr.write(b.data)
         except RpcError as err:
             if err.code() == StatusCode.NOT_FOUND:
@@ -615,7 +603,6 @@ async def _(bot: Bot, event: MessageEvent):
     msg = (
         MessageSegment.at(sender_qq),
         MessageSegment.image(img_bytes),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
     await best50.send(msg)
 
@@ -649,13 +636,6 @@ async def _(event: MessageEvent):
     elif source == "diving-fish":
         source_name = "水鱼"
         another_source_name = "落雪"
-    await ani50.send(
-        (
-            MessageSegment.at(target_qq),
-            MessageSegment.text(" "),
-            MessageSegment.text("迪拉熊正在努力为你绘制中，时间较长需要耐心等待mai~"),
-        )
-    )
     img_byte_arr = BytesIO()
     async with BestsApiClient() as client:
         try:
@@ -676,11 +656,7 @@ async def _(event: MessageEvent):
                 gen = client.get_anime_from_diving_fish(**params)
             else:
                 return
-            end_time = 0
-            start_time = time.perf_counter()
             async for b in gen:
-                if end_time <= 0:
-                    end_time = time.perf_counter()
                 img_byte_arr.write(b.data)
         except RpcError as err:
             if err.code() == StatusCode.NOT_FOUND:
@@ -718,7 +694,6 @@ async def _(event: MessageEvent):
     msg = (
         MessageSegment.at(target_qq),
         MessageSegment.image(img_bytes),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
     )
     await ani50.send(msg)
 
@@ -777,9 +752,6 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await ap50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = data["nickname"]
     dani = data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -787,7 +759,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=ap35,
         b15=ap15,
@@ -800,11 +771,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await ap50.send(msg, at_sender=True)
 
 
@@ -862,9 +829,6 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await fc50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = data["nickname"]
     dani = data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -872,7 +836,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=fc35,
         b15=fc15,
@@ -885,11 +848,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await fc50.send(msg, at_sender=True)
 
 
@@ -949,9 +908,6 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await fit50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = data["nickname"]
     dani = data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -959,7 +915,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
         b15=b15,
@@ -972,11 +927,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await fit50.send(msg, at_sender=True)
 
 
@@ -1024,9 +975,6 @@ async def _(event: MessageEvent):
         )
     songList = await get_music_data_df()
     b25, b15, _ = await records_to_bests(records, songList, is_old=True)
-    await best40.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = data["nickname"]
     dani = data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -1034,7 +982,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=b25,
         b15=b15,
@@ -1047,11 +994,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await best40.send(msg, at_sender=True)
 
 
@@ -1111,9 +1054,6 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await rate50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = data["nickname"]
     dani = data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -1121,7 +1061,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=rate35,
         b15=rate15,
@@ -1134,11 +1073,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await rate50.send(msg, at_sender=True)
 
 
@@ -1198,9 +1133,6 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await dxs50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = data["nickname"]
     dani = data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -1208,7 +1140,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=dxs35,
         b15=dxs15,
@@ -1221,11 +1152,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await dxs50.send(msg, at_sender=True)
 
 
@@ -1288,9 +1215,6 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await star50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = data["nickname"]
     dani = data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -1298,7 +1222,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=star35,
         b15=star15,
@@ -1311,11 +1234,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await star50.send(msg, at_sender=True)
 
 
@@ -1421,9 +1340,6 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await cf50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = target_data["nickname"]
     dani = target_data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -1431,7 +1347,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
         b15=b15,
@@ -1444,11 +1359,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await cf50.send(msg, at_sender=True)
 
 
@@ -1506,9 +1417,6 @@ async def _(event: MessageEvent):
             ),
             at_sender=True,
         )
-    await sd50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = data["nickname"]
     dani = data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -1516,7 +1424,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=b35,
         b15=b15,
@@ -1529,11 +1436,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await sd50.send(msg, at_sender=True)
 
 
@@ -1581,9 +1484,6 @@ async def _(event: MessageEvent):
         )
     songList = await get_music_data_df()
     all35, all15, _ = await records_to_bests(records, songList, is_all=True)
-    await all50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = data["nickname"]
     dani = data["additional_rating"]
     user_config = await user_config_manager.get_user_config(target_qq)
@@ -1591,7 +1491,6 @@ async def _(event: MessageEvent):
     plate = user_config["plate"]
     icon = user_config["icon"]
     is_rating_tj = user_config["rating_tj"]
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=all35,
         b15=all15,
@@ -1604,11 +1503,7 @@ async def _(event: MessageEvent):
         is_rating_tj=is_rating_tj,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await all50.send(msg, at_sender=True)
 
 
@@ -1642,12 +1537,8 @@ async def _(event: MessageEvent):
             at_sender=True,
         )
 
-    await rr50.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     nickname = "ｍａｉｍａｉ"
     dani = 22
-    start_time = time.perf_counter()
     img = await generatebests(
         b35=rr35,
         b15=rr15,
@@ -1660,11 +1551,7 @@ async def _(event: MessageEvent):
         is_rating_tj=False,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await rr50.send(msg, at_sender=True)
 
 
@@ -1720,9 +1607,6 @@ async def _(event: MessageEvent):
         page = 1
     all_page_num = math.ceil(len(filted_records) / 55)
     page = min(page, all_page_num)
-    await sunnlist.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     input_records = get_page_records(filted_records, page=page)
     nickname = data["nickname"]
     rating = data["rating"]
@@ -1731,7 +1615,6 @@ async def _(event: MessageEvent):
     frame = user_config["frame"]
     plate = user_config["plate"]
     icon = user_config["icon"]
-    start_time = time.perf_counter()
     img = await generate_wcb(
         page=page,
         nickname=nickname,
@@ -1744,11 +1627,7 @@ async def _(event: MessageEvent):
         all_page_num=all_page_num,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await sunnlist.send(msg, at_sender=True)
 
 
@@ -1804,9 +1683,6 @@ async def _(event: MessageEvent):
         page = 1
     all_page_num = math.ceil(len(filted_records) / 55)
     page = min(page, all_page_num)
-    await locklist.send(
-        MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"), at_sender=True
-    )
     input_records = get_page_records(filted_records, page=page)
     nickname = data["nickname"]
     rating = data["rating"]
@@ -1815,7 +1691,6 @@ async def _(event: MessageEvent):
     frame = user_config["frame"]
     plate = user_config["plate"]
     icon = user_config["icon"]
-    start_time = time.perf_counter()
     img = await generate_wcb(
         page=page,
         nickname=nickname,
@@ -1828,11 +1703,7 @@ async def _(event: MessageEvent):
         all_page_num=all_page_num,
         songList=songList,
     )
-    end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await locklist.send(msg, at_sender=True)
 
 
@@ -1870,10 +1741,6 @@ async def _(event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
             )
             await complist.finish(msg, at_sender=True)
-        await complist.send(
-            MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"),
-            at_sender=True,
-        )
         img_byte_arr = BytesIO()
         async with ListApiClient() as client:
             try:
@@ -1889,11 +1756,7 @@ async def _(event: MessageEvent):
                     gen = client.get_from_diving_fish(**params)
                 else:
                     return
-                end_time = 0
-                start_time = time.perf_counter()
                 async for b in gen:
-                    if end_time <= 0:
-                        end_time = time.perf_counter()
                     img_byte_arr.write(b.data)
             except RpcError as err:
                 if err.code() == StatusCode.NOT_FOUND:
@@ -1969,16 +1832,11 @@ async def _(event: MessageEvent):
 
         all_page_num = math.ceil(len(filted_records) / 55)
         page = min(page, all_page_num)
-        await complist.send(
-            MessageSegment.text("迪拉熊正在努力为你绘制中，稍等一下mai~"),
-            at_sender=True,
-        )
         input_records = get_page_records(filted_records, page=page)
         rate_count = compute_record(records=filted_records)
         nickname = data["nickname"]
         rating = data["rating"]
         dani = data["additional_rating"]
-        start_time = time.perf_counter()
         img = await generate_wcb(
             level=level,
             ds=ds,
@@ -1995,11 +1853,7 @@ async def _(event: MessageEvent):
             all_page_num=all_page_num,
             songList=songList,
         )
-        end_time = time.perf_counter()
-    msg = (
-        MessageSegment.image(img),
-        MessageSegment.text(f"绘制用时：{end_time - start_time:.2f}秒"),
-    )
+    msg = MessageSegment.image(img)
     await complist.send(msg, at_sender=True)
 
 
