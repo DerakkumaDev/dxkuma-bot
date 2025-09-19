@@ -3,22 +3,26 @@ name = "kumabot"
 version = "25.37.1"
 description = "一种舞萌DX机器人"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "aiofiles>=24.1.0",
     "googleapis-common-protos>=1.70.0",
-    "grpcio-tools>=1.74.0",
+    "grpcio-tools>=1.75.0",
     "httpx[http2]>=0.28.1",
     "nanoid>=2.0.0",
     "nonebot-adapter-onebot>=2.4.6",
-    "nonebot2[fastapi]>=2.4.2",
-    "orjson>=3.11.1",
+    "nonebot2[fastapi]>=2.4.3",
+    "orjson>=3.11.3",
     "pillow>=11.3.0",
     "pyhocon>=0.3.61",
     "pykakasi>=2.3.0",
-    "rapidfuzz>=3.13.0",
+    "rapidfuzz>=3.14.1",
     "soundfile>=0.13.1",
-    "sqlalchemy[postgresql-psycopgbinary]>=2.0.41",
-    "volcengine-python-sdk[ark]>=4.0.10",
+    "sqlalchemy[postgresql-psycopgbinary]>=2.0.43",
+    "volcengine-python-sdk[ark]>=4.0.21",
     "xxhash>=3.5.0",
 ]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
