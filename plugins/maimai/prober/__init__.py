@@ -2162,7 +2162,7 @@ async def _(event: MessageEvent):
         MessageSegment.text(f"{song['id']}：{song['title']}"),
         MessageSegment.image(img),
     )
-    await randsong.send(msg, at_sender=True)
+    await randsong.send(msg)
 
 
 @maiwhat.handle()
@@ -2178,7 +2178,7 @@ async def _(event: MessageEvent):
         MessageSegment.text(f"{song['id']}：{song['title']}"),
         MessageSegment.image(img),
     )
-    await maiwhat.send(msg, at_sender=True)
+    await maiwhat.send(msg)
 
 
 # 查看别名
