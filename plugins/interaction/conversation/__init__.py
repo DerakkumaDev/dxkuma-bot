@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-from nonebot import on_fullmatch, on_regex
+from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageSegment
 from numpy import random
 from xxhash import xxh32_hexdigest
@@ -12,9 +12,9 @@ from util.lock import locks
 
 xc = on_regex(r"^([香想]草|xc)(迪拉熊|dlx)$", re.I)
 wxhn = on_regex(r"^(迪拉熊|dlx)我喜欢你$", re.I)
-roll = on_regex(r"^(迪拉熊|dlx).*是.+还是.")
-cum = on_fullmatch("dlxcum", ignorecase=True)
-eatbreak = on_regex(r"^(迪拉熊|dlx)(绝赞(给|请)你吃|(给|请)你吃绝赞)$")
+roll = on_regex(r"^(迪拉熊|dlx).*是.+还是.", re.I)
+cum = on_regex(r"^dlxcum$", re.I)
+eatbreak = on_regex(r"^(迪拉熊|dlx)(绝赞(给|请)你吃|(给|请)你吃绝赞)$", re.I)
 
 conversations = {
     1: "变态！！！",

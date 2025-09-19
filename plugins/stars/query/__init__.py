@@ -7,8 +7,8 @@ from numpy import random
 
 from util.stars import stars
 
-query = on_regex(r"^查星星$", re.I)
-query_detail = on_regex(r"^查?星星明细$", re.I)
+query = on_regex(r"^查星星$")
+query_detail = on_regex(r"^查?星星明细$")
 
 replies_posi: list = [
     lambda _: "可以给迪拉熊吃几颗吗mai？（可怜）",

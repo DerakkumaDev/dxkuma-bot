@@ -9,7 +9,7 @@ import aiofiles
 import numpy as np
 from grpc import RpcError, StatusCode
 from httpx import AsyncClient
-from nonebot import on_fullmatch, on_regex
+from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, MessageSegment
 from numpy import random
 from rapidfuzz import fuzz, process
@@ -47,8 +47,8 @@ from .limekuma_client import BestsApiClient, ListApiClient
 best50 = on_regex(r"^dlxb?50$", re.I)
 ani50 = on_regex(r"^dlxani(50)?$", re.I)
 best40 = on_regex(r"^dlxb?40$", re.I)
-fit50 = on_fullmatch("dlxf50", ignorecase=True)
-dxs50 = on_fullmatch("dlxs50", ignorecase=True)
+fit50 = on_regex(r"dlxf50$", re.I)
+dxs50 = on_regex(r"dlxs50$", re.I)
 star50 = on_regex(r"^dlxx50(\s*[1-5])+$", re.I)
 rate50 = on_regex(r"^dlxr50(\s*(s{1,3}(p|\+)?|a{1,3}|b{1,3}|[cd]))+?$", re.I)
 ap50 = on_regex(r"^dlxap(50)?$", re.I)
@@ -67,14 +67,14 @@ chartinfo = on_regex(
 )
 scoreinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?|宴)\s*)?.", re.I)
 achvinfo = on_regex(
-    r"^(achv|分数列?表)\s*((绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?|([左右]\s*)?).",
+    r"^(achv|分数表格?)\s*((绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?|([左右]\s*)?).",
     re.I,
 )
-songreq = on_regex(r"^(迪拉熊|dlx)?点歌\s*.", re.I)
+songreq = on_regex(r"^(迪拉熊|dlx)点歌\s*.", re.I)
 randsong = on_regex(
     r"^(rand|随(歌|个|首|张))\s*(绿|黄|红|紫|白)?\s*\d+(\.\d|\+)?$", re.I
 )
-maiwhat = on_fullmatch("mai什么", ignorecase=True)
+maiwhat = on_regex("^mai什么$", re.I)
 
 complist = on_regex(
     r"^(list|完成列?表)\s*(\d+\+?|真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|宴|镜)(\s*\d+)?$",
@@ -93,14 +93,14 @@ set_plate = on_regex(r"^(迪拉熊|dlx)?(setplate|设置?姓名框)\s*\d{6}$", r
 set_frame = on_regex(r"^(迪拉熊|dlx)?(setframe|设置?背景)\s*\d{6}$", re.I)
 set_icon = on_regex(r"^(迪拉熊|dlx)?(seticon|设置?头像)\s*\d{6}$", re.I)
 
-rasug_on = on_regex(r"^(迪拉熊|dlx)?(开启?|启用)分数推荐$")
-rasug_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用)分数推荐$")
+rasug_on = on_regex(r"^(迪拉熊|dlx)?(开启?|启用)分数推荐$", re.I)
+rasug_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用)分数推荐$", re.I)
 
-allow_other_on = on_regex(r"^(迪拉熊|dlx)?(开启?|启用|允许)代查$")
-allow_other_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用|禁止)代查$")
+allow_other_on = on_regex(r"^(迪拉熊|dlx)?(开启?|启用|允许)代查$", re.I)
+allow_other_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用|禁止)代查$", re.I)
 
-set_source = on_regex(r"^(迪拉熊|dlx)?((切|更)?换|设置)(数据)?源\s*(落雪|水鱼)$")
-set_token = on_regex(r"^(迪拉熊|dlx)?(绑定|bind)\s*(落雪|水鱼)\s*.")
+set_source = on_regex(r"^(迪拉熊|dlx)?((切|更)?换|设置)(数据)?源\s*(落雪|水鱼)$", re.I)
+set_token = on_regex(r"^(迪拉熊|dlx)?(绑定|bind)\s*(落雪|水鱼)\s*.", re.I)
 
 
 # 根据乐曲别名查询乐曲id列表
@@ -2000,8 +2000,8 @@ async def _(event: MessageEvent):
 @achvinfo.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    pattern = r"^(?:achv|分数列?表)\s*(?:(绿|黄|红|紫|白)\s*(?:(dx|sd|标准?)\s*)?|(?:([左右])\s*)?)(.+)"
-    match = re.search(pattern, msg, re.I)
+    pattern = r"(?:achv|分数表格?)\s*(?:(绿|黄|红|紫|白)\s*(?:(dx|sd|标准?)\s*)?|(?:([左右])\s*)?)(.+)"
+    match = re.fullmatch(pattern, msg, re.I)
     song = match.group(4)
     if not song:
         return

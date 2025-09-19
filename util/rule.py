@@ -42,7 +42,7 @@ class RegexRule:
             text = event.get_plaintext()
         except Exception:
             return False
-        if event.at_me:
+        if event.at_me or event.reply:
             return False
         if matched := re.search(self.regex, text.strip(), self.flags):
             state[REGEX_MATCHED] = matched
