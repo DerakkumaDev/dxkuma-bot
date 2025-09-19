@@ -10,7 +10,7 @@
 
 ![Static Badge](https://img.shields.io/badge/Ver-KM25.37--B-blue)
 ![Static Badge](https://img.shields.io/badge/license-AGPLv3-orange)
-![Static Badge](https://img.shields.io/badge/python-3.13%2B-green)
+![Static Badge](https://img.shields.io/badge/python-3.12%2B-green)
 [![qq](https://img.shields.io/badge/2689340931-gray?logo=qq&style=social)](https://qm.qq.com/cgi-bin/qm/qr?k=LyQOTRI7ViXYSTg0zbS2sGgcmkbYrxbP)
 
 ## 任务板
