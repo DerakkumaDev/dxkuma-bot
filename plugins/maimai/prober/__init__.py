@@ -1,14 +1,12 @@
 import asyncio
 import math
-import os
 import re
 from io import BytesIO
 from pathlib import Path
 
-import aiofiles
 import numpy as np
 from grpc import RpcError, StatusCode
-from httpx import AsyncClient
+from httpx import HTTPStatusError
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, MessageSegment
 from numpy import random
@@ -22,6 +20,7 @@ from util.data import (
     get_chart_stats,
     get_music_data_df,
 )
+from util.resources import get_frame, get_icon, get_plate
 from .bests_gen import (
     compute_record,
     dxscore_proc,
@@ -2286,22 +2285,28 @@ async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
     id = re.search(r"\d+", msg).group().lstrip("0")
-    file_path = f"./Cache/Plate/{id}.png"
-    if not os.path.exists(file_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(f"https://assets2.lxns.net/maimai/plate/{id}.png")
-            if resp.status_code != 200:
-                msg = (
-                    MessageSegment.text("迪拉熊没有找到合适的姓名框mai~"),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-                await set_plate.finish(msg, at_sender=True)
+    try:
+        plate = await get_plate(id)
+    except HTTPStatusError as ex:
+        if ex.response.status_code != 404:
+            raise
 
-            async with aiofiles.open(file_path, "wb") as fd:
-                await fd.write(await resp.aread())
+        msg = (
+            MessageSegment.text("迪拉熊没有找到合适的姓名框mai~"),
+            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+        )
+        await set_plate.finish(msg, at_sender=True)
 
     await user_config_manager.set_config_value(qq, "plate", id)
-    msg = "迪拉熊帮你换好啦~"
+    img_byte_arr = BytesIO()
+    plate = plate.convert("RGB")
+    plate.save(img_byte_arr, format="JPEG")
+    img_byte_arr.seek(0)
+    img_bytes = img_byte_arr.getvalue()
+    msg = (
+        MessageSegment.text("迪拉熊帮你换好啦~"),
+        MessageSegment.image(img_bytes),
+    )
     await set_plate.send(msg, at_sender=True)
 
 
@@ -2310,22 +2315,28 @@ async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
     id = re.search(r"\d+", msg).group().lstrip("0")
-    file_path = f"./Static/maimai/Frame/UI_Frame_{id}.png"
-    if not os.path.exists(file_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(f"https://assets2.lxns.net/maimai/frame/{id}.png")
-            if resp.status_code != 200:
-                msg = (
-                    MessageSegment.text("迪拉熊没有找到合适的背景mai~"),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-                await set_frame.finish(msg, at_sender=True)
+    try:
+        frame = await get_frame(id)
+    except HTTPStatusError as ex:
+        if ex.response.status_code != 404:
+            raise
 
-            async with aiofiles.open(file_path, "wb") as fd:
-                await fd.write(await resp.aread())
+        msg = (
+            MessageSegment.text("迪拉熊没有找到合适的背景mai~"),
+            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+        )
+        await set_frame.finish(msg, at_sender=True)
 
     await user_config_manager.set_config_value(qq, "frame", id)
-    msg = "迪拉熊帮你换好啦~"
+    img_byte_arr = BytesIO()
+    frame = frame.convert("RGB")
+    frame.save(img_byte_arr, format="JPEG")
+    img_byte_arr.seek(0)
+    img_bytes = img_byte_arr.getvalue()
+    msg = (
+        MessageSegment.text("迪拉熊帮你换好啦~"),
+        MessageSegment.image(img_bytes),
+    )
     await set_frame.send(msg, at_sender=True)
 
 
@@ -2334,22 +2345,28 @@ async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
     id = re.search(r"\d+", msg).group().lstrip("0")
-    file_path = f"./Static/maimai/Icon/{id}.png"
-    if not os.path.exists(file_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(f"https://assets2.lxns.net/maimai/icon/{id}.png")
-            if resp.status_code != 200:
-                msg = (
-                    MessageSegment.text("迪拉熊没有找到合适的头像mai~"),
-                    MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
-                )
-                await set_icon.finish(msg, at_sender=True)
+    try:
+        icon = await get_icon(id)
+    except HTTPStatusError as ex:
+        if ex.response.status_code != 404:
+            raise
 
-            async with aiofiles.open(file_path, "wb") as fd:
-                await fd.write(await resp.aread())
+        msg = (
+            MessageSegment.text("迪拉熊没有找到合适的头像mai~"),
+            MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
+        )
+        await set_icon.finish(msg, at_sender=True)
 
     await user_config_manager.set_config_value(qq, "icon", id)
-    msg = "迪拉熊帮你换好啦~"
+    img_byte_arr = BytesIO()
+    icon = icon.convert("RGB")
+    icon.save(img_byte_arr, format="JPEG")
+    img_byte_arr.seek(0)
+    img_bytes = img_byte_arr.getvalue()
+    msg = (
+        MessageSegment.text("迪拉熊帮你换好啦~"),
+        MessageSegment.image(img_bytes),
+    )
     await set_icon.send(msg, at_sender=True)
 
 

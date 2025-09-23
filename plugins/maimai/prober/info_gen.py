@@ -1,13 +1,11 @@
 import math
-import os
 from io import BytesIO
 
-import aiofiles
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from httpx import AsyncClient
 
 from util.data import get_chart_stats
+from util.resources import get_jacket
 from .Config import (
     font_path,
     maimai_MusicType,
@@ -71,15 +69,8 @@ async def chart_info(song_data):
     bg = Image.open("./Static/Maimai/Chart/background.png")
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
-    if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
-            )
-            async with aiofiles.open(cover_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    cover = Image.open(cover_path).resize((295, 295))
+    cover = await get_jacket(int(song_data["id"]) % 10000)
+    cover = cover.resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
 
@@ -269,15 +260,8 @@ async def score_info(data, song_data):
     bg = Image.open("./Static/Maimai/Score/background.png")
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
-    if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
-            )
-            async with aiofiles.open(cover_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    cover = Image.open(cover_path).resize((295, 295))
+    cover = await get_jacket(int(song_data["id"]) % 10000)
+    cover = cover.resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
 
@@ -491,15 +475,8 @@ async def utage_chart_info(song_data, index=0):
     bg = Image.open("./Static/Maimai/Chart/background_utage.png")
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
-    if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
-            )
-            async with aiofiles.open(cover_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    cover = Image.open(cover_path).resize((295, 295))
+    cover = await get_jacket(int(song_data["id"]) % 10000)
+    cover = cover.resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
 
@@ -576,14 +553,12 @@ async def utage_chart_info(song_data, index=0):
     bg = paste(bg, genre, (462, 830))
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=25)
-    if song_data["basic_info"]["genre"] == "宴会場":
-        song_type = ["SD", "DX"][int(song_data["id"][1])]
-    else:
+    if song_data["basic_info"]["genre"] != "宴会場":
         song_type = song_data["type"]
-    type_path = maimai_MusicType / f"{song_type}.png"
-    type = Image.open(type_path)
-    type = resize_image(type, 0.7)
-    bg = paste(bg, type, (694, 852))
+        type_path = maimai_MusicType / f"{song_type}.png"
+        type = Image.open(type_path)
+        type = resize_image(type, 0.7)
+        bg = paste(bg, type, (694, 852))
     # version
     song_ver = song_data["basic_info"]["from"]
     song_ver = Image.open(maimai_Version / f"{song_ver}.png")
@@ -653,15 +628,8 @@ async def utage_score_info(data, song_data):
     bg = Image.open("./Static/Maimai/Score/background_utage.png")
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
-    if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
-            )
-            async with aiofiles.open(cover_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    cover = Image.open(cover_path).resize((295, 295))
+    cover = await get_jacket(int(song_data["id"]) % 10000)
+    cover = cover.resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
 
@@ -736,14 +704,12 @@ async def utage_score_info(data, song_data):
     bg = paste(bg, genre, (462, 830))
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=25)
-    if song_data["basic_info"]["genre"] == "宴会場":
-        song_type = ["SD", "DX"][int(song_data["id"][1])]
-    else:
+    if song_data["basic_info"]["genre"] != "宴会場":
         song_type = song_data["type"]
-    type_path = maimai_MusicType / f"{song_type}.png"
-    type = Image.open(type_path)
-    type = resize_image(type, 0.7)
-    bg = paste(bg, type, (694, 852))
+        type_path = maimai_MusicType / f"{song_type}.png"
+        type = Image.open(type_path)
+        type = resize_image(type, 0.7)
+        bg = paste(bg, type, (694, 852))
     # version
     song_ver = song_data["basic_info"]["from"]
     song_ver = Image.open(maimai_Version / f"{song_ver}.png")
@@ -845,15 +811,8 @@ async def achv_info(song_data, index):
     bg = Image.open("./Static/Maimai/Achievements/background.png")
 
     # 歌曲封面
-    cover_path = f"./Cache/Jacket/{int(song_data['id']) % 10000}.png"
-    if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{int(song_data['id']) % 10000}.png"
-            )
-            async with aiofiles.open(cover_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    cover = Image.open(cover_path).resize((295, 295))
+    cover = await get_jacket(int(song_data["id"]) % 10000)
+    cover = cover.resize((295, 295))
     bg = paste(bg, cover, (204, 440))
     drawtext = ImageDraw.Draw(bg)
 
@@ -942,14 +901,12 @@ async def achv_info(song_data, index):
         )
     # 谱面类型
     ttf = ImageFont.truetype(ttf_bold_path, size=25)
-    if song_data["basic_info"]["genre"] == "宴会場":
-        song_type = ["SD", "DX"][int(song_data["id"][1])]
-    else:
+    if song_data["basic_info"]["genre"] != "宴会場":
         song_type = song_data["type"]
-    type_path = maimai_MusicType / f"{song_type}.png"
-    type = Image.open(type_path)
-    type = resize_image(type, 0.7)
-    bg = paste(bg, type, (694, 852))
+        type_path = maimai_MusicType / f"{song_type}.png"
+        type = Image.open(type_path)
+        type = resize_image(type, 0.7)
+        bg = paste(bg, type, (694, 852))
     # version
     song_ver = song_data["basic_info"]["from"]
     song_ver = Image.open(maimai_Version / f"{song_ver}.png")

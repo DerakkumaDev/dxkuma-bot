@@ -1,15 +1,11 @@
 import asyncio
 import math
-import os
 import re
 from io import BytesIO
 from pathlib import Path
 
-import aiofiles
 import numpy as np
 import soundfile
-from PIL import Image
-from httpx import AsyncClient
 from nonebot import on_message, on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageSegment
 from rapidfuzz import fuzz, process
@@ -20,6 +16,7 @@ from util.data import (
     get_alias_list_ycn,
     get_music_data_lxns,
 )
+from util.resources import get_jacket, get_music
 from util.stars import stars
 from .database import openchars
 from .ranking import ranking
@@ -417,16 +414,7 @@ async def _(event: GroupMessageEvent):
     await openchars.add_user_to_content_part(group_id, data["index"], user_id)
     await openchars.increment_content_counter(group_id, data["index"], "pic_times")
 
-    cover_path = f"./Cache/Jacket/{data['music_id'] % 10000}.png"
-    if not os.path.exists(cover_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{data['music_id'] % 10000}.png"
-            )
-            async with aiofiles.open(cover_path, "wb") as fd:
-                await fd.write(await resp.aread())
-
-    cover = Image.open(cover_path)
+    cover = await get_jacket(data["music_id"] % 10000)
     pers = 1 / math.sqrt(rng.integers(16, 26))
     size_x = math.ceil(cover.height * pers)
     size_y = math.ceil(cover.width * pers)
@@ -499,16 +487,7 @@ async def _(event: GroupMessageEvent):
     await openchars.add_user_to_content_part(group_id, data["index"], user_id)
     await openchars.increment_content_counter(group_id, data["index"], "aud_times")
 
-    music_path = f"./Cache/Music/{data['music_id'] % 10000}.mp3"
-    if not os.path.exists(music_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/music/{data['music_id'] % 10000}.mp3"
-            )
-            async with aiofiles.open(music_path, "wb") as fd:
-                await fd.write(await resp.aread())
-
-    audio_data, samplerate = soundfile.read(music_path)
+    audio_data, samplerate = await get_music(data["music_id"] % 10000)
     pos = rng.integers(0, len(audio_data) - samplerate, endpoint=True)
     audio = audio_data[pos : pos + samplerate]
     aud_byte_arr = BytesIO()
