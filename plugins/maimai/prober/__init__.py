@@ -76,7 +76,7 @@ randsong = on_regex(
 maiwhat = on_regex("^mai什么$", re.I)
 
 complist = on_regex(
-    r"^(list|完成列?表)\s*(\d+\+?|真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|宴|镜)(\s*\d+)?$",
+    r"^(list|完成列?表)\s*(\d+\+?|真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|宴|镜|彩)(\s*\d+)?$",
     re.I,
 )
 
@@ -1710,7 +1710,7 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    pattern = r"(?:(\d+\+?)|(真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|宴|镜))(?:\s*(\d+))?"
+    pattern = r"(?:(\d+\+?)|(真|超|檄|橙|晓|桃|樱|紫|堇|白|雪|辉|舞|熊|华|爽|煌|宙|星|祭|祝|双|宴|镜|彩))(?:\s*(\d+))?"
     match = re.search(pattern, msg)
     level = match.group(1)
     ds = None

@@ -21,7 +21,7 @@ from .Config import (
     maimai_Shougou,
     maimai_Static,
 )
-from .GLOBAL_CONSTANT import exclude_list, version_df_maps
+from .GLOBAL_CONSTANT import exclude_list, versions_map
 from .draw import paste
 
 ratings = {
@@ -185,9 +185,9 @@ def records_filter(
         song_data = find_song_by_id(str(record["song_id"]), songList)
         if (
             gen
-            and gen in version_df_maps
+            and gen in versions_map
             and (
-                (song_data["basic_info"]["from"] not in version_df_maps[gen])
+                (song_data["basic_info"]["from"] not in versions_map[gen])
                 or (gen != "舞" and record["level_index"] == 4)
             )
             or (gen in exclude_list and record["song_id"] in exclude_list[gen])
@@ -244,7 +244,7 @@ def song_list_filter(
             count += song["level"].count(level)
         if (
             gen
-            and song["basic_info"]["from"] in version_df_maps[gen]
+            and song["basic_info"]["from"] in versions_map[gen]
             and (gen not in exclude_list or int(song["id"]) not in exclude_list[gen])
         ):
             count += len(song["level"]) if gen == "舞" else 4

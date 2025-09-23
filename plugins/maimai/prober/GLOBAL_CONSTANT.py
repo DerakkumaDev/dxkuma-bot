@@ -1,4 +1,4 @@
-version_df_maps = {
+versions_map = {
     "真": ["maimai PLUS", "maimai"],
     "超": ["maimai GreeN"],
     "檄": ["maimai GreeN PLUS"],
@@ -22,6 +22,7 @@ version_df_maps = {
     "双": ["maimai でらっくす BUDDiES"],
     "宴": ["maimai でらっくす BUDDiES"],
     "镜": ["maimai でらっくす PRiSM"],
+    "彩": ["maimai でらっくす PRiSM"],
     "舞": [
         "maimai PLUS",
         "maimai",
