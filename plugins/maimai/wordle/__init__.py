@@ -180,15 +180,6 @@ async def _(event: GroupMessageEvent):
     if char_all_open:
         for i, title, id in char_all_open:
             song_id = id % 10000
-            cover_path = f"./Cache/Jacket/{song_id}.png"
-            if not os.path.exists(cover_path):
-                async with AsyncClient(http2=True) as session:
-                    resp = await session.get(
-                        f"https://assets2.lxns.net/maimai/jacket/{song_id}.png"
-                    )
-                    async with aiofiles.open(cover_path, "wb") as fd:
-                        await fd.write(await resp.aread())
-
             await open_chars.send(f"猜对啦~🎉第{i}首歌是——", at_sender=True)
             await open_chars.send(
                 MessageSegment.music_custom(
@@ -238,15 +229,6 @@ async def _(event: GroupMessageEvent):
 
     for i, title, id in guess_success:
         song_id = id % 10000
-        cover_path = f"./Cache/Jacket/{song_id}.png"
-        if not os.path.exists(cover_path):
-            async with AsyncClient(http2=True) as session:
-                resp = await session.get(
-                    f"https://assets2.lxns.net/maimai/jacket/{song_id}.png"
-                )
-                async with aiofiles.open(cover_path, "wb") as fd:
-                    await fd.write(await resp.aread())
-
         await all_message_handle.send(f"猜对啦~🎉第{i}首歌是——", at_sender=True)
         await all_message_handle.send(
             MessageSegment.music_custom(
