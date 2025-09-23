@@ -41,7 +41,7 @@ async def _get_image(key: str, value: str | int, url: str) -> ImageFile:
         os.remove(path)
         return await _get_image(key, value, url)
 
-    return image
+    return Image.open(path)
 
 
 async def _get_audio(key: str, value: str | int, url: str) -> tuple[ndarray, int]:
