@@ -39,7 +39,7 @@ async def _(event: GroupMessageEvent):
     elif balance < 0:
         reply = rng.choice(replies_nega)
         await query.finish(
-            f"你还欠迪拉熊{balance}颗★mai！{reply(balance)}\r\n"
+            f"你还欠迪拉熊{-balance}颗★mai！{reply(balance)}\r\n"
             "使用图库功能时迪拉熊会奖励星星哦~",
             at_sender=True,
         )
