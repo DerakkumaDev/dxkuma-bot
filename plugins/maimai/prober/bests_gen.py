@@ -1,19 +1,16 @@
 import math
-import os
 from io import BytesIO
 
-import aiofiles
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from httpx import AsyncClient
+
+from util.resources import get_frame, get_icon, get_jacket, get_plate
 
 from .Config import (
     font_path,
     maimai_Class,
     maimai_DXScoreStar,
     maimai_Dani,
-    maimai_Frame,
-    maimai_Icon,
     maimai_Level,
     maimai_MusicIcon,
     maimai_MusicType,
@@ -384,15 +381,7 @@ async def music_to_part(
     partbase = Image.open(partbase_path)
 
     # 歌曲封面
-    jacket_path = f"./Cache/Jacket/{song_id % 10000}.png"
-    if not os.path.exists(jacket_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/jacket/{song_id % 10000}.png"
-            )
-            async with aiofiles.open(jacket_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    jacket = Image.open(jacket_path)
+    jacket = await get_jacket(song_id % 10000)
     jacket = resize_image(jacket, 0.56)
     partbase = paste(partbase, jacket, (36, 41))
 
@@ -699,40 +688,18 @@ async def generatebests(
 
     # 底板
     if frame:
-        frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
-        if not os.path.exists(frame_path):
-            async with AsyncClient(http2=True) as session:
-                resp = await session.get(
-                    f"https://assets2.lxns.net/maimai/frame/{frame}.png"
-                )
-                async with aiofiles.open(frame_path, "wb") as fd:
-                    await fd.write(await resp.aread())
-        frame = Image.open(frame_path)
-        frame = resize_image(frame, 0.95)
-        bests = paste(bests, frame, (48, 45))
+        frame_img = await get_frame(frame)
+        frame_img = resize_image(frame_img, 0.95)
+        bests = paste(bests, frame_img, (48, 45))
 
     # 牌子
-    plate_path = f"./Cache/Plate/{plate}.png"
-    if not os.path.exists(plate_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/plate/{plate}.png"
-            )
-            async with aiofiles.open(plate_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    plate = Image.open(plate_path)
-    bests = paste(bests, plate, (60, 60))
+    plate_img = await get_plate(plate)
+    bests = paste(bests, plate_img, (60, 60))
 
     # 头像
-    icon_pic_path = maimai_Icon / f"{icon}.png"
-    if not os.path.exists(icon_pic_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(f"https://assets2.lxns.net/maimai/icon/{icon}.png")
-            async with aiofiles.open(icon_pic_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    icon_pic = Image.open(icon_pic_path)
-    icon_pic = icon_pic.resize((94, 94))
-    bests = paste(bests, icon_pic, (72, 72))
+    icon_img = await get_icon(icon)
+    icon_img = icon_img.resize((94, 94))
+    bests = paste(bests, icon_img, (72, 72))
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
@@ -863,42 +830,20 @@ async def generate_wcb(
 
     # 底板
     if level or ds or gen:
-        frame_path = "./Static/Maimai/List/frame.png"
+        frame_img = Image.open("./Static/Maimai/List/frame.png")
     else:
-        frame_path = maimai_Frame / f"UI_Frame_{frame}.png"
-        if not os.path.exists(frame_path):
-            async with AsyncClient(http2=True) as session:
-                resp = await session.get(
-                    f"https://assets2.lxns.net/maimai/frame/{frame}.png"
-                )
-                async with aiofiles.open(frame_path, "wb") as fd:
-                    await fd.write(await resp.aread())
-    frame = Image.open(frame_path)
-    frame = resize_image(frame, 0.95)
-    bg = paste(bg, frame, (48, 45))
+        frame_img = await get_frame(frame)
+    frame_img = resize_image(frame_img, 0.95)
+    bg = paste(bg, frame_img, (48, 45))
 
     # 牌子
-    plate_path = f"./Cache/Plate/{plate}.png"
-    if not os.path.exists(plate_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(
-                f"https://assets2.lxns.net/maimai/plate/{plate}.png"
-            )
-            async with aiofiles.open(plate_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    plate = Image.open(plate_path)
-    bg = paste(bg, plate, (60, 60))
+    plate_img = await get_plate(plate)
+    bg = paste(bg, plate_img, (60, 60))
 
     # 头像
-    icon_pic_path = maimai_Icon / f"{icon}.png"
-    if not os.path.exists(icon_pic_path):
-        async with AsyncClient(http2=True) as session:
-            resp = await session.get(f"https://assets2.lxns.net/maimai/icon/{icon}.png")
-            async with aiofiles.open(icon_pic_path, "wb") as fd:
-                await fd.write(await resp.aread())
-    icon_pic = Image.open(icon_pic_path)
-    icon_pic = icon_pic.resize((94, 94))
-    bg = paste(bg, icon_pic, (72, 72))
+    icon_img = await get_icon(icon)
+    icon_img = icon_img.resize((94, 94))
+    bg = paste(bg, icon_img, (72, 72))
 
     # 姓名框
     namebase_path = maimai_Static / "namebase.png"
