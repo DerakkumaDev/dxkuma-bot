@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timedelta, timezone
 
 import orjson as json
-from httpx import AsyncClient
+from httpx import AsyncClient, URL
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import (
     Bot,
@@ -34,9 +34,9 @@ async def _(bot: Bot, event: GroupMessageEvent):
     while True:
         bvid = await bvidList.random_bvid()
         headers = {"User-Agent": f"kumabot/{config.version[0]}.{config.version[1]}"}
-        async with AsyncClient(http2=True) as session:
+        async with AsyncClient(http2=True, follow_redirects=True) as session:
             resp = await session.get(
-                "https://api.bilibili.com/x/web-interface/wbi/view",
+                URL("https://api.bilibili.com/x/web-interface/wbi/view"),
                 params={"bvid": bvid},
                 headers=headers,
             )

@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 
 import aiofiles
-from httpx import AsyncClient
+from httpx import AsyncClient, URL
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, MessageEvent
 from xxhash import xxh32_hexdigest
@@ -69,9 +69,9 @@ async def text_to_speech(text: str) -> tuple[bytes, str]:
         "language_boost": "auto",
     }
 
-    async with AsyncClient(http2=True) as session:
+    async with AsyncClient(http2=True, follow_redirects=True) as session:
         resp = await session.post(
-            "https://api.minimaxi.com/v1/t2a_v2", json=payload, headers=headers
+            URL("https://api.minimaxi.com/v1/t2a_v2"), json=payload, headers=headers
         )
         if resp.is_error:
             resp.raise_for_status()
