@@ -1,5 +1,4 @@
 from datetime import timedelta, timezone
-import re
 
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import GroupMessageEvent

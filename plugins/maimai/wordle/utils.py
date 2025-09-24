@@ -40,15 +40,15 @@ async def generate_message_state(
             ):
                 display_title += c
             else:
-                unicode_name = unicodedata.name(c)
+                unicode_name = unicodedata.name(c).casefold()
                 if (
-                    "LATIN" in unicode_name and "LETTER" in unicode_name
-                ) or "DIGIT" in unicode_name:
+                    "latin" in unicode_name and "letter" in unicode_name
+                ) or "digit" in unicode_name:
                     display_title += "□"
                 elif (
-                    "CJK" in unicode_name
-                    or "HIRAGANA LETTER" in unicode_name
-                    or "KATAKANA LETTER" in unicode_name
+                    "cjk" in unicode_name
+                    or "hiragana letter" in unicode_name
+                    or "katakana letter" in unicode_name
                 ):
                     display_title += "◎"
                 else:
