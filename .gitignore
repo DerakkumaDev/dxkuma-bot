@@ -170,6 +170,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+.venv_*
 # Runtime Files & Dirs
 Static
 kuma.conf

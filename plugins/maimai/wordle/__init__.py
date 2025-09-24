@@ -141,9 +141,9 @@ async def _(event: GroupMessageEvent):
         "发送“提示（序号）”获取提示（每首5次机会）\r\n"
         "发送“封面（序号）”获取部分封面（每首2次机会）\r\n"
         "发送“歌曲（序号）”获取1秒歌曲片段（每首1次机会）\r\n"
-        "发送“结束猜歌”结束\r\n"
+        "发送“结束开字母”结束\r\n"
         "\r\n"
-        "12个小时内没人猜歌，迪拉熊会帮大家结束游戏哦~不用谢mai~（骄傲）"
+        "12个小时内没人参与，迪拉熊会帮大家结束游戏哦~不用谢mai~（骄傲）"
     )
     await start_open_chars.send(game_state)
 
@@ -524,7 +524,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     avg = np.sum(d[1] for d in scores) / len(scores) if len(scores) > 0 else 0
     msg = "\r\n".join(leaderboard_output)
     msg = (
-        "猜歌准确率排行榜前10名是——\r\n"
+        "开字母准确率排行榜前10名是——\r\n"
         f"{msg}\r\n"
         "\r\n"
         f"上榜人数：{len(leaderboard)}/{len(scores)}\r\n"
