@@ -15,7 +15,9 @@ async def _check_res(path: str | os.PathLike[str] | Path, url: str):
         return
 
     with CloudScraper() as scraper:
-        resp = scraper.get(url)
+        resp = scraper.get(url, timeout=5)
+
+        resp.raise_for_status()
         async with aiofiles.open(path, "wb") as fd:
             await fd.write(resp.content)
 
