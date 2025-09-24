@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aiofiles>=24.1.0",
+    "cloudscraper>=1.2.71",
     "googleapis-common-protos>=1.70.0",
     "grpcio-tools>=1.75.0",
     "httpx[http2]>=0.28.1",

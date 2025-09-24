@@ -1,14 +1,11 @@
 import os
-from asyncio import Lock
 from pathlib import Path
 
 import aiofiles
 from PIL import Image, UnidentifiedImageError
 from PIL.ImageFile import ImageFile
-from httpx import AsyncClient
+from cloudscraper import CloudScraper
 from soundfile import LibsndfileError, SoundFile
-
-res_lock: dict[str, Lock] = dict()
 
 CACHE_ROOT = Path("Cache")
 
@@ -17,20 +14,15 @@ async def _check_res(path: str | os.PathLike[str] | Path, url: str):
     if os.path.exists(path):
         return
 
-    async with AsyncClient(http2=True) as session:
-        resp = await session.get(url)
-        if resp.is_error:
-            resp.raise_for_status()
-
+    with CloudScraper() as scraper:
+        resp = scraper.get(url)
         async with aiofiles.open(path, "wb") as fd:
-            async for chunk in resp.aiter_bytes():
-                await fd.write(chunk)
+            await fd.write(resp.content)
 
 
 async def _get_image(key: str, value: str | int, url: str) -> ImageFile:
     path = CACHE_ROOT / key / f"{value}.png"
-    async with res_lock.setdefault(f"{key}_{value}", Lock()):
-        await _check_res(path, url)
+    await _check_res(path, url)
     try:
         image = Image.open(path)
     except UnidentifiedImageError:
@@ -43,13 +35,13 @@ async def _get_image(key: str, value: str | int, url: str) -> ImageFile:
         os.remove(path)
         return await _get_image(key, value, url)
 
+    image.close()
     return Image.open(path)
 
 
 async def _get_audio(key: str, value: str | int, url: str) -> SoundFile:
     path = CACHE_ROOT / key / f"{value}.mp3"
-    async with res_lock.setdefault(f"{key}_{value}", Lock()):
-        await _check_res(path, url)
+    await _check_res(path, url)
     try:
         audio = SoundFile(path)
     except LibsndfileError:
