@@ -199,7 +199,7 @@ async def chart_info(song_data):
         ds_position = (ds_x, ds_y)
         drawtext.text(
             ds_position,
-            f"{song_ds} ({math.trunc(get_fit_diff(song_data['id'], i, song_ds, charts) * 100) / 100:.2f})",
+            f"{song_ds} | {math.trunc(get_fit_diff(song_data['id'], i, song_ds, charts) * 100) / 100:.2f}",
             anchor="mm",
             font=ttf,
             fill=level_color[i],
