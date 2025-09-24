@@ -9,10 +9,10 @@ async def get_player_data(qq: str):
     payload = {"qq": qq, "b50": True}
     async with AsyncClient(http2=True) as session:
         resp = await session.post(f"{base_url}query/player", json=payload)
-        if resp.status_code == 200:
-            obj = resp.json()
-            return obj, 200
-        return None, resp.status_code
+        if resp.is_error:
+            return None, resp.status_code
+        obj = resp.json()
+        return obj, resp.status_code
 
 
 async def get_player_records(qq: str):
@@ -24,10 +24,10 @@ async def get_player_records(qq: str):
             headers=headers,
             params=payload,
         )
-        if resp.status_code == 200:
-            obj = resp.json()
-            return obj, 200
-        return None, resp.status_code
+        if resp.is_error:
+            return None, resp.status_code
+        obj = resp.json()
+        return obj, resp.status_code
 
 
 async def get_player_record(qq: str, music_id: str | int):
@@ -39,7 +39,7 @@ async def get_player_record(qq: str, music_id: str | int):
             headers=headers,
             json=payload,
         )
-        if resp.status_code == 200:
-            obj = resp.json()
-            return obj, 200
-        return None, resp.status_code
+        if resp.is_error:
+            return None, resp.status_code
+        obj = resp.json()
+        return obj, resp.status_code

@@ -20,36 +20,44 @@ CACHE_ROOT_PATH = Path("Cache") / "Data"
 
 
 async def _get_data(
-    key: os.PathLike[str] | Path, url: str, params: Optional[dict] = None
+    key: str | os.PathLike[str] | Path, url: str, params: Optional[dict] = None
 ):
-    cache_dir = (CACHE_ROOT_PATH / key).resolve()
+    cache_dir = CACHE_ROOT_PATH / key
     cache_path = cache_dir / f"{date.today().isoformat()}.json"
-    if not os.path.exists(cache_path):
-        files = os.listdir(cache_dir)
-        async with AsyncClient(http2=True) as session:
+    if os.path.exists(cache_path):
+        async with aiofiles.open(cache_path) as fd:
             try:
-                resp = await session.get(url)
-            except HTTPError:
-                if files:
-                    async with aiofiles.open(cache_dir / files[-1]) as fd:
-                        return json.loads(await fd.read())
-                return await _get_data(key, url, params)
-            if resp.status_code != 200:
-                if files:
-                    async with aiofiles.open(cache_dir / files[-1]) as fd:
-                        return json.loads(await fd.read())
-                return await _get_data(key, url, params)
-            async with aiofiles.open(cache_path, "wb") as fd:
-                await fd.write(await resp.aread())
-        if files:
-            for file in files:
-                os.remove(cache_dir / file)
-    async with aiofiles.open(cache_path) as fd:
+                return json.loads(await fd.read())
+            except json.JSONDecodeError:
+                pass
+        os.remove(cache_path)
+        return await _get_data(key, url, params)
+
+    files = os.listdir(cache_dir)
+    async with AsyncClient(http2=True) as session:
         try:
-            return json.loads(await fd.read())
-        except json.JSONDecodeError:
-            os.remove(cache_path)
-            return await _get_data(key, url, params)
+            resp = await session.get(url)
+        except HTTPError:
+            if not files:
+                return await _get_data(key, url, params)
+
+            async with aiofiles.open(cache_dir / files[-1]) as fd:
+                return json.loads(await fd.read())
+
+        if resp.is_error:
+            if not files:
+                return await _get_data(key, url, params)
+
+            async with aiofiles.open(cache_dir / files[-1]) as fd:
+                return json.loads(await fd.read())
+
+        result = resp.json()
+        for file in files:
+            os.remove(cache_dir / file)
+
+        async with aiofiles.open(cache_path, "wb") as fd:
+            await fd.write(json.dumps(result))
+        return result
 
 
 async def get_music_data_df():

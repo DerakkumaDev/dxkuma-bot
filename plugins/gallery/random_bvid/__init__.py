@@ -40,7 +40,8 @@ async def _(bot: Bot, event: GroupMessageEvent):
                 params={"bvid": bvid},
                 headers=headers,
             )
-            resp.raise_for_status()
+            if resp.is_error:
+                resp.raise_for_status()
             video_info = resp.json()
         if video_info["code"] != 0:
             await bvidList.remove(bvid)

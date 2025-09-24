@@ -67,7 +67,8 @@ async def text_to_speech(text: str) -> tuple[bytes, int]:
         resp = await session.post(
             "https://api.minimaxi.com/v1/t2a_v2", json=payload, headers=headers
         )
-        resp.raise_for_status()
+        if resp.is_error:
+            resp.raise_for_status()
         audio_info = resp.json()
 
     data = audio_info.get("data", dict())

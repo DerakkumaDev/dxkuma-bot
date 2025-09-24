@@ -34,7 +34,7 @@ async def _(bot: Bot, event: MessageEvent):
     audio, subtitle_file = await text_to_speech(text)
     hexhash = xxh32_hexdigest(text)
     file_name = f"{hexhash}.mp3"
-    file_path = (Path("Cache") / "TTS" / file_name).resolve()
+    file_path = Path("Cache") / "TTS" / file_name
     async with aiofiles.open(file_path, "wb") as f:
         await f.write(audio)
 
@@ -79,7 +79,8 @@ async def text_to_speech(text: str) -> tuple[bytes, str]:
         resp = await session.post(
             "https://api.minimaxi.com/v1/t2a_v2", json=payload, headers=headers
         )
-        resp.raise_for_status()
+        if resp.is_error:
+            resp.raise_for_status()
         audio_info = resp.json()
 
     data = audio_info.get("data", dict())
