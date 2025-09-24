@@ -20,10 +20,10 @@ wheels = [{ url = "https://pypi.tuna.tsinghua.edu.cn/packages/78/b6/6307fbef88d9
 
 [[packages]]
 name = "anyio"
-version = "4.10.0"
+version = "4.11.0"
 index = "https://pypi.tuna.tsinghua.edu.cn/simple"
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f1/b4/636b3b65173d3ce9a38ef5f0522789614e590dab6a8d505340a4efe4c567/anyio-4.10.0.tar.gz", upload-time = 2025-08-04T08:54:26Z, size = 213252, hashes = { sha256 = "3f3fae35c96039744587aa5b8371e7e8e603c0702999535961dd336026973ba6" } }
-wheels = [{ url = "https://pypi.tuna.tsinghua.edu.cn/packages/6f/12/e5e0282d673bb9746bacfb6e2dba8719989d3660cdb2ea79aee9a9651afb/anyio-4.10.0-py3-none-any.whl", upload-time = 2025-08-04T08:54:24Z, size = 107213, hashes = { sha256 = "60e474ac86736bbfd6f210f7a61218939c318f43f9972497381f1c5e930ed3d1" } }]
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/c6/78/7d432127c41b50bccba979505f272c16cbcadcc33645d5fa3a738110ae75/anyio-4.11.0.tar.gz", upload-time = 2025-09-23T09:19:12Z, size = 219094, hashes = { sha256 = "82a8d0b81e318cc5ce71a5f1f8b5c4e63619620b63141ef8c995fa0db95a57c4" } }
+wheels = [{ url = "https://pypi.tuna.tsinghua.edu.cn/packages/15/b3/9b1a8074496371342ec1e796a96f99c82c945a339cd81a8e73de28b4cf9e/anyio-4.11.0-py3-none-any.whl", upload-time = 2025-09-23T09:19:10Z, size = 109097, hashes = { sha256 = "0287e96f4d26d4149305414d4e3bc32f0dcd0862365a4bddea19d7a1ec38c4fc" } }]
 
 [[packages]]
 name = "certifi"
@@ -1042,10 +1042,10 @@ wheels = [{ url = "https://pypi.tuna.tsinghua.edu.cn/packages/a7/c2/fe1e52489ae3
 
 [[packages]]
 name = "uvicorn"
-version = "0.36.0"
+version = "0.37.0"
 index = "https://pypi.tuna.tsinghua.edu.cn/simple"
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/ef/5e/f0cd46063a02fd8515f0e880c37d2657845b7306c16ce6c4ffc44afd9036/uvicorn-0.36.0.tar.gz", upload-time = 2025-09-20T01:07:14Z, size = 80032, hashes = { sha256 = "527dc68d77819919d90a6b267be55f0e76704dca829d34aea9480be831a9b9d9" } }
-wheels = [{ url = "https://pypi.tuna.tsinghua.edu.cn/packages/96/06/5cc0542b47c0338c1cb676b348e24a1c29acabc81000bced518231dded6f/uvicorn-0.36.0-py3-none-any.whl", upload-time = 2025-09-20T01:07:12Z, size = 67675, hashes = { sha256 = "6bb4ba67f16024883af8adf13aba3a9919e415358604ce46780d3f9bdc36d731" } }]
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/71/57/1616c8274c3442d802621abf5deb230771c7a0fec9414cb6763900eb3868/uvicorn-0.37.0.tar.gz", upload-time = 2025-09-23T13:33:47Z, size = 80367, hashes = { sha256 = "4115c8add6d3fd536c8ee77f0e14a7fd2ebba939fed9b02583a97f80648f9e13" } }
+wheels = [{ url = "https://pypi.tuna.tsinghua.edu.cn/packages/85/cd/584a2ceb5532af99dd09e50919e3615ba99aa127e9850eafe5f31ddfdb9a/uvicorn-0.37.0-py3-none-any.whl", upload-time = 2025-09-23T13:33:45Z, size = 67976, hashes = { sha256 = "913b2b88672343739927ce381ff9e2ad62541f9f8289664fa1d1d3803fa2ce6c" } }]
 
 [[packages]]
 name = "uvloop"

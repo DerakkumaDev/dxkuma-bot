@@ -9,8 +9,8 @@
 </div>
 
 ![Static Badge](https://img.shields.io/badge/Ver-KM25.37--B-blue)
-![Static Badge](https://img.shields.io/badge/license-AGPLv3-orange)
-![Static Badge](https://img.shields.io/badge/python-3.12%2B-green)
+![Static Badge](https://img.shields.io/badge/License-AGPLv3-orange)
+![Static Badge](https://img.shields.io/badge/CPython-3.12%2B-green)
 [![qq](https://img.shields.io/badge/2689340931-gray?logo=qq&style=social)](https://qm.qq.com/cgi-bin/qm/qr?k=LyQOTRI7ViXYSTg0zbS2sGgcmkbYrxbP)
 
 ## 任务板
@@ -21,7 +21,7 @@
 
 ## 介绍
 
-迪拉熊Bot是一个主要面向舞萌音游玩家群体的Python Bot，在基础的群聊Bot功能之上追加了模块化的各类游戏功能支持。
+迪拉熊Bot是一个主要面向舞萌音游玩家群体的CPython Bot，在基础的群聊Bot功能之上追加了模块化的各类游戏功能支持。
 
 迪拉熊Bot基于NoneBot框架和OneBot v11协议，可以通过非常愉快的方式快速进行本地部署。
 
@@ -42,12 +42,12 @@ uv run start.py
 | 依赖包名称            | 依赖版本   | 备注       |
 |------------------|--------|----------|
 | NoneBot2         | 2.4.3 | Bot 框架    |
-| Volcengine SDK   | 4.0.11 | 火山引擎 SDK |
+| Volcengine SDK   | 4.0.21 | 火山引擎 SDK |
 | PIL              | 11.3.0 | 图像处理库    |
 | python-soundfile | 0.13.1 | 音频处理库    |
 | Pykakasi         | 2.3.0 | 假名及罗马字转换  |
-| RapidFuzz        | 3.13.0 | 模糊匹配库    |
-| SQLAlchemy       | 2.0.42 | 对象关系映射器  |
+| RapidFuzz        | 3.14.1 | 模糊匹配库    |
+| SQLAlchemy       | 2.0.43 | 对象关系映射器  |
 
 ## 制作&鸣谢
 
