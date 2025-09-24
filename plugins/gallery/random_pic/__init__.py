@@ -25,7 +25,7 @@ LIMIT_TIMES = 6
 groups: dict[int, list[datetime]] = dict()
 
 
-def check_image(imgpath: Path | str):
+def check_image(imgpath: Path | os.PathLike[str]):
     try:
         image = Image.open(imgpath)
     except UnidentifiedImageError:

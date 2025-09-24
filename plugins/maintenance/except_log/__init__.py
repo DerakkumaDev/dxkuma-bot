@@ -11,8 +11,6 @@ from starlette.websockets import WebSocketDisconnect
 from util.config import config
 from util.exceptions import ContinuedException
 
-PICPATH = "./Static/Gallery/SFW/"
-
 
 @run_postprocessor
 async def _(event: Event, exception: Optional[Exception]):

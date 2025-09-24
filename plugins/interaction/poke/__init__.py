@@ -7,8 +7,6 @@ from numpy import random
 
 poke = on_type(PokeNotifyEvent, to_me())
 
-POKE_PIC = Path("./Static/Poke/")
-
 conversations = {
     1: "不可以戳迪拉熊的屁股啦~",
     2: "你怎么可以戳迪拉熊的屁股！",
@@ -43,6 +41,6 @@ async def _(event: PokeNotifyEvent):
     ran_number = rng.choice(range(1, 11), p=weights)
     text = conversations[ran_number]
     filename = f"{ran_number - 1}.png"
-    file_path = POKE_PIC / filename
+    file_path = Path("./Static/Poke/") / filename
     msg = (MessageSegment.text(text), MessageSegment.image(file_path))
     await poke.finish(msg)

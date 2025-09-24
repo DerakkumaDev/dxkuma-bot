@@ -85,7 +85,7 @@ async def _(event: GroupMessageEvent):
     else:
         i = rng.choice([0, 1], p=[0.1, 0.9])
 
-    msg = MessageSegment.image(Path(f"./Static/Cum/{i}.png"))
+    msg = MessageSegment.image(Path("./Static/Cum/") / f"{i}.png")
     await cum.send(msg)
 
 

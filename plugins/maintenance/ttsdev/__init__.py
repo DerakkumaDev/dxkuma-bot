@@ -34,7 +34,7 @@ async def _(bot: Bot, event: MessageEvent):
     audio, subtitle_file = await text_to_speech(text)
     hexhash = xxh32_hexdigest(audio)
     file_name = f"{hexhash}.mp3"
-    file_path = Path("./Cache/") / "TTS" / file_name
+    file_path = (Path("Cache") / "TTS" / file_name).resolve()
     async with aiofiles.open(file_path, "wb") as f:
         await f.write(audio)
 

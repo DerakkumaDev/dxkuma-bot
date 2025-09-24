@@ -16,11 +16,13 @@ alias_list_ycn_lock = Lock()
 alias_list_xray_lock = Lock()
 
 
-CACHE_ROOT_PATH = Path("./Cache") / "Data"
+CACHE_ROOT_PATH = Path("Cache") / "Data"
 
 
-async def _get_data(key: str | Path, url: str, params: Optional[dict] = None):
-    cache_dir = CACHE_ROOT_PATH / key
+async def _get_data(
+    key: os.PathLike[str] | Path, url: str, params: Optional[dict] = None
+):
+    cache_dir = (CACHE_ROOT_PATH / key).resolve()
     cache_path = cache_dir / f"{date.today().isoformat()}.json"
     if not os.path.exists(cache_path):
         files = os.listdir(cache_dir)

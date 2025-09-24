@@ -8,10 +8,10 @@ from PIL.ImageFile import ImageFile
 from httpx import AsyncClient, HTTPError
 from numpy import ndarray
 
-CACHE_ROOT = Path("./Cache/")
+CACHE_ROOT = Path("Cache")
 
 
-async def _check_res(path: str | Path, url: str):
+async def _check_res(path: os.PathLike[str] | Path, url: str):
     if os.path.exists(path):
         return
 
@@ -27,7 +27,7 @@ async def _check_res(path: str | Path, url: str):
 
 
 async def _get_image(key: str, value: str | int, url: str) -> ImageFile:
-    path = CACHE_ROOT / key / f"{value}.png"
+    path = (CACHE_ROOT / key / f"{value}.png").resolve()
     await _check_res(path, url)
     try:
         image = Image.open(path)
@@ -45,7 +45,7 @@ async def _get_image(key: str, value: str | int, url: str) -> ImageFile:
 
 
 async def _get_audio(key: str, value: str | int, url: str) -> tuple[ndarray, int]:
-    path = CACHE_ROOT / key / f"{value}.mp3"
+    path = (CACHE_ROOT / key / f"{value}.mp3").resolve()
     await _check_res(path, url)
     try:
         audio = soundfile.read(path)
