@@ -34,23 +34,17 @@ async def _(bot: Bot, event: MessageEvent):
     audio, subtitle_file = await text_to_speech(text)
     hexhash = xxh32_hexdigest(text)
     file_name = f"{hexhash}.mp3"
-    file_path = Path("Cache") / "TTS" / file_name
+    file_path = (Path("Cache") / "TTS" / file_name).resolve().as_posix()
     async with aiofiles.open(file_path, "wb") as f:
         await f.write(audio)
 
     if isinstance(event, GroupMessageEvent):
         await bot.call_api(
-            "upload_group_file",
-            group_id=event.group_id,
-            file=file_path.absolute().as_posix(),
-            name=file_name,
+            "upload_group_file", group_id=event.group_id, file=file_path, name=file_name
         )
     else:
         await bot.call_api(
-            "upload_private_file",
-            user_id=event.user_id,
-            file=file_path.absolute().as_posix(),
-            name=file_name,
+            "upload_private_file", user_id=event.user_id, file=file_path, name=file_name
         )
 
     os.remove(file_path)

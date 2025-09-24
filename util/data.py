@@ -39,7 +39,7 @@ async def _get_data(
             resp = await session.get(url)
         except HTTPError:
             if not files:
-                return await _get_data(key, url, params)
+                raise
 
             async with aiofiles.open(cache_dir / files[-1]) as fd:
                 return json.loads(await fd.read())
@@ -52,11 +52,11 @@ async def _get_data(
                 return json.loads(await fd.read())
 
         result = resp.json()
+        async with aiofiles.open(cache_path, "wb") as fd:
+            await fd.write(json.dumps(result))
         for file in files:
             os.remove(cache_dir / file)
 
-        async with aiofiles.open(cache_path, "wb") as fd:
-            await fd.write(json.dumps(result))
         return result
 
 

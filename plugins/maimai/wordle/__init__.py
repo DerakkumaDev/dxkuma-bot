@@ -487,9 +487,12 @@ async def _(event: GroupMessageEvent):
     await openchars.add_user_to_content_part(group_id, data["index"], user_id)
     await openchars.increment_content_counter(group_id, data["index"], "aud_times")
 
-    audio_data, samplerate = await get_music(data["music_id"] % 10000)
-    pos = rng.integers(0, len(audio_data) - samplerate, endpoint=True)
-    audio = audio_data[pos : pos + samplerate]
+    with await get_music(data["music_id"] % 10000) as f:
+        samplerate = f.samplerate
+        pos = rng.integers(0, len(f) - samplerate, endpoint=True)
+        audio_data = f.read()
+        audio = audio_data[pos : pos + samplerate]
+
     aud_byte_arr = BytesIO()
     soundfile.write(aud_byte_arr, audio, samplerate, format="MP3")
     aud_byte_arr.seek(0)

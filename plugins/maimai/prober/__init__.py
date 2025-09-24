@@ -2288,9 +2288,6 @@ async def _(event: MessageEvent):
     try:
         plate = await get_plate(id)
     except HTTPStatusError as ex:
-        if ex.response.status_code != 404:
-            raise
-
         msg = (
             MessageSegment.text("迪拉熊没有找到合适的姓名框mai~"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
@@ -2318,9 +2315,6 @@ async def _(event: MessageEvent):
     try:
         frame = await get_frame(id)
     except HTTPStatusError as ex:
-        if ex.response.status_code != 404:
-            raise
-
         msg = (
             MessageSegment.text("迪拉熊没有找到合适的背景mai~"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
@@ -2348,9 +2342,6 @@ async def _(event: MessageEvent):
     try:
         icon = await get_icon(id)
     except HTTPStatusError as ex:
-        if ex.response.status_code != 404:
-            raise
-
         msg = (
             MessageSegment.text("迪拉熊没有找到合适的头像mai~"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
