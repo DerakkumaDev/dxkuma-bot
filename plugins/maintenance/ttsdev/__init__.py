@@ -21,7 +21,9 @@ async def _(bot: Bot, event: MessageEvent):
     msg = str(event.get_message())
     if not (
         match := re.fullmatch(
-            r"^(?:迪拉熊|dlx)dev(?:说：?|say|speak|t[2t][as])(.+)", msg, re.I | re.S
+            r"^(?:迪拉熊|dlx)dev(?:说：?|say|speak|t[2t][as])\s*(.+?)\s*",
+            msg,
+            re.I | re.S,
         )
     ):
         return

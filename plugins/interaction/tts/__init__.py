@@ -15,7 +15,7 @@ async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
     match = re.fullmatch(
-        r"^(?:迪拉熊|dlx)(?:说：?|say|speak|t[2t][as])(.+)", msg, re.I | re.S
+        r"^(?:迪拉熊|dlx)(?:说：?|say|speak|t[2t][as])\s*(.+?)\s*", msg, re.I | re.S
     )
     if not match:
         return
