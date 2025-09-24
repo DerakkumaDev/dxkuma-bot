@@ -6,11 +6,11 @@ from pathlib import Path
 
 import numpy as np
 from grpc import RpcError, StatusCode
-from httpx import HTTPStatusError
 from nonebot import on_regex
 from nonebot.adapters.onebot.v11 import Bot, MessageEvent, MessageSegment
 from numpy import random
 from rapidfuzz import fuzz, process
+from requests import HTTPError
 
 from util.config import config
 from util.data import (
@@ -2287,7 +2287,7 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     try:
         plate = await get_plate(id)
-    except HTTPStatusError:
+    except HTTPError:
         msg = (
             MessageSegment.text("迪拉熊没有找到合适的姓名框mai~"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
@@ -2314,7 +2314,7 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     try:
         frame = await get_frame(id)
-    except HTTPStatusError:
+    except HTTPError:
         msg = (
             MessageSegment.text("迪拉熊没有找到合适的背景mai~"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
@@ -2341,7 +2341,7 @@ async def _(event: MessageEvent):
     id = re.search(r"\d+", msg).group().lstrip("0")
     try:
         icon = await get_icon(id)
-    except HTTPStatusError:
+    except HTTPError:
         msg = (
             MessageSegment.text("迪拉熊没有找到合适的头像mai~"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
