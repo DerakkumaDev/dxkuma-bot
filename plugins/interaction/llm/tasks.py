@@ -170,7 +170,7 @@ async def push_and_start_sending(
     bot: Bot, reply: str, chat_type: str, qq_id: int, level: int
 ):
     reply = reply.strip()
-    if len(reply) <= 0:
+    if len(reply) <= 0 or (len(reply) == 4 and reply[:3] == "mai"):
         return
     if level > 0:
         if not reply.startswith("（"):

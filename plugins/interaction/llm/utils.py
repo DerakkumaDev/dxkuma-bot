@@ -1,6 +1,8 @@
+import base64
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+from httpx import AsyncClient, HTTPError
 from nonebot.adapters.onebot.v11 import (
     Bot,
     GroupMessageEvent,
@@ -69,7 +71,7 @@ async def gen_message_segment(
     elif seg.type == "at":
         user_id = seg.data.get("qq", "0")
         if user_id == "all":
-            return "<at_all/>"
+            return "<at_all />"
 
         user_name = escape(seg.data.get("name", str()))
         if not user_name:
@@ -118,7 +120,7 @@ async def gen_message_segment(
         try:
             reply_msg = await bot.get_msg(message_id=seg.data.get("id", 0))
         except Exception:
-            return "<quote/>"
+            return "<quote />"
         sender = reply_msg.get("sender", dict())
         return f"<quote{
             gen_name_field(
@@ -140,7 +142,7 @@ async def gen_message_segment(
             try:
                 forward_msg = await bot.get_forward_msg(id=seg.data.get("id", str()))
             except Exception:
-                return "<forward/>"
+                return "<forward />"
             forward_messages = forward_msg.get("messages", list())
         messages = list()
         for message in forward_messages:
@@ -185,7 +187,8 @@ async def gen_message_segment(
         return gen_seg("forward", str().join(messages))
     elif seg.type == "image":
         if url := seg.data.get("url"):
-            info = await gen_image_info(url)
+            file = seg.data.get("file", str())
+            info = await gen_image_info(url, file)
         else:
             info = seg.data.get("name", str())
         return gen_seg("image", escape(info))
@@ -195,7 +198,8 @@ async def gen_message_segment(
         )
     elif seg.type == "video":
         if url := seg.data.get("url"):
-            info = await gen_vedio_info(url)
+            file = seg.data.get("file", str())
+            info = await gen_vedio_info(url, file)
         else:
             info = seg.data.get("name", str())
         return gen_seg("video", escape(info))
@@ -212,7 +216,7 @@ async def gen_message_segment(
     elif seg.type == "rps":
         return gen_seg("rps", escape(seg.data.get("result", str())))
     else:
-        return f"<{seg.type}>{seg.data}<{seg.type}/>"
+        return gen_seg(seg.type, escape(str(seg.data)))
 
 
 def gen_name_field(key: str, user_id: str, name: str, name_value: bool = False) -> str:
@@ -232,20 +236,46 @@ def gen_name_field(key: str, user_id: str, name: str, name_value: bool = False) 
 
 
 def gen_seg(key: str, value: str) -> str:
+    if not value:
+        return f"<{key} />"
     return f"<{key}>{value}<{key}/>"
 
 
-async def gen_image_info(url) -> str:
-    content = {"url": url, "detail": "low"}
-    return await _gen_media_info("image_url", content)
+async def gen_image_info(url: str, file: str) -> str:
+    url_or_base = await _get_media_url("image", url, file.split(".")[-1])
+    content = {"url": url_or_base, "detail": "low"}
+    try:
+        return await _gen_media_info("image_url", content)
+    except Exception:
+        return str()
 
 
-async def gen_vedio_info(url) -> str:
-    content = {"url": url, "fps": 0.2}
-    return await _gen_media_info("video_url", content)
+async def gen_vedio_info(url: str, file: str) -> str:
+    url_or_base = await _get_media_url("video", url, file.split(".")[-1])
+    content = {"url": url_or_base, "fps": 0.2}
+    try:
+        return await _gen_media_info("video_url", content, True)
+    except Exception:
+        return str()
 
 
-async def _gen_media_info(content_type, content) -> str:
+async def _get_media_url(content_type: str, url: str, format: str) -> str:
+    async with AsyncClient(http2=True, follow_redirects=True) as session:
+        try:
+            resp = await session.get(url)
+        except HTTPError:
+            return url
+
+        if resp.is_error:
+            return url
+
+        encoded_data = base64.b64encode(resp.content).decode()
+        return f"data:{content_type}/{format};base64,{encoded_data}"
+
+
+async def _gen_media_info(
+    content_type: str, content: dict, disable_encrypted: bool = False
+) -> str:
     response = await client.chat.completions.create(
         model=config.vision_llm_model,
         messages=[
@@ -257,9 +287,9 @@ async def _gen_media_info(content_type, content) -> str:
                 ],
             }
         ],
-        extra_headers={"x-is-encrypted": "true"},
+        extra_headers=None if disable_encrypted else {"x-is-encrypted": "true"},
     )
-    return "\r\n".join(
+    return str().join(
         choice.message.content
         for choice in response.choices
         if choice.message.content is not None
