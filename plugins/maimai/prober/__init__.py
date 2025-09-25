@@ -3,6 +3,7 @@ import math
 import re
 from io import BytesIO
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 from grpc import RpcError, StatusCode
@@ -176,16 +177,16 @@ async def find_songid_by_alias(name, song_list):
 
 
 async def records_to_bests(
-    records: list | None,
+    records: Optional[list],
     songList,
-    fc_rules: list | None = None,
-    rate_rules: list | None = None,
+    fc_rules: Optional[list] = None,
+    rate_rules: Optional[list] = None,
     is_fit: bool = False,
     is_sd: bool = False,
     is_dxs: bool = False,
     is_all: bool = False,
     is_old: bool = False,
-    dx_star_count: str | None = None,
+    dx_star_count: Optional[str] = None,
     rating: int = 0,
 ):
     sd = list()
@@ -276,6 +277,8 @@ async def records_to_bests(
                 continue
             if not dx_star_count:
                 song_data = find_song_by_id(song_id, songList)
+                if not song_data:
+                    continue
                 record["achievements"] = (
                     record["dxScore"]
                     / (np.sum(song_data["charts"][record["level_index"]]["notes"]) * 3)
@@ -467,11 +470,15 @@ async def get_info_by_name(name, music_type, songList):
             return 3, rep_ids
         elif len(rep_ids) > 1:
             output_lst = set()
+            song_info = None
             for song_id in sorted(rep_ids, key=int):
                 song_info = find_song_by_id(song_id, songList)
+                if not song_info:
+                    continue
                 song_title = f"{song_info['id']}：{song_info['title']}"
                 output_lst.add(song_title)
-
+            if not song_info:
+                return 2, None
             return 1, output_lst if len(output_lst) > 1 else song_info
 
         rep_id = rep_ids[0]
@@ -629,7 +636,6 @@ async def _(event: MessageEvent):
     frame = user_config["frame"]
     plate = user_config["plate"]
     icon = user_config["icon"]
-    is_rating_tj = user_config["rating_tj"]
     source = user_config["source"]
     lx_personal_token = user_config["lx_personal_token"]
     if source == "lxns":
@@ -2284,7 +2290,8 @@ async def _():
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    id = re.search(r"\d+", msg).group().lstrip("0")
+    match = re.search(r"\d+", msg)
+    id = match.group().lstrip("0")
     try:
         plate = await get_plate(id)
     except HTTPError:
@@ -2311,7 +2318,8 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    id = re.search(r"\d+", msg).group().lstrip("0")
+    match = re.search(r"\d+", msg)
+    id = match.group().lstrip("0")
     try:
         frame = await get_frame(id)
     except HTTPError:
@@ -2338,7 +2346,8 @@ async def _(event: MessageEvent):
 async def _(event: MessageEvent):
     qq = event.get_user_id()
     msg = event.get_plaintext()
-    id = re.search(r"\d+", msg).group().lstrip("0")
+    match = re.search(r"\d+", msg)
+    id = match.group().lstrip("0")
     try:
         icon = await get_icon(id)
     except HTTPError:

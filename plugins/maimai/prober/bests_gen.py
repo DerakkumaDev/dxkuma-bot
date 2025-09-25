@@ -1,5 +1,6 @@
 import math
 from io import BytesIO
+from typing import Optional
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -163,9 +164,9 @@ def get_min_score(notes: list[int]):
 
 def records_filter(
     records: list,
-    level: str | None = None,
-    ds: float | None = None,
-    gen: str | None = None,
+    level: Optional[str] = None,
+    ds: Optional[float] = None,
+    gen: Optional[str] = None,
     is_sun: bool = False,
     is_lock: bool = False,
     songList=None,
@@ -180,6 +181,8 @@ def records_filter(
         if ds and record["ds"] != ds:
             continue
         song_data = find_song_by_id(str(record["song_id"]), songList)
+        if not song_data:
+            continue
         if (
             gen
             and gen in versions_map
@@ -229,7 +232,10 @@ def records_filter(
 
 
 def song_list_filter(
-    songList, level: str | None = None, ds: float | None = None, gen: str | None = None
+    songList,
+    level: Optional[str] = None,
+    ds: Optional[float] = None,
+    gen: Optional[str] = None,
 ):
     count = 0
     for song in songList:
@@ -414,11 +420,14 @@ async def music_to_part(
 
     # 达成率
     ttf = ImageFont.truetype(ttf_black_path, size=76)
-    if "." not in str(achievements):
-        achievements = f"{achievements}.0"
-    achievements = str(achievements).split(".")
-    achievements1 = f"{achievements[0]}."
-    achievements2 = achievements[1].ljust(4, "0")[:4]
+    achievements_str = str(achievements)
+    if "." in str(achievements):
+        achievements_parts = achievements_str.split(".")
+        achievements1 = f"{achievements_parts[0]}."
+        achievements2 = achievements_parts[1].ljust(4, "0")[:4]
+    else:
+        achievements1 = f"{achievements_str}."
+        achievements2 = "0000"
     text_position = (375, 155)
     text_content = str(achievements1)
     draw.text(text_position, text_content, font=ttf, fill=color, anchor="ls")
@@ -528,21 +537,21 @@ async def music_to_part(
 
     # 评价
     rate_path = f"./Static/Maimai/Rate/{rate}.png"
-    rate = Image.open(rate_path)
-    rate = resize_image(rate, 0.87)
-    partbase = paste(partbase, rate, (770, 72))
+    rate_img = Image.open(rate_path)
+    rate_img = resize_image(rate, 0.87)
+    partbase = paste(partbase, rate_img, (770, 72))
 
     # fc ap
     if fc:
         fc_path = maimai_MusicIcon / f"{fc}.png"
-        fc = Image.open(fc_path)
-        fc = resize_image(fc, 76 / 61)
-        partbase = paste(partbase, fc, (781, 191))
+        fc_img = Image.open(fc_path)
+        fc_img = resize_image(fc_img, 76 / 61)
+        partbase = paste(partbase, fc_img, (781, 191))
     if fs:
         fs_path = maimai_MusicIcon / f"{fs}.png"
-        fs = Image.open(fs_path)
-        fs = resize_image(fs, 76 / 61)
-        partbase = paste(partbase, fs, (875, 191))
+        fs_img = Image.open(fs_path)
+        fs_img = resize_image(fs_img, 76 / 61)
+        partbase = paste(partbase, fs_img, (875, 191))
 
     partbase = partbase.resize((340, 110))
     return partbase
@@ -708,9 +717,9 @@ async def generatebests(
 
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
-    dani = Image.open(dani_path)
-    dani = resize_image(dani, 0.213)
-    bests = paste(bests, dani, (346, 110))
+    dani_img = Image.open(dani_path)
+    dani_img = resize_image(dani, 0.213)
+    bests = paste(bests, dani_img, (346, 110))
 
     # 阶级
     class_path = maimai_Class / "0.png"
@@ -772,9 +781,9 @@ async def generatebests(
     )
 
     frame_path = "./Static/Maimai/Bests/frame.png"
-    frame = Image.open(frame_path)
-    frame = resize_image(frame, 0.745)
-    bests = paste(bests, frame, (40, 36))
+    frame_img = Image.open(frame_path)
+    frame_img = resize_image(frame_img, 0.745)
+    bests = paste(bests, frame_img, (40, 36))
     draw = ImageDraw.Draw(bests)
 
     # 类型
@@ -796,10 +805,10 @@ async def generatebests(
     draw.text((720, 740), type_name, font=ttf, fill=(0, 109, 103), anchor="mm")
 
     # bests
-    b35 = await draw_best(b35, type, songList)
-    b15 = await draw_best(b15, type, songList)
-    bests = paste(bests, b35, (25, 795))
-    bests = paste(bests, b15, (25, 1985))
+    b35_img = await draw_best(b35, type, songList)
+    b15_img = await draw_best(b15, type, songList)
+    bests = paste(bests, b35_img, (25, 795))
+    bests = paste(bests, b15_img, (25, 1985))
 
     img_byte_arr = BytesIO()
     bests = bests.convert("RGB")
@@ -821,10 +830,10 @@ async def generate_wcb(
     frame: str,
     plate: str,
     songList,
-    level: str | None = None,
-    ds: float | None = None,
-    gen: str | None = None,
-    rate_count=None,
+    level: Optional[str] = None,
+    ds: Optional[float] = None,
+    gen: Optional[str] = None,
+    rate_count: Optional[dict[str, int]] = None,
 ):
     bg = Image.open("./Static/Maimai/List/background.png")
 
@@ -852,9 +861,9 @@ async def generate_wcb(
 
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
-    dani = Image.open(dani_path)
-    dani = resize_image(dani, 0.213)
-    bg = paste(bg, dani, (346, 110))
+    dani_img = Image.open(dani_path)
+    dani_img = resize_image(dani_img, 0.213)
+    bg = paste(bg, dani_img, (346, 110))
 
     # 阶级
     class_path = maimai_Class / "0.png"
@@ -935,9 +944,9 @@ async def generate_wcb(
             fcfs_x += 102
 
     frame_path = "./Static/Maimai/Bests/frame.png"
-    frame = Image.open(frame_path)
-    frame = resize_image(frame, 0.745)
-    bg = paste(bg, frame, (40, 36))
+    frame_img = Image.open(frame_path)
+    frame_img = resize_image(frame_img, 0.745)
+    bg = paste(bg, frame_img, (40, 36))
     draw = ImageDraw.Draw(bg)
 
     # 页码

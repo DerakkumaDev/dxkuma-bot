@@ -34,10 +34,10 @@ def escape(message: str) -> str:
 
 async def gen_message(event: MessageEvent, bot: Bot) -> str:
     group_id = event.group_id if isinstance(event, GroupMessageEvent) else None
-    l = list()
+    msg = list()
     if event.reply:
         reply_msg = event.reply
-        l.append(
+        msg.append(
             f"<reply{
                 gen_name_field(
                     'sender',
@@ -55,9 +55,9 @@ async def gen_message(event: MessageEvent, bot: Bot) -> str:
         )
 
     for seg in event.get_message():
-        l.append(await gen_message_segment(seg, bot, group_id))
+        msg.append(await gen_message_segment(seg, bot, group_id))
 
-    return str().join(l)
+    return str().join(msg)
 
 
 async def gen_message_segment(

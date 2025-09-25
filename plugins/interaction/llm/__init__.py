@@ -37,7 +37,7 @@ async def _(bot: Bot, event: MessageEvent):
 
         message = (
             f'<message time="{now.isoformat()}" sender_id="{qqid}" sender_name="{
-                escape(event.sender.nickname)
+                escape(event.sender.nickname or str())
             }">\n'
             f"{msg_text}\n"
             "</message>"
