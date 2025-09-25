@@ -538,7 +538,7 @@ async def music_to_part(
     # 评价
     rate_path = f"./Static/Maimai/Rate/{rate}.png"
     rate_img = Image.open(rate_path)
-    rate_img = resize_image(rate, 0.87)
+    rate_img = resize_image(rate_img, 0.87)
     partbase = paste(partbase, rate_img, (770, 72))
 
     # fc ap
@@ -718,7 +718,7 @@ async def generatebests(
     # 段位
     dani_path = maimai_Dani / f"{dani}.png"
     dani_img = Image.open(dani_path)
-    dani_img = resize_image(dani, 0.213)
+    dani_img = resize_image(dani_img, 0.213)
     bests = paste(bests, dani_img, (346, 110))
 
     # 阶级
