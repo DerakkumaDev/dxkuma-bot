@@ -1,5 +1,6 @@
 import os
 import shutil
+from typing import Optional
 
 from pyhocon import ConfigFactory
 
@@ -12,36 +13,38 @@ class Config:
         self.bots: list[str] = list()
 
         # info
-        self.version = None
+        self.version: Optional[tuple[str, str, str]] = None
         # log
-        self.log_level = None
+        self.log_level: Optional[str] = None
         # nonebot
-        self.listen_host = None
-        self.listen_port = None
-        self.token = None
+        self.listen_host: Optional[str] = None
+        self.listen_port: Optional[int] = None
+        self.token: Optional[str] = None
         # database
-        self.database_url = None
+        self.database_url: Optional[str] = None
         # group
-        self.dev_group = None
-        self.special_group = None
+        self.dev_group: Optional[int] = None
+        self.special_group: Optional[int] = None
         # bots
-        self.nsfw_allowed = None
-        self.auto_agree = None
+        self.nsfw_allowed: Optional[list[int]] = None
+        self.auto_agree: Optional[list[int]] = None
         # diving_fish
-        self.df_token = None
+        self.df_token: Optional[str] = None
         # lxns
-        self.lx_token = None
+        self.lx_token: Optional[str] = None
         # admin
-        self.admin_accounts = None
+        self.admin_accounts: Optional[list[int]] = None
         # backend
-        self.backend_url = None
+        self.backend_url: Optional[str] = None
         # llm
-        self.llm_api_key = None
-        self.llm_model = None
+        self.llm_api_key: Optional[str] = None
+        self.llm_model: Optional[str] = None
+        self.vision_llm_model: Optional[str] = None
+        self.vision_llm_prompt: Optional[str] = None
         # tts
-        self.tts_api_key = None
-        self.tts_model = None
-        self.tts_voice_id = None
+        self.tts_api_key: Optional[str] = None
+        self.tts_model: Optional[str] = None
+        self.tts_voice_id: Optional[str] = None
 
         # 解析配置文件
         self.read_config()
@@ -64,6 +67,8 @@ class Config:
         self.backend_url = data["backend"]["url"]
         self.llm_api_key = data["llm"]["api_key"]
         self.llm_model = data["llm"]["model"]
+        self.vision_llm_model = data["llm"]["vision"]["model"]
+        self.vision_llm_prompt = data["llm"]["vision"]["prompt"]
         self.tts_api_key = data["tts"]["api_key"]
         self.tts_model = data["tts"]["model"]
         self.tts_voice_id = data["tts"]["voice_id"]

@@ -184,13 +184,21 @@ async def gen_message_segment(
             )
         return gen_seg("forward", str().join(messages))
     elif seg.type == "image":
-        return gen_seg("image", escape(seg.data.get("name", str())))
+        if url := seg.data.get("url"):
+            info = await gen_image_info(url)
+        else:
+            info = seg.data.get("name", str())
+        return gen_seg("image", escape(info))
     elif seg.type == "face":
         return gen_seg(
             "emoji", escape(seg.data.get("raw", dict()).get("faceText", str()) or str())
         )
     elif seg.type == "video":
-        return gen_seg("video", escape(seg.data.get("name", str())))
+        if url := seg.data.get("url"):
+            info = await gen_vedio_info(url)
+        else:
+            info = seg.data.get("name", str())
+        return gen_seg("video", escape(info))
     elif seg.type == "record":
         return gen_seg("record", escape(seg.data.get("name", str())))
     elif seg.type == "file":
@@ -225,3 +233,34 @@ def gen_name_field(key: str, user_id: str, name: str, name_value: bool = False) 
 
 def gen_seg(key: str, value: str) -> str:
     return f"<{key}>{value}<{key}/>"
+
+
+async def gen_image_info(url) -> str:
+    content = {"url": url, "detail": "low"}
+    return await _gen_media_info("image_url", content)
+
+
+async def gen_vedio_info(url) -> str:
+    content = {"url": url, "fps": 0.2}
+    return await _gen_media_info("video_url", content)
+
+
+async def _gen_media_info(content_type, content) -> str:
+    response = await client.chat.completions.create(
+        model=config.vision_llm_model,
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": content_type, content_type: content},
+                    {"type": "text", "text": config.vision_llm_prompt},
+                ],
+            }
+        ],
+        extra_headers={"x-is-encrypted": "true"},
+    )
+    return "\r\n".join(
+        choice.message.content
+        for choice in response.choices
+        if choice.message.content is not None
+    )
