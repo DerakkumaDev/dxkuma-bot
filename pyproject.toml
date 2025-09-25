@@ -1,6 +1,6 @@
 [project]
 name = "kumabot"
-version = "25.37.1"
+version = "25.39.0"
 description = "一种舞萌DX机器人"
 readme = "README.md"
 requires-python = ">=3.12"

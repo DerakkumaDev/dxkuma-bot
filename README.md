@@ -8,7 +8,7 @@
 
 </div>
 
-![Static Badge](https://img.shields.io/badge/Ver-KM25.37--B-blue)
+![Static Badge](https://img.shields.io/badge/Ver-KM25.39--A-blue)
 ![Static Badge](https://img.shields.io/badge/License-AGPLv3-orange)
 ![Static Badge](https://img.shields.io/badge/CPython-3.12%2B-green)
 [![qq](https://img.shields.io/badge/2689340931-gray?logo=qq&style=social)](https://qm.qq.com/cgi-bin/qm/qr?k=LyQOTRI7ViXYSTg0zbS2sGgcmkbYrxbP)
