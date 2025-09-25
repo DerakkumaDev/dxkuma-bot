@@ -130,12 +130,6 @@ async def _(event: GroupMessageEvent):
     _, game_state, _ = await generate_message_state(group_id, user_id, event.time)
 
     await start_open_chars.send(
-        "要开始了哟~\r\n"
-        "\r\n"
-        "□——字母或数字\r\n"
-        "◎——假名或汉字\r\n"
-        "◇——符号\r\n"
-        "\r\n"
         "发送“开[文字]”开出字母\r\n"
         "发送“[歌名/别名]”尝试猜歌\r\n"
         "发送“提示（序号）”获取提示（每首5次机会）\r\n"
@@ -143,7 +137,11 @@ async def _(event: GroupMessageEvent):
         "发送“歌曲（序号）”获取1秒歌曲片段（每首1次机会）\r\n"
         "发送“结束开字母”结束\r\n"
         "\r\n"
-        "12个小时内没人参与，迪拉熊会帮大家结束游戏哦~不用谢mai~（骄傲）"
+        "□＝字母或数字\r\n"
+        "◎＝假名或汉字\r\n"
+        "◇＝符号\r\n"
+        "\r\n"
+        "游戏12个小时内没人参与，迪拉熊会帮大家结束哦~不用谢mai~（骄傲）"
     )
     await start_open_chars.send(game_state)
 
@@ -581,7 +579,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         leaderboard_output.append("你还没有上榜mai~")
         achi, _times = await ranking.get_score(user_id)
         leaderboard_output.append(
-            f"?. {math.trunc(achi * 1000000) / 1000000:.4%} × {_times}"
+            f"？. {math.trunc(achi * 1000000) / 1000000:.4%} × {_times}"
         )
 
     msg = "\r\n".join(leaderboard_output)

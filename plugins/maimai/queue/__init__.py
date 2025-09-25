@@ -22,8 +22,6 @@ change_count = on_regex(
 @all_help.handle()
 async def _(event: GroupMessageEvent):
     await all_help.send(
-        "一起来舞萌吧~\r\n"
-        "\r\n"
         "发送“注册机厅[机厅全称]”注册并为本群绑定机厅\r\n"
         "发送“绑定机厅[机厅全称]”为本群绑定机厅\r\n"
         "发送“解绑机厅[别名]”为本群解绑机厅\r\n"

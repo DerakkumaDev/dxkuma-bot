@@ -90,7 +90,7 @@ async def generate_message_state(
             )
             game_state.append(f"✓ {game_content['index']}. {game_content['title']}")
         else:
-            game_state.append(f"? {game_content['index']}. {display_title}")
+            game_state.append(f"？{game_content['index']}. {display_title}")
 
     is_game_over = all(
         [game_content["is_correct"] for game_content in game_data["game_contents"]]
