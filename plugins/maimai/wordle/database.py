@@ -227,8 +227,9 @@ class OpenChars:
             .returning(WordleOpenChar.id)
         )
         result = await session.execute(stmt)
+        inserted_count = len(result.scalars().all())
 
-        if result.scalar_one_or_none() is None:
+        if inserted_count <= 0:
             game_data = await self._build_game_data(record.id, session)
             return False, game_data
 
