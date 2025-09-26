@@ -61,7 +61,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     await rand_bv.send(MessageSegment.json(json.dumps(mini_app_ark["data"]).decode()))
     await ranking.update_count(qq=qq, type="video")
 
-    star, method, extend = await stars.give_rewards(
+    star, method, extend, reward = await stars.give_rewards(
         qq, 5, 25, "欣赏迪拉熊视频", event.time
     )
     msg = f"迪拉熊奖励你{star}颗★mai~"
@@ -71,7 +71,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         case 0b0011:
             msg += f"人品大爆发，迪拉熊额外给你{extend}颗★哦~"
     if method & 0b0001_0000:
-        msg += f"今日首次奖励，迪拉熊额外给你{extend}颗★哦~"
+        msg += f"今日首次奖励，迪拉熊额外给你{reward}颗★哦~"
     await rand_bv.send(msg, at_sender=True)
 
     groups.setdefault(group_id, list())

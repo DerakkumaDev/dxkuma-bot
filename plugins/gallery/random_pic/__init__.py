@@ -92,7 +92,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         asyncio.create_task(delete_msg_after_delay())
 
     await ranking.update_count(qq=qq, type=type)
-    star, method, extend = await stars.give_rewards(
+    star, method, extend, reward = await stars.give_rewards(
         qq, 5, 25, "欣赏迪拉熊美图", event.time
     )
     msg = f"迪拉熊奖励你{star}颗★mai~"
@@ -102,7 +102,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         case 0b0011:
             msg += f"人品大爆发，迪拉熊额外给你{extend}颗★哦~"
     if method & 0b0001_0000:
-        msg += f"今日首次奖励，迪拉熊额外给你{extend}颗★哦~"
+        msg += f"今日首次奖励，迪拉熊额外给你{reward}颗★哦~"
     await rand_pic.send(msg, at_sender=True)
 
     groups.setdefault(group_id, list())

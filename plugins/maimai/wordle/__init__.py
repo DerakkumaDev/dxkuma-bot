@@ -186,7 +186,7 @@ async def _(event: GroupMessageEvent):
                 )
             )
 
-            star, method, extend = await stars.give_rewards(
+            star, method, extend, reward = await stars.give_rewards(
                 user_id, 15, 35, "开字母猜中歌曲", event.time
             )
             msg = f"迪拉熊奖励你{star}颗★mai~"
@@ -196,7 +196,7 @@ async def _(event: GroupMessageEvent):
                 case 0b0011:
                     msg += f"人品大爆发，迪拉熊额外给你{extend}颗★哦~"
             if method & 0b0001_0000:
-                msg += f"今日首次奖励，迪拉熊额外给你{extend}颗★哦~"
+                msg += f"今日首次奖励，迪拉熊额外给你{reward}颗★哦~"
             await open_chars.send(msg, at_sender=True)
 
     await open_chars.send(game_state)
@@ -238,7 +238,7 @@ async def _(event: GroupMessageEvent):
             )
         )
 
-        star, method, extend = await stars.give_rewards(
+        star, method, extend, reward = await stars.give_rewards(
             user_id, 15, 35, "开字母猜中歌曲", event.time
         )
         msg = f"迪拉熊奖励你{star}颗★mai~"
@@ -248,7 +248,7 @@ async def _(event: GroupMessageEvent):
             case 0b0011:
                 msg += f"人品大爆发，迪拉熊额外给你{extend}颗★哦~"
         if method & 0b0001_0000:
-            msg += f"今日首次奖励，迪拉熊额外给你{extend}颗★哦~"
+            msg += f"今日首次奖励，迪拉熊额外给你{reward}颗★哦~"
         await all_message_handle.send(msg, at_sender=True)
 
     is_game_over, game_state, _ = await generate_message_state(
