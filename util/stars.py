@@ -262,10 +262,13 @@ class Stars:
         session: AsyncSession = kwargs["session"]
 
         upd_stmt = (
-            update(StarBalance).where(StarBalance.qq == qq).values(is_infinite=enable)
+            update(StarBalance)
+            .where(StarBalance.qq == qq)
+            .values(is_infinite=enable)
+            .returning(StarBalance.id)
         )
         upd_res = await session.execute(upd_stmt)
-        if upd_res.rowcount and upd_res.rowcount > 0:
+        if upd_res.scalar_one_or_none() is not None:
             return True
 
         ins_stmt = insert(StarBalance).values(

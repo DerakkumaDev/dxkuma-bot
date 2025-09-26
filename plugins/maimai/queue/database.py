@@ -153,20 +153,21 @@ class ArcadeManager:
         stmt = insert(Arcade).values(
             id=arcade_id, name=arcade_name, count=0, action_times=0
         )
-        stmt = stmt.on_conflict_do_nothing(index_elements=["name"])
+        stmt = stmt.on_conflict_do_nothing(index_elements=["name"]).returning(Arcade.id)
         result = await session.execute(stmt)
-
-        return arcade_id if result.rowcount > 0 else None
+        inserted_id = result.scalar_one_or_none()
+        return arcade_id if inserted_id else None
 
     @with_transaction
     async def bind(self, group_id: int, arcade_id: str, **kwargs) -> bool:
         session: AsyncSession = kwargs["session"]
 
         stmt = insert(ArcadeBinding).values(group_id=group_id, arcade_id=arcade_id)
-        stmt = stmt.on_conflict_do_nothing(constraint="uq_arcade_binding")
+        stmt = stmt.on_conflict_do_nothing(constraint="uq_arcade_binding").returning(
+            ArcadeBinding.id
+        )
         result = await session.execute(stmt)
-
-        return result.rowcount > 0
+        return result.scalar_one_or_none() is not None
 
     @with_transaction
     async def unbind(self, group_id: int, arcade_id: str, **kwargs) -> bool:
@@ -274,10 +275,11 @@ class ArcadeManager:
         session: AsyncSession = kwargs["session"]
 
         stmt = insert(ArcadeAlias).values(arcade_id=arcade_id, alias=alias)
-        stmt = stmt.on_conflict_do_nothing(constraint="uq_arcade_alias")
+        stmt = stmt.on_conflict_do_nothing(constraint="uq_arcade_alias").returning(
+            ArcadeAlias.id
+        )
         result = await session.execute(stmt)
-
-        return result.rowcount > 0
+        return result.scalar_one_or_none() is not None
 
     @with_transaction
     async def remove_alias(self, arcade_id: str, alias: str, **kwargs) -> bool:

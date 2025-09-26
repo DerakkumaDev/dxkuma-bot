@@ -214,14 +214,21 @@ class OpenChars:
         chars = [char.casefold()]
         for c in kks.convert(char):
             for v in c.values():
+                if v in chars:
+                    continue
+
                 chars.append(v.casefold())
 
         insert_rows = [{"game_id": record.id, "char": c} for c in chars]
-        stmt = insert(WordleOpenChar).values(insert_rows)
-        stmt = stmt.on_conflict_do_nothing(constraint="uq_game_char")
+        stmt = (
+            insert(WordleOpenChar)
+            .values(insert_rows)
+            .on_conflict_do_nothing(constraint="uq_game_char")
+            .returning(WordleOpenChar.id)
+        )
         result = await session.execute(stmt)
 
-        if result.rowcount < len(chars):
+        if result.scalar_one_or_none() is None:
             game_data = await self._build_game_data(record.id, session)
             return False, game_data
 

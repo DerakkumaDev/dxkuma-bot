@@ -29,11 +29,14 @@ class BvidList:
     async def add(self, bvid: str, **kwargs) -> bool:
         session: AsyncSession = kwargs["session"]
 
-        stmt = insert(BvidRecord).values(bvid=bvid)
-        stmt = stmt.on_conflict_do_nothing(index_elements=["bvid"])
+        stmt = (
+            insert(BvidRecord)
+            .values(bvid=bvid)
+            .on_conflict_do_nothing(index_elements=["bvid"])
+            .returning(BvidRecord.id)
+        )
         result = await session.execute(stmt)
-
-        return result.rowcount > 0
+        return result.scalar_one_or_none() is not None
 
     @with_transaction
     async def remove(self, bvid: str, **kwargs) -> None:
