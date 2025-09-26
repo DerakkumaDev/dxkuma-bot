@@ -27,7 +27,7 @@ async def _(event: GroupMessageEvent):
     qq = event.get_user_id()
     balance = await stars.get_balance(qq)
     if balance == "inf":
-        await query.finish("你现在有∞颗★哦~", at_sender=True)
+        await query.finish("你有∞颗★哦~", at_sender=True)
     elif balance > 0:
         reply = rng.choice(replies_posi)
         await query.finish(
@@ -38,7 +38,7 @@ async def _(event: GroupMessageEvent):
     elif balance < 0:
         reply = rng.choice(replies_nega)
         await query.finish(
-            f"你还欠迪拉熊{-balance}颗★mai！{reply(balance)}\r\n"
+            f"你还欠着迪拉熊{-balance}颗★mai！{reply(balance)}\r\n"
             "使用图库功能时迪拉熊会奖励星星哦~",
             at_sender=True,
         )

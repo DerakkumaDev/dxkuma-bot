@@ -99,7 +99,9 @@ rasug_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用)分数推荐$", re.I)
 allow_other_on = on_regex(r"^(迪拉熊|dlx)?(开启?|启用|允许)代查$", re.I)
 allow_other_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用|禁止)代查$", re.I)
 
-set_source = on_regex(r"^(迪拉熊|dlx)?((切|更)?换|设置)(数据)?源\s*(落雪|水鱼)$", re.I)
+set_source = on_regex(
+    r"^(迪拉熊|dlx)?((切|更)?换|设置)((数据)?源|查分器)\s*(落雪|水鱼)$", re.I
+)
 set_token = on_regex(r"^(迪拉熊|dlx)?(绑定|bind)\s*(落雪|水鱼)\s*.", re.I)
 
 
@@ -573,7 +575,7 @@ async def _(bot: Bot, event: MessageEvent):
                     MessageSegment.text(
                         f"迪拉熊没有在{source_name}查分器上找到{
                             '你' if target_qq == event.get_user_id() else '他'
-                        }的信息，可以试试发送“换源{another_source_name}”更换数据源mai~"
+                        }的信息，可以试试发送“换源{another_source_name}”更换查分器mai~"
                     ),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 )
@@ -672,7 +674,7 @@ async def _(event: MessageEvent):
                     MessageSegment.text(
                         f"迪拉熊没有在{source_name}查分器上找到{
                             '你' if target_qq == event.get_user_id() else '他'
-                        }的信息，可以试试发送“换源{another_source_name}”更换数据源mai~"
+                        }的信息，可以试试发送“换源{another_source_name}”更换查分器mai~"
                     ),
                     MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                 )
@@ -1771,7 +1773,7 @@ async def _(event: MessageEvent):
                                 source_name
                             }查分器上找到你的信息，可以试试发送“换源{
                                 another_source_name
-                            }”更换数据源mai~"
+                            }”更换查分器mai~"
                         ),
                         MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
                     )
@@ -2308,7 +2310,7 @@ async def _(event: MessageEvent):
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
     msg = (
-        MessageSegment.text("迪拉熊帮你换好啦~"),
+        MessageSegment.text("迪拉熊帮你把姓名框换成了——"),
         MessageSegment.image(img_bytes),
     )
     await set_plate.send(msg, at_sender=True)
@@ -2336,7 +2338,7 @@ async def _(event: MessageEvent):
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
     msg = (
-        MessageSegment.text("迪拉熊帮你换好啦~"),
+        MessageSegment.text("迪拉熊帮你把背景换成了——"),
         MessageSegment.image(img_bytes),
     )
     await set_frame.send(msg, at_sender=True)
@@ -2364,7 +2366,7 @@ async def _(event: MessageEvent):
     img_byte_arr.seek(0)
     img_bytes = img_byte_arr.getvalue()
     msg = (
-        MessageSegment.text("迪拉熊帮你换好啦~"),
+        MessageSegment.text("迪拉熊帮你把头像换成了——"),
         MessageSegment.image(img_bytes),
     )
     await set_icon.send(msg, at_sender=True)
@@ -2408,16 +2410,14 @@ async def _(event: MessageEvent):
     msg = event.get_plaintext()
     if "落雪" in msg:
         source = "lxns"
-        source_name = "落雪"
     elif "水鱼" in msg:
         source = "diving-fish"
-        source_name = "水鱼"
 
     if await user_config_manager.set_config_value(qq, "source", source):
         msg = "迪拉熊帮你换好啦~"
     else:
         msg = (
-            MessageSegment.text(f"你已经在使用{source_name}作为数据源了mai~"),
+            MessageSegment.text("你已经在使用这个查分器了mai~"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
         )
 

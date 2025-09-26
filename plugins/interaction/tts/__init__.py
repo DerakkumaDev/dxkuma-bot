@@ -29,14 +29,14 @@ async def _(event: MessageEvent):
     elif balance == 0:
         await tts.finish("你没有★了哦~", at_sender=True)
     elif balance < 0:
-        await tts.finish(f"你还欠迪拉熊{-balance}颗★呢（哼）", at_sender=True)
+        await tts.finish(f"你还欠着迪拉熊{-balance}颗★呢（哼）", at_sender=True)
 
     audio, usage_characters = await text_to_speech(text)
     if not await stars.apply_change(qq, -usage_characters, "让迪拉熊说话", event.time):
         raise
     balance = await stars.get_balance(qq)
     if balance == "inf":
-        msg = f"迪拉熊吃掉了{usage_characters}颗★mai~你现在还有∞颗★哦~"
+        msg = f"迪拉熊吃掉了{usage_characters}颗★mai~你有∞颗★哦~"
     elif balance > 0:
         msg = f"迪拉熊吃掉了{usage_characters}颗★mai~你现在还有{balance}颗★哦~"
     elif balance < 0:

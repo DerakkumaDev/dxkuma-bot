@@ -96,10 +96,13 @@ async def _(bot: Bot, event: GroupMessageEvent):
         qq, 5, 25, "欣赏迪拉熊美图", event.time
     )
     msg = f"迪拉熊奖励你{star}颗★mai~"
-    if method == 0b0000_0001:
-        msg += f"人品大爆发，迪拉熊额外送你{extend}颗★哦~"
+    match method & 0b1111:
+        case 0b0010:
+            msg += "All perfect plus!"
+        case 0b0011:
+            msg += f"人品大爆发，迪拉熊额外给你{extend}颗★哦~"
     if method & 0b0001_0000:
-        msg += f"今日首次奖励，迪拉熊额外送你{extend}颗★哦~"
+        msg += f"今日首次奖励，迪拉熊额外给你{extend}颗★哦~"
     await rand_pic.send(msg, at_sender=True)
 
     groups.setdefault(group_id, list())

@@ -286,21 +286,21 @@ class Stars:
         rng = random.default_rng()
         star = int(rng.integers(min, max))
         extend = 0
-        method = rng.choice(range(0b0000_0100), p=[0.91, 0.01, 0.03, 0.05])
+        method = rng.choice(range(0b0000_0100), p=[0.91, 0.05, 0.03, 0.01])
         if method == 0b0000_0001:
-            extend = int(rng.integers(100, 200))
-            method = 0b0000_0100
-        elif method == 0b0000_0010:
             star = 50
-        elif method == 0b0000_0011:
+        elif method == 0b0000_0010:
             star = 101
+        elif method == 0b0000_0011:
+            extend = int(rng.integers(100, 200))
 
         is_first_reward_today = await self._is_first_reward_today(qq, time)
         if is_first_reward_today:
             extend = int(rng.integers(50, 100))
             method |= 0b0001_0000
 
-        await self.apply_change(qq, star + extend, cause, time)
+        await self.apply_change(qq, extend, "签到", time)
+        await self.apply_change(qq, star, cause, time)
         return star, method, extend
 
 
