@@ -128,7 +128,7 @@ class OpenChars:
             ) - record.updated_at > timedelta(hours=12):
                 await session.delete(record)
             else:
-                return await self._build_game_data(record, session)
+                return await self._build_game_data(record.id, session)
 
         game_data = await self._generate_game_data()
 
@@ -222,7 +222,8 @@ class OpenChars:
         result = await session.execute(stmt)
 
         if result.rowcount < len(chars):
-            return False, None
+            game_data = await self._build_game_data(record.id, session)
+            return False, game_data
 
         stmt = (
             select(WordleGameContent)
@@ -244,7 +245,7 @@ class OpenChars:
             content.opc_times += 1
 
         record.updated_at = datetime.now(timezone(timedelta(hours=8)))
-        game_data = await self._build_game_data(record, session)
+        game_data = await self._build_game_data(record.id, session)
 
         return True, game_data
 
@@ -265,7 +266,7 @@ class OpenChars:
             await session.delete(record)
             return None
 
-        return await self._build_game_data(record, session)
+        return await self._build_game_data(record.id, session)
 
     @with_transaction
     async def update_game_content_field(
@@ -398,18 +399,16 @@ class OpenChars:
             group_id, content_index, "is_correct", True, **kwargs
         )
 
-    async def _build_game_data(
-        self, game_record: WordleGame, session: AsyncSession
-    ) -> dict:
+    async def _build_game_data(self, game_id: int, session: AsyncSession) -> dict:
         open_chars_stmt = select(WordleOpenChar.char).where(
-            WordleOpenChar.game_id == game_record.id
+            WordleOpenChar.game_id == game_id
         )
         open_chars_result = await session.execute(open_chars_stmt)
         open_chars = [row[0] for row in open_chars_result.fetchall()]
 
         game_contents_stmt = (
             select(WordleGameContent)
-            .where(WordleGameContent.game_id == game_record.id)
+            .where(WordleGameContent.game_id == game_id)
             .order_by(WordleGameContent.index)
         )
         game_contents_result = await session.execute(game_contents_stmt)
