@@ -89,9 +89,9 @@ all_plate = on_regex(r"^(迪拉熊|dlx)?(plates?|看姓名框)$", re.I)
 all_frame = on_regex(r"^(迪拉熊|dlx)?(frames?|看背景)$", re.I)
 all_icon = on_regex(r"^(迪拉熊|dlx)?(icons?|看头像)$", re.I)
 
-set_plate = on_regex(r"^(迪拉熊|dlx)?(setplate|设置?姓名框)\s*\d{6}$", re.I)
-set_frame = on_regex(r"^(迪拉熊|dlx)?(setframe|设置?背景)\s*\d{6}$", re.I)
-set_icon = on_regex(r"^(迪拉熊|dlx)?(seticon|设置?头像)\s*\d{6}$", re.I)
+set_plate = on_regex(r"^(迪拉熊|dlx)?(s(et)?plate|设置?姓名框)\s*\d{1,6}$", re.I)
+set_frame = on_regex(r"^(迪拉熊|dlx)?(s(et)?frame|设置?背景)\s*\d{1,6}$", re.I)
+set_icon = on_regex(r"^(迪拉熊|dlx)?(s(et)?icon|设置?头像)\s*\d{1,6}$", re.I)
 
 rasug_on = on_regex(r"^(迪拉熊|dlx)?(开启?|启用)分数推荐$", re.I)
 rasug_off = on_regex(r"^(迪拉熊|dlx)?(关闭?|禁用)分数推荐$", re.I)
