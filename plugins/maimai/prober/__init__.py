@@ -67,7 +67,7 @@ chartinfo = on_regex(
 )
 scoreinfo = on_regex(r"^(score|info)\s*((dx|sd|标准?|宴)\s*)?.", re.I)
 achvinfo = on_regex(
-    r"^(achv|分数表格?)\s*((绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?|([左右]\s*)?).",
+    r"^(achv|分数表格?)\s*((绿|黄|红|紫|白)\s*((dx|sd|标准?)\s*)?|[左右]\s*)?.",
     re.I,
 )
 songreq = on_regex(r"^(迪拉熊|dlx)点歌\s*.", re.I)
@@ -1171,6 +1171,10 @@ async def _(event: MessageEvent):
 
 @star50.handle()
 async def _(event: MessageEvent):
+    match = re.fullmatch(r"dlxx50((?:\s*[1-5])+)", event.get_plaintext().strip(), re.I)
+    if not match:
+        return
+
     target_qq = event.get_user_id()
     for message in event.get_message()["at"]:
         target_qq = message.data["qq"]
@@ -1212,9 +1216,8 @@ async def _(event: MessageEvent):
             at_sender=True,
         )
     songList = await get_music_data_df()
-    find = re.fullmatch(r"dlxx50((?:\s*[1-5])+)", event.get_plaintext().strip(), re.I)
     star35, star15, mask_enabled = await records_to_bests(
-        records, songList, is_dxs=True, dx_star_count=find.group(1)
+        records, songList, is_dxs=True, dx_star_count=match.group(1)
     )
     if not star35 and not star15:
         if mask_enabled:
@@ -1268,7 +1271,7 @@ async def _(event: MessageEvent):
                 MessageSegment.image(Path("./Static/Maimai/Function/3.png")),
             )
             await cf50.finish(msg, at_sender=True)
-    if target_qq is None or target_qq == sender_qq:
+    if not target_qq or target_qq == sender_qq:
         msg = (
             MessageSegment.text("你没有比较任何人mai~"),
             MessageSegment.image(Path("./Static/Maimai/Function/1.png")),
@@ -2010,8 +2013,11 @@ async def _(event: MessageEvent):
 @achvinfo.handle()
 async def _(event: MessageEvent):
     msg = event.get_plaintext()
-    pattern = r"(?:achv|分数表格?)\s*(?:(绿|黄|红|紫|白)\s*(?:(dx|sd|标准?)\s*)?|(?:([左右])\s*)?)(.+)"
+    pattern = r"(?:achv|分数表格?)\s*(?:(绿|黄|红|紫|白)\s*(?:(dx|sd|标准?)\s*)?|([左右])\s*)?(.+)"
     match = re.fullmatch(pattern, msg, re.I)
+    if not match:
+        return
+
     song = match.group(4)
     if not song:
         return

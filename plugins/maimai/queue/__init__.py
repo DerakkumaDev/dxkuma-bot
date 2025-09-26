@@ -46,7 +46,7 @@ async def _(event: GroupMessageEvent):
 
     name = match.group(1)
     arcade_id = await arcadeManager.create(name)
-    if arcade_id is None:
+    if not arcade_id:
         await registering.finish("这个机厅已经创建过了mai~", at_sender=True)
 
     if not await arcadeManager.bind(group_id, arcade_id):
@@ -67,7 +67,7 @@ async def _(event: GroupMessageEvent):
 
     name = match.group(1)
     arcade_id = await arcadeManager.get_arcade_id(name)
-    if arcade_id is None:
+    if not arcade_id:
         await binding.finish("迪拉熊没有找到这个机厅mai~", at_sender=True)
 
     if not await arcadeManager.bind(group_id, arcade_id):
@@ -129,7 +129,7 @@ async def _(event: GroupMessageEvent):
             else str()
         }"
         for arcade in arcades
-        if arcade is not None
+        if arcade
     ]
     if len(arcade_names) < 1:
         await search.finish("迪拉熊没有找到对得上的机厅mai~", at_sender=True)
@@ -151,7 +151,7 @@ async def _(event: GroupMessageEvent):
     name = match.group(1)
     alias = match.group(2)
     arcade_id = await arcadeManager.get_arcade_id(name)
-    if arcade_id is None:
+    if not arcade_id:
         await add_alias.finish("迪拉熊没有找到对得上的机厅mai~", at_sender=True)
 
     bounden_arcade_ids = await arcadeManager.get_bounden_arcade_ids(group_id)
@@ -175,7 +175,7 @@ async def _(event: GroupMessageEvent):
     name = match.group(1)
     alias = match.group(2)
     arcade_id = await arcadeManager.get_arcade_id(name)
-    if arcade_id is None:
+    if not arcade_id:
         await remove_alias.finish("迪拉熊没有找到对得上的机厅mai~", at_sender=True)
 
     bounden_arcade_ids = await arcadeManager.get_bounden_arcade_ids(group_id)
@@ -198,7 +198,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     arcade_ids = None
     if match:
         word = match.group(1)
-        if word is not None:
+        if word:
             arcade_ids = await arcadeManager.search(group_id, word)
             matching_arcade_count = len(arcade_ids)
             if matching_arcade_count < 1:
@@ -207,7 +207,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
             if matching_arcade_count > 1:
                 return
 
-    if arcade_ids is None:
+    if not arcade_ids:
         arcade_ids = await arcadeManager.get_bounden_arcade_ids(group_id)
 
     if len(arcade_ids) < 1:
@@ -218,7 +218,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         for arcade in [
             await arcadeManager.get_arcade(arcade_id) for arcade_id in arcade_ids
         ]
-        if arcade is not None
+        if arcade
     ]
     if len(messages) < 1:
         return

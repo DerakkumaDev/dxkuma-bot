@@ -157,7 +157,7 @@ async def _(event: GroupMessageEvent):
 
     char = match.group(1)
     not_opened, game_data = await openchars.open_char(group_id, char, user_id)
-    if game_data is None:
+    if not game_data:
         return
 
     if not not_opened:

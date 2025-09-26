@@ -3,7 +3,7 @@ from nonebot.adapters.onebot.v11 import Bot
 
 
 async def gen_message(bot: Bot, arcade: dict) -> str:
-    if arcade["last_action"] is None:
+    if not arcade["last_action"]:
         return "从来没有更新过"
 
     messages = list()

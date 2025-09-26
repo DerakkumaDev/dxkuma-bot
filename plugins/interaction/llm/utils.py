@@ -290,7 +290,5 @@ async def _gen_media_info(
         extra_headers=None if disable_encrypted else {"x-is-encrypted": "true"},
     )
     return str().join(
-        choice.message.content
-        for choice in response.choices
-        if choice.message.content is not None
+        choice.message.content for choice in response.choices if choice.message.content
     )

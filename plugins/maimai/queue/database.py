@@ -110,7 +110,7 @@ class ArcadeManager:
         last_action_result = await session.execute(last_action_stmt)
         last_action = last_action_result.scalar_one_or_none()
 
-        if last_action is None:
+        if not last_action:
             return await self._arcade_to_dict(arcade_record, session)
 
         last_action_time = last_action.action_time.astimezone(
@@ -203,7 +203,7 @@ class ArcadeManager:
 
         for arcade_id in bounden_arcade_ids:
             arcade = await self.get_arcade(arcade_id)
-            if arcade is None:
+            if not arcade:
                 continue
 
             if word in arcade["aliases"]:
@@ -228,7 +228,7 @@ class ArcadeManager:
             stmt = select(Arcade.id).where(Arcade.name == name)
             result = await session.execute(stmt)
             arcade_id = result.scalar_one_or_none()
-            if arcade_id is not None:
+            if arcade_id:
                 filtered.append(arcade_id)
         return list(dict.fromkeys(filtered))
 

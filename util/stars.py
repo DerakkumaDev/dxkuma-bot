@@ -82,14 +82,15 @@ class Stars:
     async def _get_user_balance_info(self, qq: str, **kwargs) -> tuple[bool, int]:
         session: AsyncSession = kwargs["session"]
 
-        stmt = select(StarBalance.is_infinite, StarBalance.balance).where(
+        stmt = select(StarBalance.balance, StarBalance.is_infinite).where(
             StarBalance.qq == qq
         )
         result = await session.execute(stmt)
         row = result.first()
         if not row:
             return False, INITIAL_STAR_BALANCE
-        return bool(row[0]), int(row[1]) if row[1] is not None else INITIAL_STAR_BALANCE
+        balance, is_infinite = row
+        return is_infinite, balance if balance is not None else INITIAL_STAR_BALANCE
 
     @with_transaction
     async def _ensure_user_exists(self, qq: str, **kwargs) -> None:

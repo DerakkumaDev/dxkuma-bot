@@ -52,7 +52,7 @@ async def request_queue_task(bot: Bot, chat_type: str, qq_id: int):
     context_id = await contextManager.get_contextid(chat_id)
 
     prompt_hash = await contextManager.get_prompthash(chat_id)
-    if context_id is None or prompt_hash is None or prompt_hash != global_prompt_hash:
+    if not context_id or not prompt_hash or prompt_hash != global_prompt_hash:
         response = await client.context.create(
             model=config.llm_model,
             messages=[{"role": "system", "content": system_prompt}],

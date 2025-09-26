@@ -11,7 +11,7 @@ from .proto import kumabot_pb2_grpc
 class BestsApiClient:
     def __init__(self, server_address: Optional[str] = None):
         self.server_address = (
-            config.backend_url if server_address is None else server_address
+            config.backend_url if not server_address else server_address
         )
         self.channel = None
         self.stub = None
@@ -127,7 +127,7 @@ class BestsApiClient:
 class ListApiClient:
     def __init__(self, server_address: Optional[str] = None):
         self.server_address = (
-            config.backend_url if server_address is None else server_address
+            config.backend_url if not server_address else server_address
         )
         self.channel = None
         self.stub = None
