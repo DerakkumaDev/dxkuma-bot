@@ -106,15 +106,11 @@ class OpenChars:
         game_data["game_contents"] = game_contents
         return game_data
 
-    def _check_char_in_text(self, text: str, char: str) -> bool:
+    def _check_char_in_text(self, text: str, chars: list[str]) -> bool:
         text = text.casefold()
-        if char.casefold() in text:
-            return True
-
-        for c in kks.convert(char):
-            for v in c.values():
-                if v.casefold() in text:
-                    return True
+        for char in chars:
+            if char.casefold() in text:
+                return True
 
         return False
 
@@ -198,7 +194,7 @@ class OpenChars:
 
     @with_transaction
     async def open_char(
-        self, group_id: str, chars: str, user_id: str, **kwargs
+        self, group_id: str, char: str, user_id: str, **kwargs
     ) -> tuple[bool, Optional[dict]]:
         session: AsyncSession = kwargs["session"]
 
@@ -215,11 +211,17 @@ class OpenChars:
             await session.delete(record)
             return False, None
 
-        stmt = insert(WordleOpenChar).values(game_id=record.id, char=chars.casefold())
+        chars = [char.casefold()]
+        for c in kks.convert(char):
+            for v in c.values():
+                chars.append(v.casefold())
+
+        insert_rows = [{"game_id": record.id, "char": c} for c in chars]
+        stmt = insert(WordleOpenChar).values(insert_rows)
         stmt = stmt.on_conflict_do_nothing(constraint="uq_game_char")
         result = await session.execute(stmt)
 
-        if result.rowcount == 0:
+        if result.rowcount < len(chars):
             return False, None
 
         stmt = (
@@ -231,13 +233,15 @@ class OpenChars:
         game_contents = result.scalars().all()
 
         for content in game_contents:
-            if self._check_char_in_text(content.title, chars):
-                part_list = orjson.loads(content.part) if content.part else list()
-                if user_id not in part_list:
-                    part_list.append(user_id)
-                    content.part = orjson.dumps(part_list).decode()
+            if not self._check_char_in_text(content.title, chars):
+                continue
 
-                content.opc_times += 1
+            part_list = orjson.loads(content.part) if content.part else list()
+            if user_id not in part_list:
+                part_list.append(user_id)
+                content.part = orjson.dumps(part_list).decode()
+
+            content.opc_times += 1
 
         record.updated_at = datetime.now(timezone(timedelta(hours=8)))
         game_data = await self._build_game_data(record, session)
