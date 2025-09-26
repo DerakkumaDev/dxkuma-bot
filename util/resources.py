@@ -30,6 +30,8 @@ async def _get_image(key: str, value: str | int, url: str) -> ImageFile:
     except UnidentifiedImageError:
         os.remove(path)
         return await _get_image(key, value, url)
+    except FileNotFoundError:
+        return await _get_image(key, value, url)
 
     try:
         image.verify()
