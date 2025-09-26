@@ -296,11 +296,11 @@ class Stars:
 
         is_first_reward_today = await self._is_first_reward_today(qq, time)
         if is_first_reward_today:
-            extend = int(rng.integers(50, 100))
+            reward = int(rng.integers(50, 100))
+            await self.apply_change(qq, reward, "签到", time)
             method |= 0b0001_0000
 
-        await self.apply_change(qq, extend, "签到", time)
-        await self.apply_change(qq, star, cause, time)
+        await self.apply_change(qq, star + extend, cause, time)
         return star, method, extend
 
 
